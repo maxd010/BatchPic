@@ -295,9 +295,9 @@ describe('TemplateManager', () => {
   describe('Property 9: Template Persistence Round-Trip', () => {
     it('should preserve any valid ProcessingParams after save and load', async () => {
       // Arbitrary generators for ProcessingParams
-      const resizeModeArb = fc.constantFrom('width', 'height', 'longEdge', 'shortEdge', 'aspectRatio');
-      const aspectRatioArb = fc.constantFrom('1:1', '4:5', '16:9');
-      const formatArb = fc.constantFrom('jpg', 'png', 'webp');
+      const resizeModeArb = fc.constantFrom<'width' | 'height' | 'longEdge' | 'shortEdge' | 'aspectRatio'>('width', 'height', 'longEdge', 'shortEdge', 'aspectRatio');
+      const aspectRatioArb = fc.constantFrom<'1:1' | '4:5' | '16:9'>('1:1', '4:5', '16:9');
+      const formatArb = fc.constantFrom<'jpg' | 'png' | 'webp'>('jpg', 'png', 'webp');
       
       const resizeParamsArb = fc.record({
         mode: resizeModeArb,
@@ -314,7 +314,7 @@ describe('TemplateManager', () => {
       });
 
       const compressionParamsArb = fc.record({
-        mode: fc.constantFrom('targetSize', 'quality'),
+        mode: fc.constantFrom<'targetSize' | 'quality'>('targetSize', 'quality'),
         value: fc.integer({ min: 1, max: 100 })
       }).map(params => {
         // Adjust value range based on mode

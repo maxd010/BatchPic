@@ -191,7 +191,7 @@ describe('FileScanner', () => {
               const expectedPaths = new Set<string>();
               for (const item of structure) {
                 const fullPath = path.join(testDir, item.relativePath, `image.${item.format === 'jpeg' ? 'jpg' : item.format}`);
-                await createTestImage(fullPath, 100, 100, item.format);
+                await createTestImage(fullPath, 100, 100, item.format as 'jpeg' | 'png' | 'webp');
                 expectedPaths.add(path.relative(testDir, fullPath));
               }
 
