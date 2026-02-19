@@ -1,0 +1,138 @@
+/* DropZone Component Styles */
+
+.drop-zone {
+  position: relative;
+  min-height: 300px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  background-color: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Empty state */
+.drop-zone.empty {
+  min-height: 400px;
+}
+
+.drop-zone-empty {
+  text-align: center;
+  padding: 40px;
+}
+
+.drop-zone-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.drop-zone-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.drop-zone-hint {
+  font-size: 14px;
+  color: #666;
+  margin: 4px 0;
+}
+
+/* Files loaded state */
+.drop-zone.has-files {
+  min-height: 200px;
+  border-color: #4CAF50;
+  background-color: #f1f8f4;
+}
+
+.drop-zone-loaded {
+  text-align: center;
+  padding: 30px;
+}
+
+.drop-zone.has-files .drop-zone-icon {
+  font-size: 48px;
+  color: #4CAF50;
+  margin-bottom: 12px;
+}
+
+.drop-zone-count {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2e7d32;
+  margin: 0 0 8px 0;
+}
+
+/* Dragging state - visual feedback */
+.drop-zone.dragging {
+  border-color: #2196F3;
+  background-color: #e3f2fd;
+  border-width: 3px;
+  transform: scale(1.02);
+}
+
+/* Drag overlay */
+.drop-zone-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(33, 150, 243, 0.9);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drop-zone-overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.drop-zone-overlay-icon {
+  font-size: 72px;
+  margin-bottom: 16px;
+  animation: bounce 0.6s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.drop-zone-overlay-text {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Hover effect (when not dragging) */
+.drop-zone:not(.dragging):hover {
+  border-color: #999;
+  background-color: #f5f5f5;
+}
+
+.drop-zone.has-files:not(.dragging):hover {
+  border-color: #45a049;
+  background-color: #e8f5e9;
+}

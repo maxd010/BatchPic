@@ -1,0 +1,25 @@
+import { contextBridge, ipcRenderer } from 'electron';
+
+// Expose protected methods that allow the renderer process to use
+// the ipcRenderer without exposing the entire object
+contextBridge.exposeInMainWorld('electronAPI', {
+  // File operations
+  scanFiles: (paths: string[]) => ipcRenderer.invoke('scan-files', paths),
+  
+  // Image processing
+  processImages: (files: any[], params: any) => ipcRenderer.invoke('process-images', files, params),
+  estimateFileSize: (filePath: string, params: any) => ipcRenderer.invoke('estimate-file-size', filePath, params),
+  
+  // Template management
+  saveTemplate: (name: string, params: any) => ipcRenderer.invoke('save-template', name, params),
+  loadTemplates: () => ipcRenderer.invoke('load-templates'),
+  deleteTemplate: (id: string) => ipcRenderer.invoke('delete-template', id),
+  
+  // Output management
+  openOutputDirectory: (path: string) => ipcRenderer.invoke('open-output-directory', path),
+  
+  // Progress updates
+  onProcessingProgress: (callback: (progress: number) => void) => {
+    ipcRenderer.on('processing-progress', (_event, progress) => callback(progress));
+  }
+});

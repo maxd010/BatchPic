@@ -1,0 +1,94 @@
+// Core types for BatchPic
+
+export interface ImageFile {
+  path: string;           // Full file path
+  relativePath: string;   // Relative path from input root
+  format: 'jpg' | 'png' | 'webp';
+  size: number;          // File size in bytes
+  dimensions: { width: number; height: number };
+}
+
+export interface FileScanner {
+  scan(paths: string[]): Promise<ImageFile[]>;
+}
+
+// Image processing types
+
+export interface ResizeParams {
+  mode: 'width' | 'height' | 'longEdge' | 'shortEdge' | 'aspectRatio';
+  value: number;
+  aspectRatio?: '1:1' | '4:5' | '16:9';  // Only when mode is 'aspectRatio'
+}
+
+export interface CompressionParams {
+  mode: 'targetSize' | 'quality';
+  value: number;  // KB for targetSize, percentage for quality
+}
+
+export interface ProcessingParams {
+  resize?: ResizeParams;
+  compression?: CompressionParams;
+  format?: 'jpg' | 'png' | 'webp';
+}
+
+export interface ProcessedImage {
+  outputPath: string;
+  originalSize: number;
+  processedSize: number;
+  success: boolean;
+  error?: string;
+}
+
+export interface ProcessingResult {
+  successful: ProcessedImage[];
+  failed: ProcessedImage[];
+  totalTime: number;
+}
+
+export type ProgressCallback = (current: number, total: number) => void;
+
+export interface ImageProcessor {
+  // Process a single image
+  process(input: ImageFile, params: ProcessingParams, outputPath: string): Promise<ProcessedImage>;
+  
+  // Process multiple images with progress callback
+  processBatch(
+    inputs: ImageFile[], 
+    params: ProcessingParams, 
+    outputRoot: string,
+    onProgress?: ProgressCallback
+  ): Promise<ProcessingResult>;
+}
+
+// Output management types
+
+export interface OutputManager {
+  // Create output directory with timestamp
+  createOutputDirectory(inputPaths: string[]): Promise<string>;
+  
+  // Calculate output file path (preserving directory structure)
+  getOutputPath(inputFile: ImageFile, outputRoot: string, format: string): string;
+  
+  // Open output directory (cross-platform)
+  openOutputDirectory(path: string): Promise<void>;
+}
+
+// Template management types
+
+export interface Template {
+  id: string;
+  name: string;
+  params: ProcessingParams;
+  createdAt: Date;
+}
+
+export interface TemplateManager {
+  // Save a new template
+  save(name: string, params: ProcessingParams): Promise<void>;
+  
+  // Load all templates
+  loadAll(): Promise<Template[]>;
+  
+  // Delete a template
+  delete(id: string): Promise<void>;
+}

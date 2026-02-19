@@ -1,0 +1,297 @@
+/* MainWindow styles - Single-page layout (Requirement 7.1) */
+
+.main-window {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Header */
+.main-header {
+  background-color: #fff;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.main-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.main-header .subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Main content - Grid layout for single-page view */
+.main-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 16px;
+  padding: 16px;
+  overflow: auto;
+}
+
+/* Drop zone section (left side) */
+.drop-zone-section {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.placeholder-dropzone {
+  background-color: #fff;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 60px 40px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.placeholder-dropzone:hover {
+  border-color: #999;
+  background-color: #fafafa;
+}
+
+.placeholder-dropzone p {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.placeholder-dropzone .hint {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #999;
+}
+
+/* File list */
+.file-list {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.file-list h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.file-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.file-list li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.file-list li:last-child {
+  border-bottom: none;
+}
+
+.file-list li.more {
+  color: #999;
+  font-style: italic;
+}
+
+/* Parameter section (right side) */
+.parameter-section {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.placeholder-parameters,
+.placeholder-templates {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-parameters h3,
+.placeholder-templates h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.param-group {
+  margin-bottom: 16px;
+}
+
+.param-group:last-child {
+  margin-bottom: 0;
+}
+
+.param-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.param-group .param-value {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.placeholder-templates .hint {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
+}
+
+/* Preview section (bottom, full width) */
+.preview-section {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.placeholder-preview {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-preview h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.placeholder-preview .hint {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
+}
+
+/* Footer */
+.main-footer {
+  background-color: #fff;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Export button (Requirement 10.1) */
+.export-button {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.export-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #007bff;
+  transition: width 0.3s ease;
+}
+
+/* Result message */
+.result-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #e8f5e9;
+  border-radius: 6px;
+}
+
+.result-message p {
+  margin: 0;
+  font-size: 14px;
+  color: #2e7d32;
+}
+
+.open-folder-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #007bff;
+  background-color: #fff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.open-folder-button:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .drop-zone-section {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .parameter-section {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .preview-section {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
