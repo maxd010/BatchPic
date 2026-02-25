@@ -6,7 +6,7 @@ export interface ElectronAPI {
   loadTemplates: () => Promise<Template[]>;
   deleteTemplate: (id: string) => Promise<void>;
   openOutputDirectory: (path: string) => Promise<void>;
-  onProcessingProgress: (callback: (progress: number) => void) => void;
+  onProcessingProgress: (callback: (progress: number) => void) => () => void;
 }
 
 export interface ImageFile {

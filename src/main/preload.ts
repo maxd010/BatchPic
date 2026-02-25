@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Progress updates
   onProcessingProgress: (callback: (progress: number) => void) => {
-    ipcRenderer.on('processing-progress', (_event, progress) => callback(progress));
+    const listener = (_event: any, progress: number) => callback(progress);
+    ipcRenderer.on('processing-progress', listener);
+    return () => ipcRenderer.removeListener('processing-progress', listener);
   }
 });

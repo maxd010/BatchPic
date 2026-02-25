@@ -21,10 +21,13 @@ function createWindow() {
     }
   });
 
+  // Log preload path for debugging
+  console.log('Preload path:', path.join(__dirname, 'preload.js'));
+
   // Load the app
   if (process.env.NODE_ENV === 'development') {
     // Try port 3000 first, then 3001 (Vite may use 3001 if 3000 is in use)
-    mainWindow.loadURL('http://localhost:3001');
+    mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
@@ -71,8 +74,12 @@ ipcMain.handle('scan-files', async (_event, paths: string[]) => {
 // Image processing
 ipcMain.handle('process-images', async (event, files: ImageFile[], params: ProcessingParams) => {
   try {
+    console.log('Processing images:', files.length, 'files');
+    console.log('Parameters:', params);
+    
     // Create output directory
     const outputRoot = await outputManager.createOutputDirectory(files.map(f => f.path));
+    console.log('Output directory created:', outputRoot);
     
     // Process images with progress callback
     const result = await imageProcessor.processBatch(
@@ -82,10 +89,12 @@ ipcMain.handle('process-images', async (event, files: ImageFile[], params: Proce
       (current: number, total: number) => {
         // Send progress updates to renderer
         const progress = Math.round((current / total) * 100);
+        console.log(`Processing progress: ${progress}%`);
         event.sender.send('processing-progress', progress);
       }
     );
     
+    console.log('Processing completed:', result);
     return { result, outputDirectory: outputRoot };
   } catch (error) {
     console.error('Error processing images:', error);

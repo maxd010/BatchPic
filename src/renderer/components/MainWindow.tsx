@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAppContext, DEFAULT_PARAMS } from '../context/AppContext';
 import { DropZone } from './DropZone';
 import { ParameterPanel } from './ParameterPanel';
@@ -51,6 +51,11 @@ export function MainWindow() {
 
   // Listen for progress updates from main process (Requirement 9.5)
   useEffect(() => {
+    if (!window.electronAPI?.onProcessingProgress) {
+      console.warn('electronAPI.onProcessingProgress not available');
+      return;
+    }
+
     const unsubscribe = window.electronAPI.onProcessingProgress((progress: number) => {
       setProgress(progress);
     });
@@ -85,7 +90,7 @@ export function MainWindow() {
   // Handle parameter changes with real-time feedback (Requirement 8.4)
   // The ParameterPanel now debounces parameter changes internally
   // This handler receives debounced parameters and updates expensive operations
-  const handleParametersChange = async (params: any) => {
+  const handleParametersChange = useCallback(async (params: any) => {
     setProcessingParams(params);
     
     // Estimate output file size based on first image (debounced)
@@ -100,7 +105,7 @@ export function MainWindow() {
         console.error('Failed to estimate file size:', error);
       }
     }
-  };
+  }, [state.inputFiles]);
 
   // Handle template selection (Requirement 5.3)
   const handleSelectTemplate = (templateId: string) => {
@@ -136,6 +141,7 @@ export function MainWindow() {
   // Handle export button click (Requirements 10.1, 10.2)
   const handleExport = async () => {
     if (state.inputFiles.length === 0 || state.isProcessing) {
+      console.log('Export blocked: no files or already processing');
       return;
     }
 
@@ -144,11 +150,16 @@ export function MainWindow() {
       setProgress(0);
       setResult(undefined);
 
+      console.log('Starting export with files:', state.inputFiles.length);
+      console.log('Processing params:', state.processingParams);
+
       // Process images via IPC (Requirement 10.1 - no confirmation dialog)
       const response = await window.electronAPI.processImages(
         state.inputFiles,
         state.processingParams
       );
+
+      console.log('Export completed:', response);
 
       // Update state with result (Requirement 10.3)
       setResult(response.result);
@@ -161,7 +172,7 @@ export function MainWindow() {
       }
     } catch (error) {
       console.error('Failed to process images:', error);
-      // TODO: Show error message to user (will be implemented in error handling task)
+      showNotification(`导出失败: ${error instanceof Error ? error.message : String(error)}`, 'error', 5000);
     } finally {
       setIsProcessing(false);
     }

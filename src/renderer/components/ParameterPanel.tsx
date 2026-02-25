@@ -64,7 +64,7 @@ export function ParameterPanel({
   // Update parent component when debounced parameters change
   useEffect(() => {
     onChange(debouncedParams);
-  }, [debouncedParams, onChange]);
+  }, [debouncedParams]);
 
   // Get original file size for estimation
   const originalSize = inputFiles.length > 0 ? inputFiles[0].size : 0;
