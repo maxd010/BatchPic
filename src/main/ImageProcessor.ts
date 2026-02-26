@@ -11,6 +11,12 @@ import {
 } from './types';
 
 export class SharpImageProcessor implements ImageProcessor {
+  constructor() {
+    // Configure Sharp for better performance
+    sharp.cache({ memory: 50, files: 20, items: 100 });
+    sharp.concurrency(4); // Limit concurrent operations
+  }
+
   /**
    * Process a single image with the given parameters
    */
@@ -24,8 +30,11 @@ export class SharpImageProcessor implements ImageProcessor {
       const outputDir = path.dirname(outputPath);
       await fs.mkdir(outputDir, { recursive: true });
 
-      // Start with sharp instance
-      let pipeline = sharp(input.path);
+      // Start with sharp instance with performance options
+      let pipeline = sharp(input.path, {
+        failOnError: false,
+        limitInputPixels: 268402689, // ~16k x 16k max
+      });
 
       // Apply resize if specified
       if (params.resize) {
@@ -47,8 +56,10 @@ export class SharpImageProcessor implements ImageProcessor {
       } else {
         // Apply compression and format conversion
         pipeline = this.applyCompressionAndFormat(pipeline, outputFormat, params.compression);
-        // Write to output
-        await pipeline.toFile(outputPath);
+        
+        // Convert to buffer first then write (more reliable than toFile)
+        const buffer = await pipeline.toBuffer();
+        await fs.writeFile(outputPath, buffer);
       }
 
       // Get file sizes
@@ -85,6 +96,7 @@ export class SharpImageProcessor implements ImageProcessor {
     const successful: ProcessedImage[] = [];
     const failed: ProcessedImage[] = [];
 
+    // Process images sequentially
     for (let i = 0; i < inputs.length; i++) {
       const input = inputs[i];
       
@@ -102,7 +114,7 @@ export class SharpImageProcessor implements ImageProcessor {
       } else {
         failed.push(result);
       }
-
+      
       // Report progress
       if (onProgress) {
         onProgress(i + 1, inputs.length);
@@ -208,6 +220,7 @@ export class SharpImageProcessor implements ImageProcessor {
   /**
    * Compress image to target file size using iterative quality adjustment
    * Uses binary search to find the optimal quality setting
+   * Optimized to reuse resized buffer
    */
   private async compressToTargetSize(
     pipeline: sharp.Sharp,
@@ -224,23 +237,24 @@ export class SharpImageProcessor implements ImageProcessor {
     let maxQuality = 100;
     let bestQuality = 70;
     let bestSize = 0;
+    let bestBuffer: Buffer | null = null;
     let iterations = 0;
-    const maxIterations = 8; // Limit iterations to prevent infinite loops
+    const maxIterations = 7; // Reduced iterations for faster processing
 
-    // Clone the pipeline for each iteration
+    // Get the resized/processed buffer once (without format conversion)
     const inputBuffer = await pipeline.toBuffer();
 
-    while (iterations < maxIterations) {
+    while (iterations < maxIterations && minQuality <= maxQuality) {
       iterations++;
       
       // Try current quality
       const currentQuality = Math.round((minQuality + maxQuality) / 2);
       
-      // Create a new pipeline from the buffer
+      // Create a new pipeline from the buffer with format and quality
       let testPipeline = sharp(inputBuffer);
       testPipeline = this.applyFormatWithQuality(testPipeline, format, currentQuality);
       
-      // Write to a temporary buffer to check size
+      // Get buffer to check size
       const outputBuffer = await testPipeline.toBuffer();
       const currentSize = outputBuffer.length;
 
@@ -252,9 +266,10 @@ export class SharpImageProcessor implements ImageProcessor {
       }
 
       // Update best result
-      if (Math.abs(currentSize - targetSizeBytes) < Math.abs(bestSize - targetSizeBytes)) {
+      if (!bestBuffer || Math.abs(currentSize - targetSizeBytes) < Math.abs(bestSize - targetSizeBytes)) {
         bestQuality = currentQuality;
         bestSize = currentSize;
+        bestBuffer = outputBuffer;
       }
 
       // Adjust quality range based on result
@@ -265,21 +280,21 @@ export class SharpImageProcessor implements ImageProcessor {
         // File too small, increase quality
         minQuality = currentQuality + 1;
       }
-
-      // Check if we've exhausted the search space
-      if (minQuality > maxQuality) {
-        break;
-      }
     }
 
-    // If we couldn't find a perfect match, use the best result
-    let finalPipeline = sharp(inputBuffer);
-    finalPipeline = this.applyFormatWithQuality(finalPipeline, format, bestQuality);
-    await finalPipeline.toFile(outputPath);
+    // Use the best result we found
+    if (bestBuffer) {
+      await fs.writeFile(outputPath, bestBuffer);
+    } else {
+      // Fallback: use default quality
+      let finalPipeline = sharp(inputBuffer);
+      finalPipeline = this.applyFormatWithQuality(finalPipeline, format, 70);
+      await finalPipeline.toFile(outputPath);
+    }
   }
 
   /**
-   * Apply format conversion with quality setting
+   * Apply format conversion with quality setting and performance optimizations
    */
   private applyFormatWithQuality(
     pipeline: sharp.Sharp,
@@ -288,11 +303,22 @@ export class SharpImageProcessor implements ImageProcessor {
   ): sharp.Sharp {
     switch (format) {
       case 'jpg':
-        return pipeline.jpeg({ quality });
+        return pipeline.jpeg({ 
+          quality,
+          mozjpeg: true, // Use mozjpeg for better compression
+          chromaSubsampling: '4:2:0'
+        });
       case 'png':
-        return pipeline.png({ quality });
+        return pipeline.png({ 
+          quality,
+          compressionLevel: 6, // Balance between speed and compression
+          adaptiveFiltering: false // Faster encoding
+        });
       case 'webp':
-        return pipeline.webp({ quality });
+        return pipeline.webp({ 
+          quality,
+          effort: 4 // Balance between speed and compression (0-6, default 4)
+        });
       default:
         return pipeline;
     }

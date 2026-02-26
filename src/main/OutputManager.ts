@@ -78,6 +78,7 @@ export class OutputManagerImpl implements OutputManager {
     // Verify directory exists
     try {
       const stats = await fs.stat(dirPath);
+      
       if (!stats.isDirectory()) {
         throw new Error(`Path is not a directory: ${dirPath}`);
       }
@@ -103,6 +104,7 @@ export class OutputManagerImpl implements OutputManager {
         await execAsync(`xdg-open "${dirPath}"`);
       }
     } catch (error) {
+      console.error('Error opening directory:', error);
       throw new Error(`Failed to open directory: ${error instanceof Error ? error.message : String(error)}`);
     }
   }

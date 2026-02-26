@@ -93,6 +93,9 @@ export function MainWindow() {
   const handleParametersChange = useCallback(async (params: any) => {
     setProcessingParams(params);
     
+    // Disable file size estimation for now - it's too expensive
+    // TODO: Implement a faster estimation method
+    /*
     // Estimate output file size based on first image (debounced)
     if (state.inputFiles.length > 0) {
       try {
@@ -105,7 +108,8 @@ export function MainWindow() {
         console.error('Failed to estimate file size:', error);
       }
     }
-  }, [state.inputFiles]);
+    */
+  }, [setProcessingParams]);
 
   // Handle template selection (Requirement 5.3)
   const handleSelectTemplate = (templateId: string) => {
