@@ -83,7 +83,7 @@ export function MainWindow() {
       showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
     } catch (error) {
       console.error('Failed to scan files:', error);
-      // TODO: Show error message to user (will be implemented in error handling task)
+      showNotification('文件扫描失败', 'error', 3000);
     }
   };
 
@@ -141,7 +141,6 @@ export function MainWindow() {
   // Handle export button click (Requirements 10.1, 10.2)
   const handleExport = async () => {
     if (state.inputFiles.length === 0 || state.isProcessing) {
-      console.log('Export blocked: no files or already processing');
       return;
     }
 
@@ -150,16 +149,11 @@ export function MainWindow() {
       setProgress(0);
       setResult(undefined);
 
-      console.log('Starting export with files:', state.inputFiles.length);
-      console.log('Processing params:', state.processingParams);
-
       // Process images via IPC (Requirement 10.1 - no confirmation dialog)
       const response = await window.electronAPI.processImages(
         state.inputFiles,
         state.processingParams
       );
-
-      console.log('Export completed:', response);
 
       // Update state with result (Requirement 10.3)
       setResult(response.result);

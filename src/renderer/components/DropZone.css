@@ -21,6 +21,7 @@
 .drop-zone-empty {
   text-align: center;
   padding: 40px;
+  pointer-events: none;
 }
 
 .drop-zone-icon {
@@ -52,6 +53,7 @@
 .drop-zone-loaded {
   text-align: center;
   padding: 30px;
+  pointer-events: none;
 }
 
 .drop-zone.has-files .drop-zone-icon {

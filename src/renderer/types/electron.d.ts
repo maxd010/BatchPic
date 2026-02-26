@@ -1,4 +1,5 @@
 export interface ElectronAPI {
+  openFileDialog: () => Promise<string[]>;
   scanFiles: (paths: string[]) => Promise<ImageFile[]>;
   processImages: (files: ImageFile[], params: ProcessingParams) => Promise<{ result: ProcessingResult; outputDirectory: string }>;
   estimateFileSize: (filePath: string, params: ProcessingParams) => Promise<number>;
@@ -6,6 +7,7 @@ export interface ElectronAPI {
   loadTemplates: () => Promise<Template[]>;
   deleteTemplate: (id: string) => Promise<void>;
   openOutputDirectory: (path: string) => Promise<void>;
+  loadImagePreview: (filePath: string) => Promise<string>;
   onProcessingProgress: (callback: (progress: number) => void) => () => void;
 }
 

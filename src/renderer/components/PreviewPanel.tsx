@@ -27,6 +27,36 @@ interface PreviewDimensions {
  */
 export function PreviewPanel({ originalImage, params }: PreviewPanelProps) {
   const [previewDimensions, setPreviewDimensions] = useState<PreviewDimensions | null>(null);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+
+  // Load image as data URL
+  useEffect(() => {
+    if (!originalImage) {
+      setImageDataUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadImage = async () => {
+      try {
+        if (window.electronAPI?.loadImagePreview) {
+          const dataUrl = await window.electronAPI.loadImagePreview(originalImage.path);
+          if (!cancelled) {
+            setImageDataUrl(dataUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load image preview:', error);
+      }
+    };
+
+    loadImage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [originalImage]);
 
   // Calculate output dimensions based on parameters
   useEffect(() => {
@@ -132,20 +162,36 @@ export function PreviewPanel({ originalImage, params }: PreviewPanelProps) {
         {/* Preview visualization */}
         <div className="preview-visualization">
           <div className="preview-box">
-            <div
-              className="preview-image"
-              style={{
-                width: `${displayWidth}px`,
-                height: `${displayHeight}px`,
-                backgroundColor: '#e0e0e0',
-                border: '2px solid #999',
-                borderRadius: '4px',
-              }}
-            >
-              <span className="preview-text">
-                {originalImage.relativePath}
-              </span>
-            </div>
+            {imageDataUrl ? (
+              <img
+                src={imageDataUrl}
+                alt={originalImage.relativePath}
+                className="preview-image"
+                style={{
+                  width: `${displayWidth}px`,
+                  height: `${displayHeight}px`,
+                  objectFit: 'cover',
+                  border: '2px solid #999',
+                  borderRadius: '4px',
+                }}
+              />
+            ) : (
+              <div
+                className="preview-loading"
+                style={{
+                  width: `${displayWidth}px`,
+                  height: `${displayHeight}px`,
+                  backgroundColor: '#e0e0e0',
+                  border: '2px solid #999',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span className="preview-text">加载中...</span>
+              </div>
+            )}
           </div>
         </div>
 

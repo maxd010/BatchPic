@@ -21,14 +21,16 @@ function createWindow() {
     }
   });
 
-  // Log preload path for debugging
-  console.log('Preload path:', path.join(__dirname, 'preload.js'));
-
-  // Load the app
-  if (process.env.NODE_ENV === 'development') {
-    // Try port 3000 first, then 3001 (Vite may use 3001 if 3000 is in use)
+  // Always load from localhost in dev, and always open DevTools
+  const isDev = !app.isPackaged;
+  
+  if (isDev) {
     mainWindow.loadURL('http://localhost:3000');
-    mainWindow.webContents.openDevTools();
+    
+    // Open DevTools
+    mainWindow.webContents.on('did-finish-load', () => {
+      mainWindow!.webContents.openDevTools();
+    });
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
@@ -59,6 +61,27 @@ const templateManager = new TemplateManager();
 const outputManager = new OutputManagerImpl();
 
 // IPC Handlers
+
+// Open file dialog
+ipcMain.handle('open-file-dialog', async () => {
+  try {
+    const { dialog } = require('electron');
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] }
+      ]
+    });
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error opening file dialog:', error);
+    throw error;
+  }
+});
 
 // File scanning (Requirements 1.1, 1.2)
 ipcMain.handle('scan-files', async (_event, paths: string[]) => {
@@ -171,6 +194,25 @@ ipcMain.handle('open-output-directory', async (_event, dirPath: string) => {
     await outputManager.openOutputDirectory(dirPath);
   } catch (error) {
     console.error('Error opening output directory:', error);
+    throw error;
+  }
+});
+
+// Load image as data URL for preview
+ipcMain.handle('load-image-preview', async (_event, filePath: string) => {
+  try {
+    const fs = require('fs/promises');
+    const imageBuffer = await fs.readFile(filePath);
+    const base64 = imageBuffer.toString('base64');
+    const ext = path.extname(filePath).toLowerCase();
+    let mimeType = 'image/jpeg';
+    
+    if (ext === '.png') mimeType = 'image/png';
+    else if (ext === '.webp') mimeType = 'image/webp';
+    
+    return `data:${mimeType};base64,${base64}`;
+  } catch (error) {
+    console.error('Error loading image preview:', error);
     throw error;
   }
 });

@@ -4,6 +4,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
   // File operations
+  openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
   scanFiles: (paths: string[]) => ipcRenderer.invoke('scan-files', paths),
   
   // Image processing
@@ -17,6 +18,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Output management
   openOutputDirectory: (path: string) => ipcRenderer.invoke('open-output-directory', path),
+  
+  // Image preview
+  loadImagePreview: (filePath: string) => ipcRenderer.invoke('load-image-preview', filePath),
   
   // Progress updates
   onProcessingProgress: (callback: (progress: number) => void) => {

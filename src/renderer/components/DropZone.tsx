@@ -25,29 +25,17 @@ export function DropZone({ onFilesDropped, isEmpty, fileCount = 0 }: DropZonePro
   const [isDragging, setIsDragging] = useState(false);
 
   // Handle click to open file browser
-  const handleClick = useCallback(() => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = true;
-    input.accept = 'image/jpeg,image/png,image/webp';
-    
-    input.onchange = (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files && files.length > 0) {
-        const paths: string[] = [];
-        for (let i = 0; i < files.length; i++) {
-          const path = (files[i] as any).path;
-          if (path) {
-            paths.push(path);
-          }
-        }
+  const handleClick = useCallback(async (e: React.MouseEvent) => {
+    try {
+      if (window.electronAPI?.openFileDialog) {
+        const paths = await window.electronAPI.openFileDialog();
         if (paths.length > 0) {
           onFilesDropped(paths);
         }
       }
-    };
-    
-    input.click();
+    } catch (error) {
+      console.error('Failed to open file dialog:', error);
+    }
   }, [onFilesDropped]);
 
   // Handle drag enter
@@ -108,13 +96,15 @@ export function DropZone({ onFilesDropped, isEmpty, fileCount = 0 }: DropZonePro
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onClick={handleClick}
+      onClick={(e) => {
+        handleClick(e);
+      }}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          handleClick();
+          handleClick(e as any);
         }
       }}
     >
