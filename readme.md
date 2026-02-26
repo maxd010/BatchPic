@@ -65,3 +65,21 @@ batchpic/
 - 处理模板保存和重用
 - 单窗口界面
 - 本地处理（无需上传）
+
+## 📚 文档
+
+完整的项目文档请访问 [文档中心](docs/README.md)。
+
+### 快速链接
+
+- **设计文档**
+  - [设计系统规范](docs/design/DESIGN_SYSTEM.md)
+  - [布局优化说明](docs/design/LAYOUT_OPTIMIZATION.md)
+  - [UI 优化总结](docs/design/UI_OPTIMIZATION_SUMMARY.md)
+
+- **开发文档**
+  - [开发环境配置](docs/development/SETUP.md)
+
+- **测试文档**
+  - [快速测试指南](docs/testing/QUICK_TEST.md)
+  - [故障排除](docs/testing/TROUBLESHOOTING.md)

@@ -1,16 +1,17 @@
-/* DropZone Component Styles */
+/* DropZone Component - Modern design with Teal theme */
 
 .drop-zone {
   position: relative;
   min-height: 300px;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  background-color: #fafafa;
+  border: 2px dashed #0D9488;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.02) 0%, rgba(20, 184, 166, 0.02) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 200ms ease-out;
   cursor: pointer;
+  overflow: hidden;
 }
 
 /* Empty state */
@@ -27,27 +28,29 @@
 .drop-zone-icon {
   font-size: 64px;
   margin-bottom: 20px;
-  opacity: 0.6;
+  opacity: 0.5;
+  color: #0D9488;
+  transition: all 200ms ease-out;
 }
 
 .drop-zone-title {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: #134E4A;
   margin: 0 0 12px 0;
 }
 
 .drop-zone-hint {
   font-size: 14px;
-  color: #666;
+  color: #5f7c79;
   margin: 4px 0;
 }
 
 /* Files loaded state */
 .drop-zone.has-files {
   min-height: 200px;
-  border-color: #4CAF50;
-  background-color: #f1f8f4;
+  border-color: #14B8A6;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%);
 }
 
 .drop-zone-loaded {
@@ -58,23 +61,25 @@
 
 .drop-zone.has-files .drop-zone-icon {
   font-size: 48px;
-  color: #4CAF50;
+  color: #14B8A6;
   margin-bottom: 12px;
+  opacity: 1;
 }
 
 .drop-zone-count {
   font-size: 20px;
   font-weight: 600;
-  color: #2e7d32;
+  color: #0D9488;
   margin: 0 0 8px 0;
 }
 
 /* Dragging state - visual feedback */
 .drop-zone.dragging {
-  border-color: #2196F3;
-  background-color: #e3f2fd;
+  border-color: #F97316;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.1) 100%);
   border-width: 3px;
   transform: scale(1.02);
+  box-shadow: 0 10px 15px rgba(13, 148, 136, 0.1);
 }
 
 /* Drag overlay */
@@ -84,13 +89,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(33, 150, 243, 0.9);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.95) 0%, rgba(234, 88, 12, 0.95) 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 200ms ease-out;
 }
 
 @keyframes fadeIn {
@@ -110,7 +115,7 @@
 .drop-zone-overlay-icon {
   font-size: 72px;
   margin-bottom: 16px;
-  animation: bounce 0.6s ease infinite;
+  animation: bounce 600ms ease-out infinite;
 }
 
 @keyframes bounce {
@@ -130,11 +135,44 @@
 
 /* Hover effect (when not dragging) */
 .drop-zone:not(.dragging):hover {
-  border-color: #999;
-  background-color: #f5f5f5;
+  border-color: #14B8A6;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.07);
+}
+
+.drop-zone:not(.dragging):hover .drop-zone-icon {
+  opacity: 0.8;
+  transform: scale(1.05);
 }
 
 .drop-zone.has-files:not(.dragging):hover {
-  border-color: #45a049;
-  background-color: #e8f5e9;
+  border-color: #0D9488;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08) 0%, rgba(20, 184, 166, 0.08) 100%);
+}
+
+/* Focus state for accessibility */
+.drop-zone:focus-visible {
+  outline: 3px solid #F97316;
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .drop-zone,
+  .drop-zone-icon {
+    transition: none;
+  }
+  
+  .drop-zone-overlay {
+    animation: none;
+  }
+  
+  .drop-zone-overlay-icon {
+    animation: none;
+  }
+  
+  .drop-zone:not(.dragging):hover {
+    transform: none;
+  }
 }

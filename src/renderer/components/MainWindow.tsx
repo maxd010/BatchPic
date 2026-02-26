@@ -216,63 +216,73 @@ export function MainWindow() {
         <p className="subtitle">图片交付准备工具</p>
       </header>
 
-      {/* Main content area - single page layout (Requirement 7.1) */}
+      {/* Main content area - optimized sidebar layout */}
       <main className="main-content">
-        {/* Left side: Drop zone and file list */}
-        <section className="drop-zone-section">
-          {/* DropZone component (Task 7.2) */}
-          <DropZone 
-            onFilesDropped={handleFilesDropped}
-            isEmpty={state.inputFiles.length === 0}
-            fileCount={state.inputFiles.length}
-          />
-          
-          {/* File list */}
-          {state.inputFiles.length > 0 && (
-            <div className="file-list">
-              <h3>已选择 {state.inputFiles.length} 张图片</h3>
-              <ul>
-                {state.inputFiles.slice(0, 5).map((file, index) => (
-                  <li key={index}>
-                    {file.relativePath} ({Math.round(file.size / 1024)} KB)
-                  </li>
-                ))}
-                {state.inputFiles.length > 5 && (
-                  <li className="more">...还有 {state.inputFiles.length - 5} 张</li>
-                )}
-              </ul>
-            </div>
-          )}
-        </section>
-
-        {/* Right side: Parameter controls */}
-        <section className="parameter-section">
-          {/* ParameterPanel component (Task 7.3) */}
-          <ParameterPanel
-            params={state.processingParams}
-            onChange={handleParametersChange}
-            inputFiles={state.inputFiles}
-            estimatedSize={estimatedSize}
-          />
-
-          {/* TemplateSelector component (Task 7.5) */}
-          <TemplateSelector
-            templates={state.templates}
-            selectedId={state.selectedTemplateId}
-            onSelect={handleSelectTemplate}
-            onSave={handleSaveTemplate}
-            onDelete={handleDeleteTemplate}
-          />
-        </section>
-
-        {/* Preview panel (bottom, full width) */}
-        <section className="preview-section">
-          {/* PreviewPanel component (Task 7.4) */}
-          {state.inputFiles.length > 0 && (
-            <PreviewPanel
-              originalImage={state.inputFiles[0]}
+        {/* Left sidebar: Compact control panel */}
+        <aside className="sidebar">
+          {/* Collapsible sections for parameters and templates */}
+          <div className="sidebar-section">
+            <ParameterPanel
               params={state.processingParams}
+              onChange={handleParametersChange}
+              inputFiles={state.inputFiles}
+              estimatedSize={estimatedSize}
             />
+          </div>
+
+          <div className="sidebar-section">
+            <TemplateSelector
+              templates={state.templates}
+              selectedId={state.selectedTemplateId}
+              onSelect={handleSelectTemplate}
+              onSave={handleSaveTemplate}
+              onDelete={handleDeleteTemplate}
+            />
+          </div>
+        </aside>
+
+        {/* Right main area: Drop zone, file list, and preview */}
+        <section className="workspace">
+          {/* Drop zone - compact when files loaded */}
+          <div className="workspace-dropzone">
+            <DropZone 
+              onFilesDropped={handleFilesDropped}
+              isEmpty={state.inputFiles.length === 0}
+              fileCount={state.inputFiles.length}
+            />
+          </div>
+
+          {/* File list and preview in tabs or split view */}
+          {state.inputFiles.length > 0 && (
+            <div className="workspace-content">
+              {/* File list - compact horizontal cards */}
+              <div className="file-list-compact">
+                <div className="file-list-header">
+                  <h3>已选择 {state.inputFiles.length} 张图片</h3>
+                </div>
+                <div className="file-grid">
+                  {state.inputFiles.slice(0, 8).map((file, index) => (
+                    <div key={index} className="file-card">
+                      <div className="file-name">{file.relativePath}</div>
+                      <div className="file-size">{Math.round(file.size / 1024)} KB</div>
+                    </div>
+                  ))}
+                  {state.inputFiles.length > 8 && (
+                    <div className="file-card more-files">
+                      +{state.inputFiles.length - 8} 张
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Preview panel - inline */}
+              <div className="preview-inline">
+                <PreviewPanel
+                  originalImage={state.inputFiles[0]}
+                  params={state.processingParams}
+                />
+              </div>
+            </div>
           )}
         </section>
       </main>

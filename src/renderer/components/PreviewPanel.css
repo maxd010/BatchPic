@@ -1,13 +1,19 @@
-/* PreviewPanel styles - Display preview of first image with processing effects */
+/* PreviewPanel - Modern design with Teal theme */
 
 .preview-panel {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(13, 148, 136, 0.05);
+  border: 1px solid #ccfbf1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  transition: box-shadow 200ms ease-out;
+}
+
+.preview-panel:hover {
+  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.07);
 }
 
 .preview-panel.empty {
@@ -26,19 +32,19 @@
   margin: 0 0 4px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: #0D9488;
 }
 
 .preview-subtitle {
   margin: 0;
   font-size: 14px;
-  color: #999;
+  color: #5f7c79;
 }
 
 /* Placeholder */
 .preview-placeholder {
   text-align: center;
-  color: #999;
+  color: #5f7c79;
   font-size: 14px;
 }
 
@@ -46,7 +52,7 @@
 .preview-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 /* Preview visualization */
@@ -54,10 +60,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.02) 0%, rgba(20, 184, 166, 0.02) 100%);
+  border-radius: 12px;
+  border: 1px solid #ccfbf1;
 }
 
 .preview-box {
@@ -74,11 +80,12 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+  border-radius: 8px;
 }
 
 .preview-text {
   font-size: 12px;
-  color: #999;
+  color: #5f7c79;
   text-align: center;
   padding: 8px;
   word-break: break-word;
@@ -88,11 +95,12 @@
 /* Dimensions info */
 .preview-info {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   align-items: flex-start;
-  padding: 12px;
-  background-color: #f5f5f5;
-  border-radius: 6px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.03) 0%, rgba(20, 184, 166, 0.03) 100%);
+  border-radius: 8px;
+  border: 1px solid #ccfbf1;
 }
 
 .info-section {
@@ -101,10 +109,10 @@
 }
 
 .info-section h4 {
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
   font-size: 13px;
   font-weight: 600;
-  color: #666;
+  color: #0D9488;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -113,23 +121,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  padding: 6px 0;
   font-size: 13px;
 }
 
 .dimension-row .label {
-  color: #999;
+  color: #5f7c79;
   font-weight: 500;
 }
 
 .dimension-row .value {
-  color: #333;
+  color: #134E4A;
   font-weight: 600;
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .dimension-row .value.changed {
-  color: #ff9800;
+  color: #F97316;
+  background: rgba(249, 115, 22, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 /* Arrow indicator */
@@ -137,21 +148,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  color: #ccc;
-  min-width: 24px;
+  font-size: 20px;
+  color: #14B8A6;
+  min-width: 28px;
   flex-shrink: 0;
 }
 
 /* Changes summary */
 .changes-summary {
-  padding: 12px;
-  background-color: #fff3e0;
-  border-left: 3px solid #ff9800;
-  border-radius: 4px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(251, 146, 60, 0.05) 100%);
+  border-left: 3px solid #F97316;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .change-item {
@@ -162,29 +173,43 @@
 }
 
 .change-label {
-  color: #666;
+  color: #5f7c79;
   font-weight: 500;
 }
 
 .change-value {
-  color: #ff9800;
+  color: #F97316;
   font-weight: 600;
   font-family: 'Monaco', 'Courier New', monospace;
+  background: rgba(249, 115, 22, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .preview-panel {
+    padding: 16px;
+  }
+  
   .preview-info {
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .arrow-indicator {
     transform: rotate(90deg);
-    margin: 4px 0;
+    margin: 8px 0;
   }
 
   .info-section {
     width: 100%;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .preview-panel {
+    transition: none;
   }
 }
