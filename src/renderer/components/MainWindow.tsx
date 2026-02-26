@@ -301,18 +301,28 @@ export function MainWindow() {
         {/* Result message (Requirement 10.3) */}
         {state.result && (
           <div className="result-message">
-            <p>
-              处理完成！成功: {state.result.successful.length} 张，
-              失败: {state.result.failed.length} 张
-            </p>
-            {state.outputDirectory && (
+            <div className="result-info">
+              <p>
+                处理完成！成功: {state.result.successful.length} 张，
+                失败: {state.result.failed.length} 张
+              </p>
+            </div>
+            <div className="result-actions">
+              {state.outputDirectory && (
+                <button 
+                  className="open-folder-button"
+                  onClick={handleOpenOutputDirectory}
+                >
+                  打开输出文件夹
+                </button>
+              )}
               <button 
-                className="open-folder-button"
-                onClick={handleOpenOutputDirectory}
+                className="reset-button"
+                onClick={resetState}
               >
-                打开输出文件夹
+                处理更多图片
               </button>
-            )}
+            </div>
           </div>
         )}
       </footer>

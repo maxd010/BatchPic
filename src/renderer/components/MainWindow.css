@@ -243,32 +243,55 @@
 /* Result message */
 .result-message {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
   background-color: #e8f5e9;
   border-radius: 6px;
 }
 
-.result-message p {
+.result-info p {
   margin: 0;
   font-size: 14px;
   color: #2e7d32;
+  font-weight: 500;
 }
 
-.open-folder-button {
+.result-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.open-folder-button,
+.reset-button {
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #007bff;
-  background-color: #fff;
-  border: 1px solid #007bff;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.open-folder-button {
+  color: #fff;
+  background-color: #4CAF50;
+  flex: 1;
+}
+
 .open-folder-button:hover {
+  background-color: #45a049;
+}
+
+.reset-button {
+  color: #007bff;
+  background-color: #fff;
+  border: 1px solid #007bff;
+  flex: 1;
+}
+
+.reset-button:hover {
   background-color: #007bff;
   color: #fff;
 }
