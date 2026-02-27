@@ -163,18 +163,16 @@
 .mode-button.active,
 .aspect-button.active,
 .format-button.active {
-  background: var(--color-primary);
-  color: #ffffff;
-  border-color: var(--color-primary);
+  background: rgba(79, 70, 229, 0.18);
+  color: #4f46e5;
+  border-color: transparent;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
 }
 
 .mode-button.active:hover,
 .aspect-button.active:hover,
 .format-button.active:hover {
-  background: var(--color-primary);
-  filter: brightness(1.1);
+  background: rgba(79, 70, 229, 0.25);
 }
 
 .select-wrapper {
