@@ -90,3 +90,39 @@ export const MagnifyingGlassPlusIcon = ({ className = "w-6 h-6" }: { className?:
     <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />
   </svg>
 );
+
+export const ChevronRightIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+  </svg>
+);
+
+export const ChevronLeftIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+  </svg>
+);
+
+export const ChevronDownIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+  </svg>
+);
+
+export const ChevronUpIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+  </svg>
+);
+
+export const AdjustmentsVerticalIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 13.5V3.75m0 13.5V20.25m6-10.5V3.75m0 13.5V20.25m6-7.5V3.75m0 13.5V20.25m-9-6h3m-9 6h3m9-13.5h3" />
+  </svg>
+);
+
+export const SwatchIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.975 15.975 0 0 1-1.483-1.507m0 0a15.945 15.945 0 0 1-1.468-1.745m0 0a15.96 15.96 0 0 1-1.331-2.18 15.947 15.947 0 0 1-1.12-2.707m0 0a15.984 15.984 0 0 1-.365-2.837m1.12 2.707a16.186 16.186 0 0 0 5.725 5.797m.503-3.945a16.056 16.056 0 0 1 3.901-3.037m-5.075 4.43a16.12 16.12 0 0 1-5.813-5.51m6.39 8.84a16.191 16.191 0 0 0 5.115-5.26m-5.954 4.865a16.19 16.19 0 0 0 3.536-4.862m0 0a16.196 16.196 0 0 0 2.283-5.897m0 0a16.3 16.3 0 0 0 .37-2.823m0 0a16.3 16.3 0 0 0-.37-2.822m0 0a16.052 16.052 0 0 0-5.98 5.664m5.98-5.664a16.052 16.052 0 0 0-5.664 5.98m5.664-5.98a16.054 16.054 0 0 0-3.927-3.008m-4.71 4.52a16.1 16.1 0 0 1-5.567-5.129m6.356 8.613a16.065 16.065 0 0 1-5.404-5.24m4.023 3.91a16.11 16.11 0 0 1-3.51-4.734m0 0a16.115 16.115 0 0 1-2.312-5.722m0 0a16.291 16.291 0 0 1-.375-2.828" />
+  </svg>
+);

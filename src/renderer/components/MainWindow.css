@@ -107,6 +107,109 @@
   flex-direction: column;
   flex-shrink: 0;
   height: 100%;
+  position: relative;
+  transition: width var(--transition-base);
+}
+
+.sidebar.collapsed {
+  width: 50px;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle-button {
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.sidebar-toggle-button:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.toggle-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Collapsed Sidebar Content */
+.collapsed-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--spacing-lg);
+  height: 100%;
+  gap: var(--spacing-lg);
+}
+
+.collapsed-action-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+
+.collapsed-action-button:hover {
+  background: #eef2ff;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.collapsed-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.collapsed-footer-actions {
+  margin-top: auto;
+  padding-bottom: var(--spacing-lg);
+}
+
+.mini-export-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.mini-export-button:hover:not(.disabled) {
+  background: var(--color-primary-hover);
+  transform: scale(1.1);
+}
+
+.mini-export-button.disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 .sidebar-scrollable {
@@ -116,7 +219,7 @@
 }
 
 .sidebar-section {
-  border-bottom: 1px solid var(--color-border);
+  /* Removed duplicate border */
 }
 
 .sidebar-footer {

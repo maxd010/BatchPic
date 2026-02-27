@@ -7,7 +7,7 @@ import { TemplateSelector } from './TemplateSelector';
 import { FullScreenPreview } from './FullScreenPreview';
 import { NotificationContainer } from './NotificationContainer';
 import { ErrorReportDialog } from './ErrorReportDialog';
-import { FolderOpenIcon, ArrowPathIcon, MagnifyingGlassPlusIcon } from './Icons';
+import { FolderOpenIcon, ArrowPathIcon, MagnifyingGlassPlusIcon, ChevronRightIcon, ChevronLeftIcon, AdjustmentsVerticalIcon } from './Icons';
 import './MainWindow.css';
 
 /**
@@ -45,6 +45,7 @@ export function MainWindow() {
   const [estimatedSize, setEstimatedSize] = useState<number | undefined>();
   const [showErrorReport, setShowErrorReport] = useState(false);
   const [previewFile, setPreviewFile] = useState<any | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Load templates on mount
   useEffect(() => {
@@ -271,85 +272,118 @@ export function MainWindow() {
         </section>
 
         {/* Right sidebar: Compact control panel */}
-        <aside className="sidebar">
-          {/* Sidebar Header with App Title */}
-          <header className="sidebar-header">
-            <h1>BatchPic</h1>
-            <p className="subtitle">图片交付准备工具</p>
-          </header>
+        <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+          <button 
+            className="sidebar-toggle-button"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+          >
+            {sidebarCollapsed ? <ChevronLeftIcon className="toggle-icon" /> : <ChevronRightIcon className="toggle-icon" />}
+          </button>
 
-          <div className="sidebar-scrollable">
-            <div className="sidebar-section">
-              <ParameterPanel
-                params={state.processingParams}
-                onChange={handleParametersChange}
-                inputFiles={state.inputFiles}
-                estimatedSize={estimatedSize}
-              />
-            </div>
+          {!sidebarCollapsed ? (
+            <>
+              {/* Sidebar Header with App Title */}
+              <header className="sidebar-header">
+                <h1>BatchPic</h1>
+                <p className="subtitle">图片交付准备工具</p>
+              </header>
 
-            <div className="sidebar-section">
-              <TemplateSelector
-                templates={state.templates}
-                selectedId={state.selectedTemplateId}
-                onSelect={handleSelectTemplate}
-                onSave={handleSaveTemplate}
-                onDelete={handleDeleteTemplate}
-              />
-            </div>
-          </div>
-
-          {/* Sidebar Footer with Export Button */}
-          <div className="sidebar-footer">
-            {/* Processing progress */}
-            {state.isProcessing && (
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${state.progress}%` }}
+              <div className="sidebar-scrollable">
+                <div className="sidebar-section">
+                  <ParameterPanel
+                    params={state.processingParams}
+                    onChange={handleParametersChange}
+                    inputFiles={state.inputFiles}
+                    estimatedSize={estimatedSize}
                   />
                 </div>
-                <span className="progress-text">{state.progress}%</span>
-              </div>
-            )}
 
-            {/* Export button (Requirement 10.1) */}
-            <button 
-              className="export-button"
-              onClick={handleExport}
-              disabled={state.inputFiles.length === 0 || state.isProcessing}
-            >
-              {state.isProcessing ? '处理中...' : '开始导出图片'}
-            </button>
-
-            {/* Result message (Requirement 10.3) */}
-            {state.result && (
-              <div className="sidebar-result">
-                <div className="result-info">
-                  <p>✓ 处理完成 ({state.result.successful.length} 成功, {state.result.failed.length} 失败)</p>
-                </div>
-                <div className="result-actions">
-                  {state.outputDirectory && (
-                    <button 
-                      className="sidebar-action-button"
-                      onClick={handleOpenOutputDirectory}
-                      title="打开文件夹"
-                    >
-                      <FolderOpenIcon className="sidebar-action-icon" />
-                    </button>
-                  )}
-                  <button 
-                    className="sidebar-action-button"
-                    onClick={resetState}
-                    title="重置"
-                  >
-                    <ArrowPathIcon className="sidebar-action-icon" />
-                  </button>
+                <div className="sidebar-section">
+                  <TemplateSelector
+                    templates={state.templates}
+                    selectedId={state.selectedTemplateId}
+                    onSelect={handleSelectTemplate}
+                    onSave={handleSaveTemplate}
+                    onDelete={handleDeleteTemplate}
+                  />
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Sidebar Footer with Export Button */}
+              <div className="sidebar-footer">
+                {/* Processing progress */}
+                {state.isProcessing && (
+                  <div className="progress-container">
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{ width: `${state.progress}%` }}
+                      />
+                    </div>
+                    <span className="progress-text">{state.progress}%</span>
+                  </div>
+                )}
+
+                {/* Export button (Requirement 10.1) */}
+                <button 
+                  className="export-button"
+                  onClick={handleExport}
+                  disabled={state.inputFiles.length === 0 || state.isProcessing}
+                >
+                  {state.isProcessing ? '处理中...' : '开始导出图片'}
+                </button>
+
+                {/* Result message (Requirement 10.3) */}
+                {state.result && (
+                  <div className="sidebar-result">
+                    <div className="result-info">
+                      <p>✓ 处理完成 ({state.result.successful.length} 成功, {state.result.failed.length} 失败)</p>
+                    </div>
+                    <div className="result-actions">
+                      {state.outputDirectory && (
+                        <button 
+                          className="sidebar-action-button"
+                          onClick={handleOpenOutputDirectory}
+                          title="打开文件夹"
+                        >
+                          <FolderOpenIcon className="sidebar-action-icon" />
+                        </button>
+                      )}
+                      <button 
+                        className="sidebar-action-button"
+                        onClick={resetState}
+                        title="重置"
+                      >
+                        <ArrowPathIcon className="sidebar-action-icon" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="collapsed-sidebar-actions">
+              <button 
+                className="collapsed-action-button"
+                onClick={() => setSidebarCollapsed(false)}
+                title="参数设置"
+              >
+                <AdjustmentsVerticalIcon className="collapsed-icon" />
+              </button>
+              
+              <div className="collapsed-footer-actions">
+                <button 
+                  className={`mini-export-button ${state.inputFiles.length === 0 || state.isProcessing ? 'disabled' : ''}`}
+                  onClick={handleExport}
+                  disabled={state.inputFiles.length === 0 || state.isProcessing}
+                  title="开始导出"
+                >
+                  {state.isProcessing ? '...' : 'Go'}
+                </button>
+              </div>
+            </div>
+          )}
         </aside>
       </main>
     </div>

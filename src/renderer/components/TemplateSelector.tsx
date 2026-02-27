@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Template, ProcessingParams } from '../../main/types';
-import { BookmarkIcon, PlusIcon, TrashIcon, XMarkIcon } from './Icons';
+import { BookmarkIcon, PlusIcon, TrashIcon, XMarkIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import './TemplateSelector.css';
 
 interface TemplateSelectorProps {
@@ -24,6 +24,7 @@ export function TemplateSelector({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [saveError, setSaveError] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Handle save template
   const handleSaveTemplate = () => {
@@ -50,53 +51,63 @@ export function TemplateSelector({
   };
 
   return (
-    <div className="template-selector">
-      <div className="template-header">
-        <div className="header-title">
+    <div className={`template-selector ${isExpanded ? 'expanded' : 'collapsed'}`}>
+      <div className="template-header" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="header-left">
           <BookmarkIcon className="section-icon" />
           <h3>处理模板</h3>
         </div>
-        <button
-          className="save-template-button"
-          onClick={() => setShowSaveDialog(true)}
-          title="保存当前参数为模板"
-        >
-          <PlusIcon className="button-icon" />
-          <span>保存</span>
-        </button>
+        <div className="header-right">
+          <button
+            className="save-template-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSaveDialog(true);
+            }}
+            title="保存当前参数为模板"
+          >
+            <PlusIcon className="button-icon" />
+            <span>保存</span>
+          </button>
+          {isExpanded ? <ChevronUpIcon className="toggle-icon" /> : <ChevronDownIcon className="toggle-icon" />}
+        </div>
       </div>
 
       {/* Template list */}
-      {templates.length > 0 ? (
-        <div className="template-list">
-          {templates.map((template) => (
-            <div
-              key={template.id}
-              className={`template-item ${selectedId === template.id ? 'selected' : ''}`}
-            >
-              <button
-                className="template-select-button"
-                onClick={() => onSelect(template.id)}
-              >
-                <span className="template-name">{template.name}</span>
-                <span className="template-date">
-                  {new Date(template.createdAt).toLocaleDateString('zh-CN')}
-                </span>
-              </button>
-              <button
-                className="template-delete-button"
-                onClick={() => handleDeleteTemplate(template.id)}
-                title="删除模板"
-              >
-                <TrashIcon className="delete-icon" />
-              </button>
+      {isExpanded && (
+        <div className="section-content">
+          {templates.length > 0 ? (
+            <div className="template-list">
+              {templates.map((template) => (
+                <div
+                  key={template.id}
+                  className={`template-item ${selectedId === template.id ? 'selected' : ''}`}
+                >
+                  <button
+                    className="template-select-button"
+                    onClick={() => onSelect(template.id)}
+                  >
+                    <span className="template-name">{template.name}</span>
+                    <span className="template-date">
+                      {new Date(template.createdAt).toLocaleDateString('zh-CN')}
+                    </span>
+                  </button>
+                  <button
+                    className="template-delete-button"
+                    onClick={() => handleDeleteTemplate(template.id)}
+                    title="删除模板"
+                  >
+                    <TrashIcon className="delete-icon" />
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="empty-state">
-          <p>还没有保存的模板</p>
-          <p className="hint">点击"保存"按钮保存常用参数组合</p>
+          ) : (
+            <div className="empty-state">
+              <p>还没有保存的模板</p>
+              <p className="hint">点击"保存"按钮保存常用参数组合</p>
+            </div>
+          )}
         </div>
       )}
 
