@@ -241,54 +241,61 @@
 
 /* Compact mode for when files are already loaded */
 .drop-zone.compact {
-  min-height: 60px;
-  padding: 0 20px;
-  border-style: solid;
-  border-width: 1px;
+  min-height: 140px;
+  padding: 20px;
+  border-style: dashed;
+  border-width: 2px;
+  border-radius: 20px;
+  background: #ffffff;
 }
 
 .drop-zone.compact .drop-zone-loaded {
-  flex-direction: row;
-  padding: 10px;
+  flex-direction: column;
+  padding: 0;
   gap: 12px;
   width: 100%;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .drop-zone.compact .loaded-left {
   flex-direction: row;
-  gap: 12px;
+  gap: 16px;
+  align-items: center;
 }
 
 .drop-zone.compact .loaded-info {
   align-items: flex-start;
 }
 
-.drop-zone.compact .drop-zone-clear-button {
-  margin-top: 0;
-  padding: 4px 10px;
-  font-size: 11px;
-}
-
 .drop-zone.compact .drop-zone-icon-wrapper.success {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   margin-bottom: 0;
+  border-radius: 14px;
 }
 
 .drop-zone.compact .drop-zone-icon-wrapper.success .drop-zone-icon-svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .drop-zone.compact .drop-zone-count {
-  font-size: 14px;
-  margin-bottom: 0;
+  font-size: 16px;
+  margin-bottom: 2px;
 }
 
 .drop-zone.compact .drop-zone-hint {
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 0;
+}
+
+.drop-zone.compact .drop-zone-clear-button {
+  margin-top: 4px;
+  padding: 6px 14px;
+  font-size: 12px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
 }
 
 @keyframes bounce {
