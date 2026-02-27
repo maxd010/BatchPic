@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ImageFile, ProcessingParams, ResizeParams } from '../../main/types';
+import { EyeIcon } from './Icons';
 import './PreviewPanel.css';
 
 interface PreviewPanelProps {
@@ -127,7 +128,8 @@ export function PreviewPanel({ originalImage, params }: PreviewPanelProps) {
     return (
       <div className="preview-panel empty">
         <div className="preview-placeholder">
-          <p>拖入图片以查看预览</p>
+          <EyeIcon className="placeholder-icon" />
+          <p>选择图片以查看预览效果</p>
         </div>
       </div>
     );
@@ -154,8 +156,11 @@ export function PreviewPanel({ originalImage, params }: PreviewPanelProps) {
   return (
     <div className="preview-panel">
       <div className="preview-header">
-        <h3>预览</h3>
-        <p className="preview-subtitle">第一张图片的处理效果</p>
+        <div className="header-with-icon">
+          <EyeIcon className="header-icon" />
+          <h3>效果预览</h3>
+        </div>
+        <p className="preview-subtitle">基于首张图片的处理效果</p>
       </div>
 
       <div className="preview-content">

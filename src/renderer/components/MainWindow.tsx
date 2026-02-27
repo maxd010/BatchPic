@@ -6,6 +6,7 @@ import { PreviewPanel } from './PreviewPanel';
 import { TemplateSelector } from './TemplateSelector';
 import { NotificationContainer } from './NotificationContainer';
 import { ErrorReportDialog } from './ErrorReportDialog';
+import { FolderOpenIcon, ArrowPathIcon } from './Icons';
 import './MainWindow.css';
 
 /**
@@ -220,24 +221,77 @@ export function MainWindow() {
       <main className="main-content">
         {/* Left sidebar: Compact control panel */}
         <aside className="sidebar">
-          {/* Collapsible sections for parameters and templates */}
-          <div className="sidebar-section">
-            <ParameterPanel
-              params={state.processingParams}
-              onChange={handleParametersChange}
-              inputFiles={state.inputFiles}
-              estimatedSize={estimatedSize}
-            />
+          <div className="sidebar-scrollable">
+            <div className="sidebar-section">
+              <ParameterPanel
+                params={state.processingParams}
+                onChange={handleParametersChange}
+                inputFiles={state.inputFiles}
+                estimatedSize={estimatedSize}
+              />
+            </div>
+
+            <div className="sidebar-section">
+              <TemplateSelector
+                templates={state.templates}
+                selectedId={state.selectedTemplateId}
+                onSelect={handleSelectTemplate}
+                onSave={handleSaveTemplate}
+                onDelete={handleDeleteTemplate}
+              />
+            </div>
           </div>
 
-          <div className="sidebar-section">
-            <TemplateSelector
-              templates={state.templates}
-              selectedId={state.selectedTemplateId}
-              onSelect={handleSelectTemplate}
-              onSave={handleSaveTemplate}
-              onDelete={handleDeleteTemplate}
-            />
+          {/* Sidebar Footer with Export Button */}
+          <div className="sidebar-footer">
+            {/* Processing progress */}
+            {state.isProcessing && (
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{ width: `${state.progress}%` }}
+                  />
+                </div>
+                <span className="progress-text">{state.progress}%</span>
+              </div>
+            )}
+
+            {/* Export button (Requirement 10.1) */}
+            <button 
+              className="export-button"
+              onClick={handleExport}
+              disabled={state.inputFiles.length === 0 || state.isProcessing}
+            >
+              {state.isProcessing ? '处理中...' : '开始导出图片'}
+            </button>
+
+            {/* Result message (Requirement 10.3) */}
+            {state.result && (
+              <div className="sidebar-result">
+                <div className="result-info">
+                  <p>✓ 处理完成 ({state.result.successful.length} 成功, {state.result.failed.length} 失败)</p>
+                </div>
+                <div className="result-actions">
+                  {state.outputDirectory && (
+                    <button 
+                      className="sidebar-action-button"
+                      onClick={handleOpenOutputDirectory}
+                      title="打开文件夹"
+                    >
+                      <FolderOpenIcon className="sidebar-action-icon" />
+                    </button>
+                  )}
+                  <button 
+                    className="sidebar-action-button"
+                    onClick={resetState}
+                    title="重置"
+                  >
+                    <ArrowPathIcon className="sidebar-action-icon" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </aside>
 
@@ -286,56 +340,6 @@ export function MainWindow() {
           )}
         </section>
       </main>
-
-      {/* Footer with export button */}
-      <footer className="main-footer">
-        {/* Export button (Requirement 10.1) */}
-        <button 
-          className="export-button"
-          onClick={handleExport}
-          disabled={state.inputFiles.length === 0 || state.isProcessing}
-        >
-          {state.isProcessing ? `处理中... ${state.progress}%` : '导出图片'}
-        </button>
-        
-        {/* Processing progress (Requirement 9.5) */}
-        {state.isProcessing && (
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${state.progress}%` }}
-            />
-          </div>
-        )}
-
-        {/* Result message (Requirement 10.3) */}
-        {state.result && (
-          <div className="result-message">
-            <div className="result-info">
-              <p>
-                处理完成！成功: {state.result.successful.length} 张，
-                失败: {state.result.failed.length} 张
-              </p>
-            </div>
-            <div className="result-actions">
-              {state.outputDirectory && (
-                <button 
-                  className="open-folder-button"
-                  onClick={handleOpenOutputDirectory}
-                >
-                  打开输出文件夹
-                </button>
-              )}
-              <button 
-                className="reset-button"
-                onClick={resetState}
-              >
-                处理更多图片
-              </button>
-            </div>
-          </div>
-        )}
-      </footer>
     </div>
   );
 }

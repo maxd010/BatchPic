@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { UploadIcon, CheckCircleIcon, PhotoIcon, ArrowDownTrayIcon } from './Icons';
 import './DropZone.css';
 
 /**
@@ -111,16 +112,24 @@ export function DropZone({ onFilesDropped, isEmpty, fileCount = 0 }: DropZonePro
       {isEmpty ? (
         // Empty state (Requirement 7.3)
         <div className="drop-zone-empty">
-          <div className="drop-zone-icon">📁</div>
+          <div className="drop-zone-icon-wrapper">
+            <PhotoIcon className="drop-zone-icon-svg" />
+          </div>
           <h2 className="drop-zone-title">拖入图片，马上处理</h2>
           <p className="drop-zone-hint">或点击此处选择文件</p>
-          <p className="drop-zone-hint">支持 JPG、PNG、WEBP 格式</p>
-          <p className="drop-zone-hint">可拖入单个文件或整个文件夹</p>
+          <div className="drop-zone-meta">
+            <span className="drop-zone-tag">JPG</span>
+            <span className="drop-zone-tag">PNG</span>
+            <span className="drop-zone-tag">WEBP</span>
+          </div>
+          <p className="drop-zone-subhint">可拖入单个文件或整个文件夹</p>
         </div>
       ) : (
         // Files loaded state
         <div className="drop-zone-loaded">
-          <div className="drop-zone-icon">✓</div>
+          <div className="drop-zone-icon-wrapper success">
+            <CheckCircleIcon className="drop-zone-icon-svg" />
+          </div>
           <h3 className="drop-zone-count">已选择 {fileCount} 张图片</h3>
           <p className="drop-zone-hint">点击或拖入更多文件以添加到批次</p>
         </div>
@@ -130,7 +139,7 @@ export function DropZone({ onFilesDropped, isEmpty, fileCount = 0 }: DropZonePro
       {isDragging && (
         <div className="drop-zone-overlay">
           <div className="drop-zone-overlay-content">
-            <div className="drop-zone-overlay-icon">⬇</div>
+            <ArrowDownTrayIcon className="drop-zone-overlay-icon" />
             <p className="drop-zone-overlay-text">释放以添加文件</p>
           </div>
         </div>

@@ -1,17 +1,22 @@
-/* DropZone Component - Modern design with Teal theme */
+/* DropZone Component - Modern design with Indigo/Slate theme */
 
 .drop-zone {
   position: relative;
-  min-height: 300px;
-  border: 2px dashed #0D9488;
+  min-height: 320px;
+  border: 2px dashed #cbd5e1;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.02) 0%, rgba(20, 184, 166, 0.02) 100%);
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 200ms ease-out;
+  transition: all 250ms ease-out;
   cursor: pointer;
   overflow: hidden;
+}
+
+.drop-zone:hover {
+  border-color: var(--color-primary);
+  background: var(--color-background);
 }
 
 /* Empty state */
@@ -23,63 +28,124 @@
   text-align: center;
   padding: 40px;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.drop-zone-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-  opacity: 0.5;
-  color: #0D9488;
-  transition: all 200ms ease-out;
+.drop-zone-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  transition: all 250ms ease-out;
+}
+
+.drop-zone:hover .drop-zone-icon-wrapper {
+  background: #E0E7FF;
+  transform: scale(1.05);
+}
+
+.drop-zone-icon-svg {
+  width: 40px;
+  height: 40px;
+  color: #64748b;
+  transition: color 250ms ease-out;
+}
+
+.drop-zone:hover .drop-zone-icon-svg {
+  color: var(--color-primary);
 }
 
 .drop-zone-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #134E4A;
-  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
 }
 
 .drop-zone-hint {
   font-size: 14px;
-  color: #5f7c79;
-  margin: 4px 0;
+  color: var(--color-text-muted);
+  margin: 0 0 20px 0;
+}
+
+.drop-zone-subhint {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 16px;
+}
+
+/* Format tags */
+.drop-zone-meta {
+  display: flex;
+  gap: 8px;
+}
+
+.drop-zone-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.drop-zone:hover .drop-zone-tag {
+  color: var(--color-primary);
+  background: #E0E7FF;
 }
 
 /* Files loaded state */
 .drop-zone.has-files {
   min-height: 200px;
-  border-color: #14B8A6;
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%);
+  border-color: var(--color-secondary);
+  background: var(--color-background);
 }
 
 .drop-zone-loaded {
   text-align: center;
   padding: 30px;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.drop-zone.has-files .drop-zone-icon {
-  font-size: 48px;
-  color: #14B8A6;
-  margin-bottom: 12px;
-  opacity: 1;
+.drop-zone-icon-wrapper.success {
+  width: 64px;
+  height: 64px;
+  background: var(--color-success-bg);
+  margin-bottom: 16px;
+}
+
+.drop-zone-icon-wrapper.success .drop-zone-icon-svg {
+  color: var(--color-success);
+  width: 32px;
+  height: 32px;
 }
 
 .drop-zone-count {
-  font-size: 20px;
-  font-weight: 600;
-  color: #0D9488;
-  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 6px 0;
 }
 
 /* Dragging state - visual feedback */
 .drop-zone.dragging {
-  border-color: #F97316;
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.1) 100%);
-  border-width: 3px;
-  transform: scale(1.02);
-  box-shadow: 0 10px 15px rgba(13, 148, 136, 0.1);
+  border-color: var(--color-primary);
+  background: #EEF2FF;
+  border-width: 2px;
+  transform: scale(1.01);
+  box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.1);
 }
 
 /* Drag overlay */
@@ -89,8 +155,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.95) 0%, rgba(234, 88, 12, 0.95) 100%);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,81 +165,36 @@
   animation: fadeIn 200ms ease-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 .drop-zone-overlay-content {
-  text-align: center;
-  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .drop-zone-overlay-icon {
-  font-size: 72px;
-  margin-bottom: 16px;
-  animation: bounce 600ms ease-out infinite;
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+  margin-bottom: 12px;
+  animation: bounce 1s infinite;
+}
+
+.drop-zone-overlay-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 @keyframes bounce {
   0%, 100% {
-    transform: translateY(0);
+    transform: translateY(-10%);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(10%);
   }
 }
 
-.drop-zone-overlay-text {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0;
-}
-
-/* Hover effect (when not dragging) */
-.drop-zone:not(.dragging):hover {
-  border-color: #14B8A6;
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(13, 148, 136, 0.07);
-}
-
-.drop-zone:not(.dragging):hover .drop-zone-icon {
-  opacity: 0.8;
-  transform: scale(1.05);
-}
-
-.drop-zone.has-files:not(.dragging):hover {
-  border-color: #0D9488;
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08) 0%, rgba(20, 184, 166, 0.08) 100%);
-}
-
-/* Focus state for accessibility */
-.drop-zone:focus-visible {
-  outline: 3px solid #F97316;
-  outline-offset: 2px;
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .drop-zone,
-  .drop-zone-icon {
-    transition: none;
-  }
-  
-  .drop-zone-overlay {
-    animation: none;
-  }
-  
-  .drop-zone-overlay-icon {
-    animation: none;
-  }
-  
-  .drop-zone:not(.dragging):hover {
-    transform: none;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
