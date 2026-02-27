@@ -219,7 +219,48 @@ export function MainWindow() {
 
       {/* Main content area - optimized sidebar layout */}
       <main className="main-content">
-        {/* Left sidebar: Compact control panel */}
+        {/* Left main area: Drop zone, file list, and preview */}
+        <section className="workspace">
+          {/* Drop zone - compact when files loaded */}
+          <div className={`workspace-dropzone ${state.inputFiles.length > 0 ? 'compact-container' : ''}`}>
+            <DropZone 
+              onFilesDropped={handleFilesDropped}
+              isEmpty={state.inputFiles.length === 0}
+              fileCount={state.inputFiles.length}
+              compact={state.inputFiles.length > 0}
+            />
+          </div>
+
+          {/* File list and preview in tabs or split view */}
+          {state.inputFiles.length > 0 && (
+            <div className="workspace-content">
+              {/* Preview panel - inline */}
+              <div className="preview-inline">
+                <PreviewPanel
+                  originalImage={state.inputFiles[0]}
+                  params={state.processingParams}
+                />
+              </div>
+
+              {/* File list - compact horizontal cards */}
+              <div className="file-list-compact">
+                <div className="file-list-header">
+                  <h3>已选择 {state.inputFiles.length} 张图片</h3>
+                </div>
+                <div className="file-grid">
+                  {state.inputFiles.map((file, index) => (
+                    <div key={index} className="file-card">
+                      <div className="file-name">{file.relativePath}</div>
+                      <div className="file-size">{Math.round(file.size / 1024)} KB</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Right sidebar: Compact control panel */}
         <aside className="sidebar">
           <div className="sidebar-scrollable">
             <div className="sidebar-section">
@@ -294,51 +335,6 @@ export function MainWindow() {
             )}
           </div>
         </aside>
-
-        {/* Right main area: Drop zone, file list, and preview */}
-        <section className="workspace">
-          {/* Drop zone - compact when files loaded */}
-          <div className="workspace-dropzone">
-            <DropZone 
-              onFilesDropped={handleFilesDropped}
-              isEmpty={state.inputFiles.length === 0}
-              fileCount={state.inputFiles.length}
-            />
-          </div>
-
-          {/* File list and preview in tabs or split view */}
-          {state.inputFiles.length > 0 && (
-            <div className="workspace-content">
-              {/* File list - compact horizontal cards */}
-              <div className="file-list-compact">
-                <div className="file-list-header">
-                  <h3>已选择 {state.inputFiles.length} 张图片</h3>
-                </div>
-                <div className="file-grid">
-                  {state.inputFiles.slice(0, 8).map((file, index) => (
-                    <div key={index} className="file-card">
-                      <div className="file-name">{file.relativePath}</div>
-                      <div className="file-size">{Math.round(file.size / 1024)} KB</div>
-                    </div>
-                  ))}
-                  {state.inputFiles.length > 8 && (
-                    <div className="file-card more-files">
-                      +{state.inputFiles.length - 8} 张
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Preview panel - inline */}
-              <div className="preview-inline">
-                <PreviewPanel
-                  originalImage={state.inputFiles[0]}
-                  params={state.processingParams}
-                />
-              </div>
-            </div>
-          )}
-        </section>
       </main>
     </div>
   );

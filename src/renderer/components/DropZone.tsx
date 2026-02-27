@@ -20,9 +20,10 @@ interface DropZoneProps {
   onFilesDropped: (paths: string[]) => void;
   isEmpty: boolean;
   fileCount?: number;
+  compact?: boolean;
 }
 
-export function DropZone({ onFilesDropped, isEmpty, fileCount = 0 }: DropZoneProps) {
+export function DropZone({ onFilesDropped, isEmpty, fileCount = 0, compact = false }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   // Handle click to open file browser
@@ -92,7 +93,7 @@ export function DropZone({ onFilesDropped, isEmpty, fileCount = 0 }: DropZonePro
 
   return (
     <div
-      className={`drop-zone ${isDragging ? 'dragging' : ''} ${isEmpty ? 'empty' : 'has-files'}`}
+      className={`drop-zone ${isDragging ? 'dragging' : ''} ${isEmpty ? 'empty' : 'has-files'} ${compact ? 'compact' : ''}`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}

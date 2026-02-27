@@ -185,6 +185,43 @@
   color: var(--color-primary);
 }
 
+/* Compact mode for when files are already loaded */
+.drop-zone.compact {
+  min-height: 60px;
+  padding: 0 20px;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.drop-zone.compact .drop-zone-loaded {
+  flex-direction: row;
+  padding: 10px;
+  gap: 12px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.drop-zone.compact .drop-zone-icon-wrapper.success {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 0;
+}
+
+.drop-zone.compact .drop-zone-icon-wrapper.success .drop-zone-icon-svg {
+  width: 20px;
+  height: 20px;
+}
+
+.drop-zone.compact .drop-zone-count {
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+.drop-zone.compact .drop-zone-hint {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+
 @keyframes bounce {
   0%, 100% {
     transform: translateY(-10%);
