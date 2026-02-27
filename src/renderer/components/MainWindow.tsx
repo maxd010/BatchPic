@@ -299,7 +299,7 @@ export function MainWindow() {
                   />
                 </div>
 
-                <div className="sidebar-section">
+                <div className="sidebar-section template-section-standalone">
                   <TemplateSelector
                     templates={state.templates}
                     selectedId={state.selectedTemplateId}

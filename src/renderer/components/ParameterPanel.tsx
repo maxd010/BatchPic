@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ProcessingParams, ResizeParams, CompressionParams, ImageFile } from '../../main/types';
 import { useDebounce } from '../hooks/useDebounce';
-import { AdjustmentsIcon, ArrowsPointingInIcon, PhotoIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
+import { AdjustmentsIcon, ArrowsPointingInIcon, PhotoIcon } from './Icons';
 import './ParameterPanel.css';
 
 interface ParameterPanelProps {
@@ -11,8 +11,10 @@ interface ParameterPanelProps {
   estimatedSize?: number;
 }
 
+type TabType = 'resize' | 'compression' | 'format';
+
 /**
- * ParameterPanel - Control panel for processing parameters
+ * ParameterPanel - Control panel for processing parameters with Tab switching
  */
 export function ParameterPanel({
   params,
@@ -20,18 +22,7 @@ export function ParameterPanel({
   inputFiles,
   estimatedSize,
 }: ParameterPanelProps) {
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    resize: true,
-    compression: true,
-    format: false,
-  });
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  const [activeTab, setActiveTab] = useState<TabType>('resize');
 
   const [resizeMode, setResizeMode] = useState<ResizeParams['mode'] | 'none'>(
     params.resize?.mode || 'none'
@@ -50,7 +41,7 @@ export function ParameterPanel({
     params.format || 'original'
   );
 
-  // Build current parameters object (before debouncing)
+  // Build current parameters object
   const currentParams: ProcessingParams = {
     resize: resizeMode === 'none' ? undefined : {
       mode: resizeMode as ResizeParams['mode'],
@@ -64,32 +55,47 @@ export function ParameterPanel({
     format: outputFormat === 'original' ? undefined : outputFormat,
   };
 
-  // Debounce parameter changes to avoid excessive updates (Requirement 8.4)
-  // This ensures preview and file size estimation don't update on every keystroke
   const debouncedParams = useDebounce(currentParams, 300);
 
-  // Update parent component when debounced parameters change
   useEffect(() => {
     onChange(debouncedParams);
   }, [debouncedParams]);
 
-  // Get original file size for estimation
   const originalSize = inputFiles.length > 0 ? inputFiles[0].size : 0;
 
   return (
-    <div className="parameter-panel">
-      {/* Resize section */}
-      <div className={`param-section ${expandedSections.resize ? 'expanded' : 'collapsed'}`}>
-        <div className="section-header" onClick={() => toggleSection('resize')}>
-          <div className="header-left">
-            <ArrowsPointingInIcon className="section-icon" />
-            <h3>尺寸调整</h3>
-          </div>
-          {expandedSections.resize ? <ChevronUpIcon className="toggle-icon" /> : <ChevronDownIcon className="toggle-icon" />}
-        </div>
-        
-        {expandedSections.resize && (
-          <div className="section-content">
+    <div className="parameter-panel-tabs">
+      <div className="tabs-header">
+        <button 
+          className={`tab-item ${activeTab === 'resize' ? 'active' : ''}`}
+          onClick={() => setActiveTab('resize')}
+          title="尺寸调整"
+        >
+          <ArrowsPointingInIcon className="tab-icon" />
+          <span>尺寸</span>
+        </button>
+        <button 
+          className={`tab-item ${activeTab === 'compression' ? 'active' : ''}`}
+          onClick={() => setActiveTab('compression')}
+          title="压缩控制"
+        >
+          <AdjustmentsIcon className="tab-icon" />
+          <span>压缩</span>
+        </button>
+        <button 
+          className={`tab-item ${activeTab === 'format' ? 'active' : ''}`}
+          onClick={() => setActiveTab('format')}
+          title="输出格式"
+        >
+          <PhotoIcon className="tab-icon" />
+          <span>格式</span>
+        </button>
+      </div>
+
+      <div className="tabs-content">
+        {/* Resize Tab */}
+        {activeTab === 'resize' && (
+          <div className="tab-pane active">
             <div className="param-row">
               <div className="param-col">
                 <label htmlFor="resize-mode">调整模式</label>
@@ -110,7 +116,6 @@ export function ParameterPanel({
                 </div>
               </div>
 
-              {/* Resize value input */}
               {resizeMode !== 'none' && resizeMode !== 'aspectRatio' && (
                 <div className="param-col">
                   <label htmlFor="resize-value">
@@ -131,7 +136,6 @@ export function ParameterPanel({
                 </div>
               )}
 
-              {/* Aspect ratio selector */}
               {resizeMode === 'aspectRatio' && (
                 <div className="param-col">
                   <label htmlFor="aspect-ratio">比例</label>
@@ -152,20 +156,10 @@ export function ParameterPanel({
             </div>
           </div>
         )}
-      </div>
 
-      {/* Compression section */}
-      <div className={`param-section ${expandedSections.compression ? 'expanded' : 'collapsed'}`}>
-        <div className="section-header" onClick={() => toggleSection('compression')}>
-          <div className="header-left">
-            <AdjustmentsIcon className="section-icon" />
-            <h3>压缩控制</h3>
-          </div>
-          {expandedSections.compression ? <ChevronUpIcon className="toggle-icon" /> : <ChevronDownIcon className="toggle-icon" />}
-        </div>
-        
-        {expandedSections.compression && (
-          <div className="section-content">
+        {/* Compression Tab */}
+        {activeTab === 'compression' && (
+          <div className="tab-pane active">
             <div className="param-row">
               <div className="param-col">
                 <label htmlFor="compression-mode">模式</label>
@@ -183,7 +177,6 @@ export function ParameterPanel({
                 </div>
               </div>
 
-              {/* Target size input */}
               {compressionMode === 'targetSize' && (
                 <div className="param-col">
                   <label htmlFor="target-size">目标(KB)</label>
@@ -200,7 +193,6 @@ export function ParameterPanel({
               )}
             </div>
 
-            {/* Quality slider */}
             {compressionMode === 'quality' && (
               <div className="param-group compact">
                 <div className="label-with-value">
@@ -222,7 +214,6 @@ export function ParameterPanel({
               </div>
             )}
 
-            {/* File size estimation */}
             {originalSize > 0 && (
               <div className="file-size-info compact">
                 <div className="size-row">
@@ -235,21 +226,12 @@ export function ParameterPanel({
             )}
           </div>
         )}
-      </div>
 
-      {/* Format section */}
-      <div className={`param-section ${expandedSections.format ? 'expanded' : 'collapsed'}`}>
-        <div className="section-header" onClick={() => toggleSection('format')}>
-          <div className="header-left">
-            <PhotoIcon className="section-icon" />
-            <h3>输出格式</h3>
-          </div>
-          {expandedSections.format ? <ChevronUpIcon className="toggle-icon" /> : <ChevronDownIcon className="toggle-icon" />}
-        </div>
-        
-        {expandedSections.format && (
-          <div className="section-content">
+        {/* Format Tab */}
+        {activeTab === 'format' && (
+          <div className="tab-pane active">
             <div className="param-group">
+              <label htmlFor="output-format">输出格式</label>
               <div className="select-wrapper">
                 <select
                   id="output-format"
