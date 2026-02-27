@@ -96,102 +96,112 @@ export function ParameterPanel({
         {/* Resize Tab */}
         {activeTab === 'resize' && (
           <div className="tab-pane active">
-            <div className="param-row">
-              <div className="param-col">
-                <label htmlFor="resize-mode">调整模式</label>
-                <div className="select-wrapper">
-                  <select
-                    id="resize-mode"
-                    value={resizeMode}
-                    onChange={(e) => setResizeMode(e.target.value as any)}
-                    className="param-select"
+            <div className="param-group">
+              <label>调整模式</label>
+              <div className="button-group">
+                {['none', 'width', 'height', 'longEdge', 'shortEdge', 'aspectRatio'].map((mode) => (
+                  <button
+                    key={mode}
+                    className={`mode-button ${resizeMode === mode ? 'active' : ''}`}
+                    onClick={() => setResizeMode(mode as any)}
+                    title={
+                      mode === 'none' ? '保持原始尺寸' :
+                      mode === 'width' ? '按宽度调整' :
+                      mode === 'height' ? '按高度调整' :
+                      mode === 'longEdge' ? '按长边调整' :
+                      mode === 'shortEdge' ? '按短边调整' :
+                      '按宽高比调整'
+                    }
                   >
-                    <option value="none">保持原始</option>
-                    <option value="width">按宽度</option>
-                    <option value="height">按高度</option>
-                    <option value="longEdge">按长边</option>
-                    <option value="shortEdge">按短边</option>
-                    <option value="aspectRatio">宽高比</option>
-                  </select>
+                    {mode === 'none' && '保持原始'}
+                    {mode === 'width' && '按宽度'}
+                    {mode === 'height' && '按高度'}
+                    {mode === 'longEdge' && '按长边'}
+                    {mode === 'shortEdge' && '按短边'}
+                    {mode === 'aspectRatio' && '宽高比'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {resizeMode !== 'none' && resizeMode !== 'aspectRatio' && (
+              <div className="param-group">
+                <label htmlFor="resize-value">
+                  {resizeMode === 'width' && '宽度'}
+                  {resizeMode === 'height' && '高度'}
+                  {resizeMode === 'longEdge' && '长边'}
+                  {resizeMode === 'shortEdge' && '短边'}
+                </label>
+                <input
+                  id="resize-value"
+                  type="number"
+                  min="10"
+                  max="5000"
+                  value={resizeValue}
+                  onChange={(e) => setResizeValue(Math.max(10, parseInt(e.target.value) || 0))}
+                  className="param-input"
+                />
+              </div>
+            )}
+
+            {resizeMode === 'aspectRatio' && (
+              <div className="param-group">
+                <label>比例</label>
+                <div className="button-group">
+                  {(['1:1', '4:5', '16:9'] as const).map((ratio) => (
+                    <button
+                      key={ratio}
+                      className={`aspect-button ${aspectRatio === ratio ? 'active' : ''}`}
+                      onClick={() => setAspectRatio(ratio)}
+                    >
+                      {ratio}
+                    </button>
+                  ))}
                 </div>
               </div>
-
-              {resizeMode !== 'none' && resizeMode !== 'aspectRatio' && (
-                <div className="param-col">
-                  <label htmlFor="resize-value">
-                    {resizeMode === 'width' && '宽度'}
-                    {resizeMode === 'height' && '高度'}
-                    {resizeMode === 'longEdge' && '长边'}
-                    {resizeMode === 'shortEdge' && '短边'}
-                  </label>
-                  <input
-                    id="resize-value"
-                    type="number"
-                    min="10"
-                    max="5000"
-                    value={resizeValue}
-                    onChange={(e) => setResizeValue(Math.max(10, parseInt(e.target.value) || 0))}
-                    className="param-input"
-                  />
-                </div>
-              )}
-
-              {resizeMode === 'aspectRatio' && (
-                <div className="param-col">
-                  <label htmlFor="aspect-ratio">比例</label>
-                  <div className="select-wrapper">
-                    <select
-                      id="aspect-ratio"
-                      value={aspectRatio}
-                      onChange={(e) => setAspectRatio(e.target.value as any)}
-                      className="param-select"
-                    >
-                      <option value="1:1">1:1</option>
-                      <option value="4:5">4:5</option>
-                      <option value="16:9">16:9</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         )}
 
         {/* Compression Tab */}
         {activeTab === 'compression' && (
           <div className="tab-pane active">
-            <div className="param-row">
-              <div className="param-col">
-                <label htmlFor="compression-mode">模式</label>
-                <div className="select-wrapper">
-                  <select
-                    id="compression-mode"
-                    value={compressionMode}
-                    onChange={(e) => setCompressionMode(e.target.value as any)}
-                    className="param-select"
+            <div className="param-group">
+              <label>压缩模式</label>
+              <div className="button-group">
+                {(['quality', 'targetSize', 'none'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    className={`mode-button ${compressionMode === mode ? 'active' : ''}`}
+                    onClick={() => setCompressionMode(mode)}
+                    title={
+                      mode === 'quality' ? '按质量压缩' :
+                      mode === 'targetSize' ? '压缩至目标大小' :
+                      '不进行压缩'
+                    }
                   >
-                    <option value="quality">按质量</option>
-                    <option value="targetSize">按大小</option>
-                    <option value="none">不压缩</option>
-                  </select>
-                </div>
+                    {mode === 'quality' && '按质量'}
+                    {mode === 'targetSize' && '按大小'}
+                    {mode === 'none' && '不压缩'}
+                  </button>
+                ))}
               </div>
-
-              {compressionMode === 'targetSize' && (
-                <div className="param-col">
-                  <label htmlFor="target-size">目标(KB)</label>
-                  <input
-                    id="target-size"
-                    type="number"
-                    min="5"
-                    max="10000"
-                    value={compressionValue}
-                    onChange={(e) => setCompressionValue(Math.max(5, parseInt(e.target.value) || 0))}
-                    className="param-input"
-                  />
-                </div>
-              )}
             </div>
+
+            {compressionMode === 'targetSize' && (
+              <div className="param-group">
+                <label htmlFor="target-size">目标(KB)</label>
+                <input
+                  id="target-size"
+                  type="number"
+                  min="5"
+                  max="10000"
+                  value={compressionValue}
+                  onChange={(e) => setCompressionValue(Math.max(5, parseInt(e.target.value) || 0))}
+                  className="param-input"
+                />
+              </div>
+            )}
 
             {compressionMode === 'quality' && (
               <div className="param-group compact">
@@ -231,19 +241,26 @@ export function ParameterPanel({
         {activeTab === 'format' && (
           <div className="tab-pane active">
             <div className="param-group">
-              <label htmlFor="output-format">输出格式</label>
-              <div className="select-wrapper">
-                <select
-                  id="output-format"
-                  value={outputFormat}
-                  onChange={(e) => setOutputFormat(e.target.value as any)}
-                  className="param-select"
-                >
-                  <option value="original">保持原始格式</option>
-                  <option value="jpg">JPG</option>
-                  <option value="png">PNG</option>
-                  <option value="webp">WebP</option>
-                </select>
+              <label>输出格式</label>
+              <div className="button-group">
+                {(['original', 'jpg', 'png', 'webp'] as const).map((format) => (
+                  <button
+                    key={format}
+                    className={`format-button ${outputFormat === format ? 'active' : ''}`}
+                    onClick={() => setOutputFormat(format)}
+                    title={
+                      format === 'original' ? '保持原始格式' :
+                      format === 'jpg' ? '转换为 JPG 格式' :
+                      format === 'png' ? '转换为 PNG 格式' :
+                      '转换为 WebP 格式'
+                    }
+                  >
+                    {format === 'original' && '原始格式'}
+                    {format === 'jpg' && 'JPG'}
+                    {format === 'png' && 'PNG'}
+                    {format === 'webp' && 'WebP'}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
