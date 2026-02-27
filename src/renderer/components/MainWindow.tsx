@@ -4,9 +4,10 @@ import { DropZone } from './DropZone';
 import { ParameterPanel } from './ParameterPanel';
 import { PreviewPanel } from './PreviewPanel';
 import { TemplateSelector } from './TemplateSelector';
+import { FullScreenPreview } from './FullScreenPreview';
 import { NotificationContainer } from './NotificationContainer';
 import { ErrorReportDialog } from './ErrorReportDialog';
-import { FolderOpenIcon, ArrowPathIcon } from './Icons';
+import { FolderOpenIcon, ArrowPathIcon, MagnifyingGlassPlusIcon } from './Icons';
 import './MainWindow.css';
 
 /**
@@ -43,6 +44,7 @@ export function MainWindow() {
   } = useAppContext();
   const [estimatedSize, setEstimatedSize] = useState<number | undefined>();
   const [showErrorReport, setShowErrorReport] = useState(false);
+  const [previewFile, setPreviewFile] = useState<any | null>(null);
 
   // Load templates on mount
   useEffect(() => {
@@ -211,11 +213,14 @@ export function MainWindow() {
         />
       )}
 
-      {/* Header */}
-      <header className="main-header">
-        <h1>BatchPic</h1>
-        <p className="subtitle">图片交付准备工具</p>
-      </header>
+      {/* Full screen preview modal */}
+      {previewFile && (
+        <FullScreenPreview 
+          image={previewFile}
+          params={state.processingParams}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
 
       {/* Main content area - optimized sidebar layout */}
       <main className="main-content">
@@ -234,24 +239,28 @@ export function MainWindow() {
           {/* File list and preview in tabs or split view */}
           {state.inputFiles.length > 0 && (
             <div className="workspace-content">
-              {/* Preview panel - inline */}
-              <div className="preview-inline">
-                <PreviewPanel
-                  originalImage={state.inputFiles[0]}
-                  params={state.processingParams}
-                />
-              </div>
-
               {/* File list - compact horizontal cards */}
               <div className="file-list-compact">
                 <div className="file-list-header">
                   <h3>已选择 {state.inputFiles.length} 张图片</h3>
+                  <p className="file-list-tip">点击图片卡片可查看沉浸式对比预览</p>
                 </div>
                 <div className="file-grid">
                   {state.inputFiles.map((file, index) => (
-                    <div key={index} className="file-card">
-                      <div className="file-name">{file.relativePath}</div>
-                      <div className="file-size">{Math.round(file.size / 1024)} KB</div>
+                    <div 
+                      key={index} 
+                      className="file-card"
+                      onClick={() => setPreviewFile(file)}
+                    >
+                      <div className="file-card-inner">
+                        <div className="file-info-main">
+                          <div className="file-name">{file.relativePath}</div>
+                          <div className="file-size">{Math.round(file.size / 1024)} KB</div>
+                        </div>
+                        <div className="file-card-action">
+                          <MagnifyingGlassPlusIcon className="preview-trigger-icon" />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -262,6 +271,12 @@ export function MainWindow() {
 
         {/* Right sidebar: Compact control panel */}
         <aside className="sidebar">
+          {/* Sidebar Header with App Title */}
+          <header className="sidebar-header">
+            <h1>BatchPic</h1>
+            <p className="subtitle">图片交付准备工具</p>
+          </header>
+
           <div className="sidebar-scrollable">
             <div className="sidebar-section">
               <ParameterPanel

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Template, ProcessingParams } from '../../main/types';
+import { BookmarkIcon, PlusIcon, TrashIcon, XMarkIcon } from './Icons';
 import './TemplateSelector.css';
 
 interface TemplateSelectorProps {
@@ -12,18 +13,6 @@ interface TemplateSelectorProps {
 
 /**
  * TemplateSelector - Component for managing processing templates
- * 
- * Requirements:
- * - 5.1: Display list of saved templates
- * - 5.3: Implement template selection functionality
- * - 5.5: Implement save new template dialog
- * - 5.4: Implement delete template functionality
- * 
- * Features:
- * - Display all saved templates in a list
- * - Allow selecting a template to apply its parameters
- * - Provide dialog to save current parameters as a new template
- * - Allow deleting templates
  */
 export function TemplateSelector({
   templates,
@@ -38,24 +27,18 @@ export function TemplateSelector({
 
   // Handle save template
   const handleSaveTemplate = () => {
-    // Validate template name
     if (!templateName.trim()) {
       setSaveError('模板名称不能为空');
       return;
     }
 
-    // Check for duplicate names
     if (templates.some(t => t.name === templateName.trim())) {
       setSaveError('模板名称已存在');
       return;
     }
 
-    // Call parent handler with current parameters
-    // Note: The parent component should pass the current params to this handler
-    // For now, we'll emit the name and let the parent handle getting the params
     onSave(templateName.trim(), {} as ProcessingParams);
     
-    // Reset form
     setTemplateName('');
     setSaveError('');
     setShowSaveDialog(false);
@@ -63,21 +46,23 @@ export function TemplateSelector({
 
   // Handle delete template
   const handleDeleteTemplate = (id: string) => {
-    if (window.confirm('确定要删除这个模板吗？')) {
-      onDelete(id);
-    }
+    onDelete(id);
   };
 
   return (
     <div className="template-selector">
       <div className="template-header">
-        <h3>处理模板</h3>
+        <div className="header-title">
+          <BookmarkIcon className="section-icon" />
+          <h3>处理模板</h3>
+        </div>
         <button
           className="save-template-button"
           onClick={() => setShowSaveDialog(true)}
           title="保存当前参数为模板"
         >
-          + 保存模板
+          <PlusIcon className="button-icon" />
+          <span>保存</span>
         </button>
       </div>
 
@@ -89,23 +74,21 @@ export function TemplateSelector({
               key={template.id}
               className={`template-item ${selectedId === template.id ? 'selected' : ''}`}
             >
-              <div className="template-info">
-                <button
-                  className="template-select-button"
-                  onClick={() => onSelect(template.id)}
-                >
-                  <span className="template-name">{template.name}</span>
-                  <span className="template-date">
-                    {new Date(template.createdAt).toLocaleDateString('zh-CN')}
-                  </span>
-                </button>
-              </div>
+              <button
+                className="template-select-button"
+                onClick={() => onSelect(template.id)}
+              >
+                <span className="template-name">{template.name}</span>
+                <span className="template-date">
+                  {new Date(template.createdAt).toLocaleDateString('zh-CN')}
+                </span>
+              </button>
               <button
                 className="template-delete-button"
                 onClick={() => handleDeleteTemplate(template.id)}
                 title="删除模板"
               >
-                ✕
+                <TrashIcon className="delete-icon" />
               </button>
             </div>
           ))}
@@ -113,7 +96,7 @@ export function TemplateSelector({
       ) : (
         <div className="empty-state">
           <p>还没有保存的模板</p>
-          <p className="hint">点击"保存模板"按钮保存常用参数组合</p>
+          <p className="hint">点击"保存"按钮保存常用参数组合</p>
         </div>
       )}
 
@@ -127,7 +110,7 @@ export function TemplateSelector({
                 className="dialog-close"
                 onClick={() => setShowSaveDialog(false)}
               >
-                ✕
+                <XMarkIcon className="close-icon" />
               </button>
             </div>
 
@@ -161,7 +144,7 @@ export function TemplateSelector({
                 className="button-save"
                 onClick={handleSaveTemplate}
               >
-                保存
+                确认保存
               </button>
             </div>
           </div>
