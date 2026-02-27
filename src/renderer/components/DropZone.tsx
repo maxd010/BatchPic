@@ -1,30 +1,29 @@
 import React, { useState, useCallback } from 'react';
-import { UploadIcon, CheckCircleIcon, PhotoIcon, ArrowDownTrayIcon } from './Icons';
+import { UploadIcon, CheckCircleIcon, PhotoIcon, ArrowDownTrayIcon, TrashIcon } from './Icons';
 import './DropZone.css';
 
 /**
  * DropZone - File and folder drag-drop component
- * 
- * Requirements:
- * - 1.1: Accept single image files dragged into the application
- * - 1.2: Accept folders dragged into the application
- * - 7.3: Display empty state ("拖入图片，马上处理")
- * 
- * Features:
- * - Visual feedback during drag operations
- * - Empty state display when no files are loaded
- * - File count display when files are loaded
  */
 
 interface DropZoneProps {
   onFilesDropped: (paths: string[]) => void;
+  onClearFiles?: () => void;
   isEmpty: boolean;
   fileCount?: number;
   compact?: boolean;
 }
 
-export function DropZone({ onFilesDropped, isEmpty, fileCount = 0, compact = false }: DropZoneProps) {
+export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0, compact = false }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
+
+  // Handle clear files
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the click-to-upload
+    if (onClearFiles) {
+      onClearFiles();
+    }
+  };
 
   // Handle click to open file browser
   const handleClick = useCallback(async (e: React.MouseEvent) => {
@@ -128,11 +127,24 @@ export function DropZone({ onFilesDropped, isEmpty, fileCount = 0, compact = fal
       ) : (
         // Files loaded state
         <div className="drop-zone-loaded">
-          <div className="drop-zone-icon-wrapper success">
-            <CheckCircleIcon className="drop-zone-icon-svg" />
+          <div className="loaded-left">
+            <div className="drop-zone-icon-wrapper success">
+              <CheckCircleIcon className="drop-zone-icon-svg" />
+            </div>
+            <div className="loaded-info">
+              <h3 className="drop-zone-count">已选择 {fileCount} 张图片</h3>
+              <p className="drop-zone-hint">点击或拖入更多文件以添加到批次</p>
+            </div>
           </div>
-          <h3 className="drop-zone-count">已选择 {fileCount} 张图片</h3>
-          <p className="drop-zone-hint">点击或拖入更多文件以添加到批次</p>
+          
+          <button 
+            className="drop-zone-clear-button"
+            onClick={handleClear}
+            title="清空所有图片"
+          >
+            <TrashIcon className="clear-icon-svg" />
+            <span>清空全部</span>
+          </button>
         </div>
       )}
 

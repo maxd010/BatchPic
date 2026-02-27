@@ -230,6 +230,7 @@ export function MainWindow() {
           <div className={`workspace-dropzone ${state.inputFiles.length > 0 ? 'compact-container' : ''}`}>
             <DropZone 
               onFilesDropped={handleFilesDropped}
+              onClearFiles={() => setInputFiles([])}
               isEmpty={state.inputFiles.length === 0}
               fileCount={state.inputFiles.length}
               compact={state.inputFiles.length > 0}

@@ -2,14 +2,15 @@
 
 .drop-zone {
   position: relative;
-  min-height: 320px;
+  flex: 1;
+  width: 100%;
   border: 2px dashed #cbd5e1;
-  border-radius: 16px;
-  background: #f8fafc;
+  border-radius: 24px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 250ms ease-out;
+  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   overflow: hidden;
 }
@@ -17,85 +18,94 @@
 .drop-zone:hover {
   border-color: var(--color-primary);
   background: var(--color-background);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Empty state */
 .drop-zone.empty {
-  min-height: 400px;
+  min-height: 500px;
 }
 
 .drop-zone-empty {
   text-align: center;
-  padding: 40px;
+  padding: 60px;
   pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 600px;
 }
 
 .drop-zone-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  background: #e2e8f0;
-  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  background: #f1f5f9;
+  border-radius: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
-  transition: all 250ms ease-out;
+  margin-bottom: 32px;
+  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .drop-zone:hover .drop-zone-icon-wrapper {
   background: #E0E7FF;
-  transform: scale(1.05);
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 24px rgba(79, 70, 229, 0.15);
 }
 
 .drop-zone-icon-svg {
-  width: 40px;
-  height: 40px;
-  color: #64748b;
-  transition: color 250ms ease-out;
+  width: 60px;
+  height: 60px;
+  color: #94a3b8;
+  transition: all 400ms ease-out;
 }
 
 .drop-zone:hover .drop-zone-icon-svg {
   color: var(--color-primary);
+  transform: scale(1.1);
 }
 
 .drop-zone-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 800;
   color: var(--color-text);
-  margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 12px 0;
+  letter-spacing: -1px;
 }
 
 .drop-zone-hint {
-  font-size: 14px;
+  font-size: 18px;
   color: var(--color-text-muted);
-  margin: 0 0 20px 0;
+  margin: 0 0 32px 0;
+  font-weight: 500;
 }
 
 .drop-zone-subhint {
-  font-size: 13px;
+  font-size: 14px;
   color: #94a3b8;
-  margin-top: 16px;
+  margin-top: 24px;
+  font-style: italic;
 }
 
 /* Format tags */
 .drop-zone-meta {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .drop-zone-tag {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: #64748b;
-  background: #e2e8f0;
-  padding: 4px 8px;
-  border-radius: 6px;
+  background: #f1f5f9;
+  padding: 6px 14px;
+  border-radius: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  transition: all 200ms;
 }
 
 .drop-zone:hover .drop-zone-tag {
@@ -117,6 +127,50 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 16px;
+}
+
+.loaded-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.loaded-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.drop-zone-clear-button {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fee2e2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+  margin-top: 8px;
+}
+
+.drop-zone-clear-button:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+}
+
+.clear-icon-svg {
+  width: 14px;
+  height: 14px;
 }
 
 .drop-zone-icon-wrapper.success {
@@ -199,6 +253,21 @@
   gap: 12px;
   width: 100%;
   justify-content: space-between;
+}
+
+.drop-zone.compact .loaded-left {
+  flex-direction: row;
+  gap: 12px;
+}
+
+.drop-zone.compact .loaded-info {
+  align-items: flex-start;
+}
+
+.drop-zone.compact .drop-zone-clear-button {
+  margin-top: 0;
+  padding: 4px 10px;
+  font-size: 11px;
 }
 
 .drop-zone.compact .drop-zone-icon-wrapper.success {
