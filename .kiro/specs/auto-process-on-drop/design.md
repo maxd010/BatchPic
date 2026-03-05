@@ -929,70 +929,127 @@ if (state.autoProcessOnDrop) { // false，跳过
 
 ## Correctness Properties
 
-### Property 1: Progress Completeness
+*A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-```typescript
-// 对于任意批量处理操作，所有图片都必须有最终状态
+### Property 1: File Scanning Completeness
 
-∀ batch ∈ ProcessingBatch:
-  batch.imageProgress.length === batch.inputFiles.length
-  ∧
-  ∀ i ∈ [0, batch.imageProgress.length):
-    batch.imageProgress[i].status ∈ {'success', 'failed'}
-    ⟹
-    batch.isProcessing === false
-```
+*For any* set of file paths (files or folders), when the system scans them, all supported image files should be identified and only supported formats should be included in the result.
 
-### Property 2: Progress Monotonicity
+**Validates: Requirements 1.1, 1.2, 1.3, 1.4, 11.2**
 
-```typescript
-// 进度只能向前推进，不能倒退
+### Property 2: Auto-Process Trigger Consistency
 
-∀ imageProgress ∈ ImageProgress[]:
-  ∀ t1, t2 ∈ Time where t1 < t2:
-    (imageProgress[i].status at t1) ≤ (imageProgress[i].status at t2)
-    
-// 状态顺序：pending < processing < (success | failed)
-```
+*For any* file scanning completion, if the auto-process toggle is enabled, the system should immediately trigger batch processing with DEFAULT_PARAMS and create an output directory; if disabled, the system should only scan without triggering processing.
 
-### Property 3: Result Consistency
+**Validates: Requirements 2.1, 2.2, 2.3, 2.4, 8.2, 8.3**
 
-```typescript
-// 处理结果必须与进度状态一致
+### Property 3: Progress State Machine Validity
 
-∀ batch ∈ ProcessingBatch where batch.result ≠ undefined:
-  batch.result.successful.length === 
-    count(batch.imageProgress, p => p.status === 'success')
-  ∧
-  batch.result.failed.length === 
-    count(batch.imageProgress, p => p.status === 'failed')
-  ∧
-  batch.result.successful.length + batch.result.failed.length === 
-    batch.inputFiles.length
-```
+*For any* image progress state transition, the transition must follow the valid state machine rules: pending → processing → (success | failed). No other transitions are allowed.
 
-### Property 4: Callback Invocation Guarantee
+**Validates: Requirements 3.5, 12.2**
 
-```typescript
-// 每张图片的进度回调必须被调用恰好一次
+### Property 4: Progress Initialization Correctness
 
-∀ batch ∈ ProcessingBatch:
-  ∀ i ∈ [0, batch.inputFiles.length):
-    count(callbackInvocations, call => call.index === i) === 1
-```
+*For any* set of scanned files, when initializing image progress, every file should have a corresponding progress entry with status 'pending' and progress 0.
 
-### Property 5: File System Consistency
+**Validates: Requirements 3.1**
 
-```typescript
-// 成功处理的图片必须存在于文件系统中
+### Property 5: Progress Update Correctness
 
-∀ result ∈ ProcessingResult.successful:
-  result.success === true
-  ⟹
-  fileExists(result.outputPath) === true
-  ∧
-  fileSize(result.outputPath) === result.processedSize
-```
+*For any* image being processed, when it starts processing, its status should be 'processing'; when it succeeds, its status should be 'success' with output path and file sizes recorded; when it fails, its status should be 'failed' with error information recorded.
+
+**Validates: Requirements 3.2, 3.3, 3.4**
+
+### Property 6: Batch Processing Completeness
+
+*For any* batch processing operation, when all images are processed, every image must have a final status (success or failed), and the sum of successful and failed counts must equal the total input count.
+
+**Validates: Requirements 12.1, 12.3, 5.5**
+
+### Property 7: Callback Invocation Guarantee
+
+*For any* batch processing operation, the progress callback for each image must be invoked exactly once.
+
+**Validates: Requirements 5.3, 12.5**
+
+### Property 8: File System Consistency
+
+*For any* successfully processed image, the output file must exist in the file system at the specified output path, and the file size must match the recorded processed size.
+
+**Validates: Requirements 6.5, 12.4**
+
+### Property 9: Output Directory Safety
+
+*For any* output directory creation, the directory path must be within the user's home directory and must include a timestamp.
+
+**Validates: Requirements 6.1, 6.2, 11.3**
+
+### Property 10: Path Structure Preservation
+
+*For any* image processing, the output file should preserve the original filename and relative path structure from the input.
+
+**Validates: Requirements 6.3**
+
+### Property 11: Error Isolation
+
+*For any* batch processing where one image fails, the system should continue processing remaining images without interruption, and the failed image should be recorded in the failed list.
+
+**Validates: Requirements 5.4, 9.2**
+
+### Property 12: Error State Preservation
+
+*For any* operation failure (scan failure, output directory creation failure, IPC failure), the system should display an error notification and preserve the current state without partial updates.
+
+**Validates: Requirements 1.5, 6.4, 9.1, 9.3, 9.4**
+
+### Property 13: Path Validation Security
+
+*For any* file path input, paths containing suspicious patterns (e.g., "..", "~") or non-absolute paths should be rejected.
+
+**Validates: Requirements 11.1**
+
+### Property 14: IPC Parameter Validation
+
+*For any* IPC message, all parameters must be validated for type and validity, and invalid parameters should be rejected with an error.
+
+**Validates: Requirements 11.4**
+
+### Property 15: File Overwrite Prevention
+
+*For any* file write operation, if a file already exists at the target path, the system should not overwrite it.
+
+**Validates: Requirements 11.5**
+
+### Property 16: Processing Parameter Application
+
+*For any* image processing, the output image should conform to the specified processing parameters (quality, dimensions, format).
+
+**Validates: Requirements 5.2**
+
+### Property 17: Settings Persistence Round-Trip
+
+*For any* auto-process toggle state change, saving then loading the settings should produce the same toggle state.
+
+**Validates: Requirements 8.4**
+
+### Property 18: ProgressPanel Display Completeness
+
+*For any* image progress list, the ProgressPanel should display all images with their current status, and for successful images should show original size, processed size, and compression ratio.
+
+**Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5**
+
+### Property 19: Notification Display on Completion
+
+*For any* batch processing completion with failures, the system should display an error report dialog.
+
+**Validates: Requirements 7.3**
+
+### Property 20: Notification Duration Consistency
+
+*For any* notification displayed, the duration should be appropriate for the notification type (5 seconds for success/error).
+
+**Validates: Requirements 7.5**
 
 ## Error Handling
 
