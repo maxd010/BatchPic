@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { ImageFile, ProcessingParams, Template, ProcessingResult } from '../../main/types';
 
 // Default processing parameters (Requirements 8.1)
@@ -100,6 +100,21 @@ const initialState: AppState = {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(initialState);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // Load settings from localStorage on mount (Requirements 8.4)
+  useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem('batchpic-settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        if (typeof settings.autoProcessOnDrop === 'boolean') {
+          setState(prev => ({ ...prev, autoProcessOnDrop: settings.autoProcessOnDrop }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    }
+  }, []);
 
   const setInputFiles = (files: ImageFile[]) => {
     setState(prev => ({ ...prev, inputFiles: files }));
@@ -203,9 +218,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Toggle auto-process on drop (Requirements 8.1)
+  // Toggle auto-process on drop (Requirements 8.1, 8.4)
   const setAutoProcessOnDrop = (enabled: boolean) => {
     setState(prev => ({ ...prev, autoProcessOnDrop: enabled }));
+    
+    // Persist to localStorage (Requirements 8.4)
+    try {
+      const settings = { autoProcessOnDrop: enabled };
+      localStorage.setItem('batchpic-settings', JSON.stringify(settings));
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
   };
 
   const value: AppContextValue = {
