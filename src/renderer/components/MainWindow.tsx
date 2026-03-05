@@ -243,8 +243,6 @@ export function MainWindow() {
 
       {/* Main content area */}
       <main className="main-content-vertical">
-      {/* Main content area */}
-      <main className="main-content-vertical">
         {/* Center workspace */}
         <section className="workspace-center">
           {/* Drop zone - compact when files loaded */}
@@ -289,74 +287,74 @@ export function MainWindow() {
               </div>
             </div>
           )}
+        </section>
 
-          {/* Template Selector and Export Actions */}
-          <div className="bottom-actions">
-            <div className="template-section-horizontal">
-              <TemplateSelector
-                templates={state.templates}
-                selectedId={state.selectedTemplateId}
-                onSelect={handleSelectTemplate}
-                onSave={handleSaveTemplate}
-                onDelete={handleDeleteTemplate}
-              />
-            </div>
+        {/* Template Selector and Export Actions */}
+        <div className="bottom-actions">
+          <div className="template-section-horizontal">
+            <TemplateSelector
+              templates={state.templates}
+              selectedId={state.selectedTemplateId}
+              onSelect={handleSelectTemplate}
+              onSave={handleSaveTemplate}
+              onDelete={handleDeleteTemplate}
+            />
+          </div>
 
-            {/* Export button and results */}
-            <div className="export-section">
-              {/* Processing progress */}
-              {state.isProcessing && (
-                <div className="progress-container">
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill" 
-                      style={{ width: `${state.progress}%` }}
-                    />
-                  </div>
-                  <span className="progress-text">{state.progress}%</span>
+          {/* Export button and results */}
+          <div className="export-section">
+            {/* Processing progress */}
+            {state.isProcessing && (
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{ width: `${state.progress}%` }}
+                  />
                 </div>
-              )}
+                <span className="progress-text">{state.progress}%</span>
+              </div>
+            )}
 
-              {/* Export button */}
-              {state.inputFiles.length > 0 && (
-                <button 
-                  className="export-button"
-                  onClick={handleExport}
-                  disabled={state.isProcessing}
-                >
-                  {state.isProcessing ? '处理中...' : '开始导出图片'}
-                </button>
-              )}
+            {/* Export button */}
+            {state.inputFiles.length > 0 && (
+              <button 
+                className="export-button"
+                onClick={handleExport}
+                disabled={state.isProcessing}
+              >
+                {state.isProcessing ? '处理中...' : '开始导出图片'}
+              </button>
+            )}
 
-              {/* Result message */}
-              {state.result && (
-                <div className="result-inline">
-                  <div className="result-info">
-                    <p>✓ 处理完成 ({state.result.successful.length} 成功, {state.result.failed.length} 失败)</p>
-                  </div>
-                  <div className="result-actions">
-                    {state.outputDirectory && (
-                      <button 
-                        className="action-button"
-                        onClick={handleOpenOutputDirectory}
-                        title="打开文件夹"
-                      >
-                        <FolderOpenIcon className="action-icon" />
-                      </button>
-                    )}
+            {/* Result message */}
+            {state.result && (
+              <div className="result-inline">
+                <div className="result-info">
+                  <p>✓ 处理完成 ({state.result.successful.length} 成功, {state.result.failed.length} 失败)</p>
+                </div>
+                <div className="result-actions">
+                  {state.outputDirectory && (
                     <button 
                       className="action-button"
-                      onClick={resetState}
-                      title="重置"
+                      onClick={handleOpenOutputDirectory}
+                      title="打开文件夹"
                     >
-                      <ArrowPathIcon className="action-icon" />
+                      <FolderOpenIcon className="action-icon" />
                     </button>
-                  </div>
+                  )}
+                  <button 
+                    className="action-button"
+                    onClick={resetState}
+                    title="重置"
+                  >
+                    <ArrowPathIcon className="action-icon" />
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </section>
+        </div>
       </main>
     </div>
   );
