@@ -11,6 +11,18 @@ export const DEFAULT_PARAMS: ProcessingParams = {
   format: undefined  // Keep original format
 };
 
+// Image progress tracking interface (Requirements 3.1, 8.1)
+export interface ImageProgress {
+  index: number;
+  fileName: string;
+  status: 'pending' | 'processing' | 'success' | 'failed';
+  progress: number; // 0-100
+  error?: string;
+  outputPath?: string;
+  originalSize?: number;
+  processedSize?: number;
+}
+
 // Application state interface (Requirement 7.1)
 export interface AppState {
   // Input files
@@ -30,6 +42,12 @@ export interface AppState {
   // Results
   result?: ProcessingResult;
   outputDirectory?: string;
+  
+  // Per-image progress tracking (Requirements 3.1)
+  imageProgress: ImageProgress[];
+  
+  // Auto-process toggle (Requirements 8.1)
+  autoProcessOnDrop: boolean;
 }
 
 // Notification interface
@@ -55,6 +73,11 @@ interface AppContextValue {
   showNotification: (message: string, type: 'success' | 'info' | 'warning' | 'error', duration?: number) => void;
   dismissNotification: (id: string) => void;
   notifications: Notification[];
+  
+  // Image progress management (Requirements 3.1, 3.2, 3.3, 3.4, 8.1)
+  initializeImageProgress: (files: ImageFile[]) => void;
+  updateImageProgress: (index: number, progress: Partial<ImageProgress>) => void;
+  setAutoProcessOnDrop: (enabled: boolean) => void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -69,6 +92,8 @@ const initialState: AppState = {
   progress: 0,
   result: undefined,
   outputDirectory: undefined,
+  imageProgress: [],
+  autoProcessOnDrop: true, // Default enabled
 };
 
 // Provider component
@@ -129,6 +154,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
+  // Initialize image progress list (Requirements 3.1)
+  const initializeImageProgress = (files: ImageFile[]) => {
+    const progressList: ImageProgress[] = files.map((file, index) => ({
+      index,
+      fileName: file.relativePath,
+      status: 'pending',
+      progress: 0,
+    }));
+    setState(prev => ({ ...prev, imageProgress: progressList }));
+  };
+
+  // Update single image progress (Requirements 3.2, 3.3, 3.4, 12.2)
+  const updateImageProgress = (index: number, progress: Partial<ImageProgress>) => {
+    setState(prev => {
+      // Validate index
+      if (index < 0 || index >= prev.imageProgress.length) {
+        console.error(`Invalid image progress index: ${index}`);
+        return prev;
+      }
+
+      // Validate state transition (Requirements 3.5, 12.2)
+      const currentStatus = prev.imageProgress[index].status;
+      const newStatus = progress.status;
+      
+      if (newStatus) {
+        const validTransitions: Record<string, string[]> = {
+          'pending': ['processing'],
+          'processing': ['success', 'failed'],
+          'success': [],
+          'failed': [],
+        };
+        
+        if (!validTransitions[currentStatus].includes(newStatus)) {
+          console.error(`Invalid state transition: ${currentStatus} -> ${newStatus}`);
+          return prev;
+        }
+      }
+
+      // Update progress
+      const updatedProgress = [...prev.imageProgress];
+      updatedProgress[index] = {
+        ...updatedProgress[index],
+        ...progress,
+      };
+
+      return { ...prev, imageProgress: updatedProgress };
+    });
+  };
+
+  // Toggle auto-process on drop (Requirements 8.1)
+  const setAutoProcessOnDrop = (enabled: boolean) => {
+    setState(prev => ({ ...prev, autoProcessOnDrop: enabled }));
+  };
+
   const value: AppContextValue = {
     state,
     setInputFiles,
@@ -143,6 +222,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showNotification,
     dismissNotification,
     notifications,
+    initializeImageProgress,
+    updateImageProgress,
+    setAutoProcessOnDrop,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
