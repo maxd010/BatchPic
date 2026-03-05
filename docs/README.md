@@ -58,20 +58,20 @@
 
 ```
 docs/
-├── README.md                    # 本文档（文档中心导航）
-├── design/                      # 设计相关文档
-│   ├── DESIGN_SYSTEM.md        # 设计系统规范
-│   ├── LAYOUT_OPTIMIZATION.md  # 布局优化说明
-│   ├── LAYOUT_COMPARISON.md    # 布局对比分析
+├── README.md                       # 文档中心导航
+├── design/                         # 设计相关文档
+│   ├── DESIGN_SYSTEM.md           # 设计系统规范
+│   ├── LAYOUT_OPTIMIZATION.md     # 布局优化说明
+│   ├── LAYOUT_COMPARISON.md       # 布局对比分析
 │   └── UI_OPTIMIZATION_SUMMARY.md # UI 优化总结
-├── development/                 # 开发相关文档
-│   └── SETUP.md                # 开发环境配置
-└── testing/                     # 测试相关文档
-    ├── DIAGNOSTIC_CHECKLIST.md
-    ├── EXPORT_ISSUE_SUMMARY.md
-    ├── QUICK_TEST.md
-    ├── TROUBLESHOOTING.md
-    └── VERIFICATION_CHECKLIST.md
+├── development/                    # 开发相关文档
+│   └── SETUP.md                   # 开发环境配置
+└── testing/                        # 测试相关文档
+    ├── DIAGNOSTIC_CHECKLIST.md    # 诊断检查清单
+    ├── EXPORT_ISSUE_SUMMARY.md    # 导出问题总结
+    ├── QUICK_TEST.md              # 快速测试指南
+    ├── TROUBLESHOOTING.md         # 故障排除
+    └── VERIFICATION_CHECKLIST.md  # 验证检查清单
 ```
 
 ## 🔍 按主题查找
