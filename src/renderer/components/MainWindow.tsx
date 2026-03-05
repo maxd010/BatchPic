@@ -7,6 +7,7 @@ import { TemplateSelector } from './TemplateSelector';
 import { FullScreenPreview } from './FullScreenPreview';
 import { NotificationContainer } from './NotificationContainer';
 import { ErrorReportDialog } from './ErrorReportDialog';
+import { ProgressPanel } from './ProgressPanel';
 import { FolderOpenIcon, ArrowPathIcon, MagnifyingGlassPlusIcon, ChevronRightIcon, ChevronLeftIcon, AdjustmentsVerticalIcon } from './Icons';
 import './MainWindow.css';
 
@@ -346,6 +347,14 @@ export function MainWindow() {
           {/* File list and preview */}
           {state.inputFiles.length > 0 && (
             <div className="workspace-content">
+              {/* Progress Panel - Show real-time progress (Requirements 4.1) */}
+              {state.imageProgress.length > 0 && (
+                <ProgressPanel 
+                  imageProgress={state.imageProgress}
+                  isProcessing={state.isProcessing}
+                />
+              )}
+              
               {/* File list - compact horizontal cards */}
               <div className="file-list-compact">
                 <div className="file-list-header">

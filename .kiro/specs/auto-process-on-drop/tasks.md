@@ -170,7 +170,7 @@
     - 验证成功图片显示文件大小和压缩比例
 
 - [ ] 7. 集成 ProgressPanel 到 MainWindow
-  - [ ] 7.1 在 MainWindow 中导入和使用 ProgressPanel
+  - [x] 7.1 在 MainWindow 中导入和使用 ProgressPanel
     - 在 `MainWindow.tsx` 中导入 `ProgressPanel` 组件
     - 传递 `imageProgress` 和 `isProcessing` props
     - 调整布局以容纳进度面板
