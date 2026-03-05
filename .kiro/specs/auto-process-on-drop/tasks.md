@@ -122,14 +122,14 @@
     - _Requirements: 2.1, 2.4, 8.2, 8.3, 7.1, 7.2_
 
 - [ ] 6. 创建 ProgressPanel 组件
-  - [ ] 6.1 创建 ProgressPanel 组件基础结构
+  - [x] 6.1 创建 ProgressPanel 组件基础结构
     - 创建 `src/renderer/components/ProgressPanel.tsx` 文件
     - 创建 `src/renderer/components/ProgressPanel.css` 文件
     - 定义 `ProgressPanelProps` 接口
     - 实现基础组件结构（header + list）
     - _Requirements: 4.1_
   
-  - [ ] 6.2 实现进度列表渲染
+  - [x] 6.2 实现进度列表渲染
     - 实现进度项列表渲染
     - 根据状态显示不同图标（pending/processing/success/failed）
     - 显示文件名和状态信息
@@ -137,7 +137,7 @@
     - 对于失败的图片，显示错误信息
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
   
-  - [ ] 6.3 实现进度统计显示
+  - [x] 6.3 实现进度统计显示
     - 在 header 中显示总进度（已完成/总数）
     - 显示成功和失败数量
     - 根据处理状态动态更新
@@ -149,7 +149,7 @@
     - 考虑虚拟滚动（如果图片数量 > 100）
     - _Requirements: 10.2, 10.4_
   
-  - [ ] 6.5 设计和实现 CSS 样式
+  - [x] 6.5 设计和实现 CSS 样式
     - 设计进度面板布局和样式
     - 实现状态图标和颜色
     - 实现响应式设计
