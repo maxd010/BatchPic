@@ -325,14 +325,16 @@ export function MainWindow() {
                   </div>
                 )}
 
-                {/* Export button (Requirement 10.1) */}
-                <button 
-                  className="export-button"
-                  onClick={handleExport}
-                  disabled={state.inputFiles.length === 0 || state.isProcessing}
-                >
-                  {state.isProcessing ? '处理中...' : '开始导出图片'}
-                </button>
+                {/* Export button (Requirement 10.1) - Only show when files are selected */}
+                {state.inputFiles.length > 0 && (
+                  <button 
+                    className="export-button"
+                    onClick={handleExport}
+                    disabled={state.isProcessing}
+                  >
+                    {state.isProcessing ? '处理中...' : '开始导出图片'}
+                  </button>
+                )}
 
                 {/* Result message (Requirement 10.3) */}
                 {state.result && (
@@ -372,16 +374,19 @@ export function MainWindow() {
                 <AdjustmentsVerticalIcon className="collapsed-icon" />
               </button>
               
-              <div className="collapsed-footer-actions">
-                <button 
-                  className={`mini-export-button ${state.inputFiles.length === 0 || state.isProcessing ? 'disabled' : ''}`}
-                  onClick={handleExport}
-                  disabled={state.inputFiles.length === 0 || state.isProcessing}
-                  title="开始导出"
-                >
-                  {state.isProcessing ? '...' : 'Go'}
-                </button>
-              </div>
+              {/* Mini export button - Only show when files are selected */}
+              {state.inputFiles.length > 0 && (
+                <div className="collapsed-footer-actions">
+                  <button 
+                    className={`mini-export-button ${state.isProcessing ? 'disabled' : ''}`}
+                    onClick={handleExport}
+                    disabled={state.isProcessing}
+                    title="开始导出"
+                  >
+                    {state.isProcessing ? '...' : 'Go'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </aside>
