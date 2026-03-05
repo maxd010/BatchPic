@@ -108,7 +108,7 @@
     - 检查 `autoProcessOnDrop` 开关，如果启用则调用 `autoProcessImages`
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.4, 2.5, 3.1_
   
-  - [ ] 5.3 添加自动处理开关 UI
+  - [x] 5.3 添加自动处理开关 UI
     - 在 MainWindow 中添加自动处理开关（Toggle/Checkbox）
     - 绑定到 `state.autoProcessOnDrop` 状态
     - 实现切换逻辑

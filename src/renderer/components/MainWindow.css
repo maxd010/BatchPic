@@ -59,6 +59,9 @@
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .app-header::before {
@@ -578,4 +581,64 @@
   100% {
     transform: translateX(100%);
   }
+}
+
+/* Auto-process toggle (Requirements 8.1, 8.5) */
+.auto-process-toggle {
+  position: relative;
+  z-index: 1;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-checkbox {
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition-base);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.toggle-checkbox::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 1px;
+  left: 1px;
+  transition: transform var(--transition-base);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-checkbox:checked {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 1);
+}
+
+.toggle-checkbox:checked::before {
+  transform: translateX(20px);
+  background: var(--color-primary);
+}
+
+.toggle-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+
+.toggle-checkbox:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
 }

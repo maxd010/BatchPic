@@ -303,6 +303,19 @@ export function MainWindow() {
           <h1>BatchPic</h1>
           <p className="subtitle">图片交付准备工具</p>
         </div>
+        
+        {/* Auto-process toggle (Requirements 8.1, 8.2, 8.3, 8.5) */}
+        <div className="auto-process-toggle">
+          <label className="toggle-label">
+            <input
+              type="checkbox"
+              checked={state.autoProcessOnDrop}
+              onChange={(e) => setAutoProcessOnDrop(e.target.checked)}
+              className="toggle-checkbox"
+            />
+            <span className="toggle-text">拖拽后自动处理</span>
+          </label>
+        </div>
       </header>
 
       {/* Parameter Panel - Always at top */}
