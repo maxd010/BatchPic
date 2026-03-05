@@ -223,10 +223,30 @@ export function MainWindow() {
         />
       )}
 
-      {/* Main content area - optimized sidebar layout */}
-      <main className="main-content">
-        {/* Left main area: Drop zone, file list, and preview */}
-        <section className="workspace">
+      {/* Top Header with App Title */}
+      <header className="app-header">
+        <div className="app-title">
+          <h1>BatchPic</h1>
+          <p className="subtitle">图片交付准备工具</p>
+        </div>
+      </header>
+
+      {/* Parameter Panel - Always at top */}
+      <div className="top-parameter-panel">
+        <ParameterPanel
+          params={state.processingParams}
+          onChange={handleParametersChange}
+          inputFiles={state.inputFiles}
+          estimatedSize={estimatedSize}
+        />
+      </div>
+
+      {/* Main content area */}
+      <main className="main-content-vertical">
+      {/* Main content area */}
+      <main className="main-content-vertical">
+        {/* Center workspace */}
+        <section className="workspace-center">
           {/* Drop zone - compact when files loaded */}
           <div className={`workspace-dropzone ${state.inputFiles.length > 0 ? 'compact-container' : ''}`}>
             <DropZone 
@@ -238,7 +258,7 @@ export function MainWindow() {
             />
           </div>
 
-          {/* File list and preview in tabs or split view */}
+          {/* File list and preview */}
           {state.inputFiles.length > 0 && (
             <div className="workspace-content">
               {/* File list - compact horizontal cards */}
@@ -269,127 +289,74 @@ export function MainWindow() {
               </div>
             </div>
           )}
-        </section>
 
-        {/* Right sidebar: Compact control panel */}
-        <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-          <button 
-            className="sidebar-toggle-button"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
-          >
-            {sidebarCollapsed ? <ChevronLeftIcon className="toggle-icon" /> : <ChevronRightIcon className="toggle-icon" />}
-          </button>
+          {/* Template Selector and Export Actions */}
+          <div className="bottom-actions">
+            <div className="template-section-horizontal">
+              <TemplateSelector
+                templates={state.templates}
+                selectedId={state.selectedTemplateId}
+                onSelect={handleSelectTemplate}
+                onSave={handleSaveTemplate}
+                onDelete={handleDeleteTemplate}
+              />
+            </div>
 
-          {!sidebarCollapsed ? (
-            <>
-              {/* Sidebar Header with App Title */}
-              <header className="sidebar-header">
-                <h1>BatchPic</h1>
-                <p className="subtitle">图片交付准备工具</p>
-              </header>
-
-              <div className="sidebar-scrollable">
-                <div className="sidebar-section">
-                  <ParameterPanel
-                    params={state.processingParams}
-                    onChange={handleParametersChange}
-                    inputFiles={state.inputFiles}
-                    estimatedSize={estimatedSize}
-                  />
-                </div>
-
-                <div className="sidebar-section template-section-standalone">
-                  <TemplateSelector
-                    templates={state.templates}
-                    selectedId={state.selectedTemplateId}
-                    onSelect={handleSelectTemplate}
-                    onSave={handleSaveTemplate}
-                    onDelete={handleDeleteTemplate}
-                  />
-                </div>
-              </div>
-
-              {/* Sidebar Footer with Export Button */}
-              <div className="sidebar-footer">
-                {/* Processing progress */}
-                {state.isProcessing && (
-                  <div className="progress-container">
-                    <div className="progress-bar">
-                      <div 
-                        className="progress-fill" 
-                        style={{ width: `${state.progress}%` }}
-                      />
-                    </div>
-                    <span className="progress-text">{state.progress}%</span>
+            {/* Export button and results */}
+            <div className="export-section">
+              {/* Processing progress */}
+              {state.isProcessing && (
+                <div className="progress-container">
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{ width: `${state.progress}%` }}
+                    />
                   </div>
-                )}
+                  <span className="progress-text">{state.progress}%</span>
+                </div>
+              )}
 
-                {/* Export button (Requirement 10.1) - Only show when files are selected */}
-                {state.inputFiles.length > 0 && (
-                  <button 
-                    className="export-button"
-                    onClick={handleExport}
-                    disabled={state.isProcessing}
-                  >
-                    {state.isProcessing ? '处理中...' : '开始导出图片'}
-                  </button>
-                )}
-
-                {/* Result message (Requirement 10.3) */}
-                {state.result && (
-                  <div className="sidebar-result">
-                    <div className="result-info">
-                      <p>✓ 处理完成 ({state.result.successful.length} 成功, {state.result.failed.length} 失败)</p>
-                    </div>
-                    <div className="result-actions">
-                      {state.outputDirectory && (
-                        <button 
-                          className="sidebar-action-button"
-                          onClick={handleOpenOutputDirectory}
-                          title="打开文件夹"
-                        >
-                          <FolderOpenIcon className="sidebar-action-icon" />
-                        </button>
-                      )}
-                      <button 
-                        className="sidebar-action-button"
-                        onClick={resetState}
-                        title="重置"
-                      >
-                        <ArrowPathIcon className="sidebar-action-icon" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="collapsed-sidebar-actions">
-              <button 
-                className="collapsed-action-button"
-                onClick={() => setSidebarCollapsed(false)}
-                title="参数设置"
-              >
-                <AdjustmentsVerticalIcon className="collapsed-icon" />
-              </button>
-              
-              {/* Mini export button - Only show when files are selected */}
+              {/* Export button */}
               {state.inputFiles.length > 0 && (
-                <div className="collapsed-footer-actions">
-                  <button 
-                    className={`mini-export-button ${state.isProcessing ? 'disabled' : ''}`}
-                    onClick={handleExport}
-                    disabled={state.isProcessing}
-                    title="开始导出"
-                  >
-                    {state.isProcessing ? '...' : 'Go'}
-                  </button>
+                <button 
+                  className="export-button"
+                  onClick={handleExport}
+                  disabled={state.isProcessing}
+                >
+                  {state.isProcessing ? '处理中...' : '开始导出图片'}
+                </button>
+              )}
+
+              {/* Result message */}
+              {state.result && (
+                <div className="result-inline">
+                  <div className="result-info">
+                    <p>✓ 处理完成 ({state.result.successful.length} 成功, {state.result.failed.length} 失败)</p>
+                  </div>
+                  <div className="result-actions">
+                    {state.outputDirectory && (
+                      <button 
+                        className="action-button"
+                        onClick={handleOpenOutputDirectory}
+                        title="打开文件夹"
+                      >
+                        <FolderOpenIcon className="action-icon" />
+                      </button>
+                    )}
+                    <button 
+                      className="action-button"
+                      onClick={resetState}
+                      title="重置"
+                    >
+                      <ArrowPathIcon className="action-icon" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-          )}
-        </aside>
+          </div>
+        </section>
       </main>
     </div>
   );
