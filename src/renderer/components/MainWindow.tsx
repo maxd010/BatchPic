@@ -40,7 +40,10 @@ export function MainWindow() {
     resetState,
     showNotification,
     dismissNotification,
-    notifications
+    notifications,
+    initializeImageProgress,
+    updateImageProgress,
+    setAutoProcessOnDrop,
   } = useAppContext();
   const [estimatedSize, setEstimatedSize] = useState<number | undefined>();
   const [showErrorReport, setShowErrorReport] = useState(false);
@@ -83,11 +86,82 @@ export function MainWindow() {
       // Automatically apply default parameters (Requirement 8.1)
       setProcessingParams(DEFAULT_PARAMS);
       
-      // Show notification confirming ready-to-use version (Requirement 8.2)
+      // Initialize image progress tracking (Requirements 3.1)
+      initializeImageProgress(scannedFiles);
+      
+      // Show notification confirming ready-to-use version (Requirement 2.5)
       showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
+      
+      // Auto-trigger processing if enabled (Requirements 2.1, 2.4)
+      if (state.autoProcessOnDrop) {
+        await autoProcessImages(scannedFiles);
+      }
     } catch (error) {
       console.error('Failed to scan files:', error);
       showNotification('文件扫描失败', 'error', 3000);
+    }
+  };
+
+  // Auto-process images after drop (Requirements 2.1, 2.2, 2.3, 5.5, 7.1, 7.2, 7.3)
+  const autoProcessImages = async (files: any[]) => {
+    try {
+      setIsProcessing(true);
+      
+      // Create output directory (Requirements 2.3, 6.1)
+      const outputDir = await window.electronAPI.createOutputDirectory(
+        files.map((f: any) => f.path)
+      );
+      setOutputDirectory(outputDir);
+      
+      // Process images with per-image progress callback (Requirements 5.3, 5.5)
+      const results = await window.electronAPI.processImagesWithProgress(
+        files,
+        state.processingParams,
+        outputDir,
+        (index: number, result: any) => {
+          // Update per-image progress (Requirements 3.2, 3.3, 3.4)
+          updateImageProgress(index, {
+            status: result.success ? 'success' : 'failed',
+            progress: 100,
+            error: result.error,
+            outputPath: result.outputPath,
+            originalSize: result.originalSize,
+            processedSize: result.processedSize
+          });
+        }
+      );
+      
+      // Update final result (Requirement 5.5)
+      setResult(results);
+      
+      // Show completion notification (Requirements 7.1, 7.2)
+      const successCount = results.successful.length;
+      const failedCount = results.failed.length;
+      
+      if (failedCount > 0) {
+        showNotification(
+          `处理完成：${successCount} 成功，${failedCount} 失败`,
+          'warning',
+          5000
+        );
+        // Show error report dialog (Requirement 7.3)
+        setShowErrorReport(true);
+      } else {
+        showNotification(
+          `处理完成：${successCount} 张图片已导出`,
+          'success',
+          5000
+        );
+      }
+    } catch (error) {
+      console.error('Auto-process failed:', error);
+      showNotification(
+        `自动处理失败: ${error instanceof Error ? error.message : String(error)}`,
+        'error',
+        5000
+      );
+    } finally {
+      setIsProcessing(false);
     }
   };
 

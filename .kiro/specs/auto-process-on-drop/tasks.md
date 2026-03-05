@@ -94,7 +94,7 @@
     - 验证成功数量 + 失败数量 = 输入文件数量
 
 - [ ] 5. 实现 MainWindow 自动处理逻辑
-  - [ ] 5.1 实现 autoProcessImages 函数
+  - [x] 5.1 实现 autoProcessImages 函数
     - 在 `MainWindow.tsx` 中创建 `autoProcessImages` 函数
     - 实现创建输出目录逻辑
     - 实现进度回调函数 `onImageProcessed`
@@ -102,7 +102,7 @@
     - 实现完成通知和错误报告显示
     - _Requirements: 2.1, 2.2, 2.3, 5.5, 7.1, 7.2, 7.3_
   
-  - [ ] 5.2 修改 handleFilesDropped 函数
+  - [x] 5.2 修改 handleFilesDropped 函数
     - 在文件扫描完成后调用 `initializeImageProgress`
     - 显示准备通知："已为你准备好一个可直接使用的版本"
     - 检查 `autoProcessOnDrop` 开关，如果启用则调用 `autoProcessImages`
