@@ -34,13 +34,13 @@
     - _Requirements: 3.5, 12.2_
 
 - [ ] 2. 扩展 IPC 通道和类型定义
-  - [ ] 2.1 更新类型定义
+  - [x] 2.1 更新类型定义
     - 在 `src/main/types.ts` 中添加 `ImageProgressCallback` 类型
     - 在 `src/renderer/types/electron.d.ts` 中扩展 `ElectronAPI` 接口
     - 添加 `createOutputDirectory` 和 `processImagesWithProgress` 方法签名
     - _Requirements: 2.3, 6.1_
   
-  - [ ] 2.2 实现 preload.ts 中的 IPC 桥接
+  - [x] 2.2 实现 preload.ts 中的 IPC 桥接
     - 实现 `createOutputDirectory(inputPaths: string[]): Promise<string>` 方法
     - 实现 `processImagesWithProgress` 方法，注册 `image-processed` 事件监听器
     - 确保在 Promise 完成后清理事件监听器

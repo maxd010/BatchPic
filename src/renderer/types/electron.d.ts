@@ -9,6 +9,15 @@ export interface ElectronAPI {
   openOutputDirectory: (path: string) => Promise<void>;
   loadImagePreview: (filePath: string) => Promise<string>;
   onProcessingProgress: (callback: (progress: number) => void) => () => void;
+  
+  // Auto-process on drop APIs (Requirements 2.3, 6.1)
+  createOutputDirectory: (inputPaths: string[]) => Promise<string>;
+  processImagesWithProgress: (
+    files: ImageFile[],
+    params: ProcessingParams,
+    outputDir: string,
+    onImageProcessed: (index: number, result: ProcessedImage) => void
+  ) => Promise<ProcessingResult>;
 }
 
 export interface ImageFile {

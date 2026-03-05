@@ -47,6 +47,13 @@ export interface ProcessingResult {
 
 export type ProgressCallback = (current: number, total: number) => void;
 
+// Image progress callback for fine-grained progress tracking (Requirements 5.3)
+export type ImageProgressCallback = (
+  currentIndex: number,
+  total: number,
+  processedImage: ProcessedImage
+) => void;
+
 export interface ImageProcessor {
   // Process a single image
   process(input: ImageFile, params: ProcessingParams, outputPath: string): Promise<ProcessedImage>;
@@ -56,7 +63,7 @@ export interface ImageProcessor {
     inputs: ImageFile[], 
     params: ProcessingParams, 
     outputRoot: string,
-    onProgress?: ProgressCallback
+    onProgress?: ImageProgressCallback
   ): Promise<ProcessingResult>;
 }
 
