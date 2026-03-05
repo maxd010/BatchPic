@@ -46,7 +46,7 @@
     - 确保在 Promise 完成后清理事件监听器
     - _Requirements: 5.3, 6.1_
   
-  - [ ] 2.3 实现 main.ts 中的 IPC 处理器
+  - [x] 2.3 实现 main.ts 中的 IPC 处理器
     - 添加 `create-output-directory` IPC 处理器
     - 添加 `process-images-with-progress` IPC 处理器
     - 实现进度回调，通过 `event.sender.send('image-processed', ...)` 发送事件

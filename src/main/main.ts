@@ -210,3 +210,39 @@ ipcMain.handle('load-image-preview', async (_event, filePath: string) => {
     throw error;
   }
 });
+
+// Auto-process on drop APIs (Requirements 2.3, 5.3, 6.1, 6.2)
+
+// Create output directory (Requirement 6.1)
+ipcMain.handle('create-output-directory', async (_event, inputPaths: string[]) => {
+  try {
+    const outputDir = await outputManager.createOutputDirectory(inputPaths);
+    return outputDir;
+  } catch (error) {
+    console.error('Failed to create output directory:', error);
+    throw error;
+  }
+});
+
+// Process images with fine-grained progress (Requirements 5.3, 6.1)
+ipcMain.handle(
+  'process-images-with-progress',
+  async (event, files: ImageFile[], params: ProcessingParams, outputDir: string) => {
+    try {
+      const result = await imageProcessor.processBatch(
+        files,
+        params,
+        outputDir,
+        (currentIndex: number, total: number, processedImage: any) => {
+          // Send per-image progress event (Requirement 5.3)
+          event.sender.send('image-processed', currentIndex, processedImage);
+        }
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('Failed to process images:', error);
+      throw error;
+    }
+  }
+);
