@@ -1,20 +1,27 @@
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs/promises';
+import pLimit from 'p-limit';
+import os from 'os';
 import {
   ImageFile,
   ImageProcessor,
   ProcessingParams,
   ProcessedImage,
   ProcessingResult,
-  ProgressCallback,
+  ImageProgressCallback,
 } from './types';
 
 export class SharpImageProcessor implements ImageProcessor {
+  private concurrencyLimit: number;
+
   constructor() {
     // Configure Sharp for better performance
     sharp.cache({ memory: 50, files: 20, items: 100 });
-    sharp.concurrency(4); // Limit concurrent operations
+    
+    // Set concurrency limit to CPU core count (Requirements 5.1, 10.1)
+    this.concurrencyLimit = os.cpus().length;
+    sharp.concurrency(this.concurrencyLimit);
   }
 
   /**
@@ -26,6 +33,24 @@ export class SharpImageProcessor implements ImageProcessor {
     outputPath: string
   ): Promise<ProcessedImage> {
     try {
+      // Check for large images (Requirements 10.3)
+      const totalPixels = input.dimensions.width * input.dimensions.height;
+      const MAX_PIXELS = 100_000_000; // 100 million pixels (e.g., 10000x10000)
+      
+      if (totalPixels > MAX_PIXELS) {
+        console.warn(`Large image detected: ${input.relativePath} (${totalPixels} pixels)`);
+        
+        // Auto-scale down to safe size
+        const scale = Math.sqrt(MAX_PIXELS / totalPixels);
+        params = {
+          ...params,
+          resize: {
+            mode: 'width',
+            value: Math.floor(input.dimensions.width * scale)
+          }
+        };
+      }
+
       // Ensure output directory exists
       const outputDir = path.dirname(outputPath);
       await fs.mkdir(outputDir, { recursive: true });
@@ -84,42 +109,71 @@ export class SharpImageProcessor implements ImageProcessor {
   }
 
   /**
-   * Process multiple images in batch with progress reporting
+   * Process multiple images in batch with concurrent processing and fine-grained progress
+   * (Requirements 5.1, 5.2, 5.3, 5.4, 10.1)
    */
   async processBatch(
     inputs: ImageFile[],
     params: ProcessingParams,
     outputRoot: string,
-    onProgress?: ProgressCallback
+    onProgress?: ImageProgressCallback
   ): Promise<ProcessingResult> {
     const startTime = Date.now();
     const successful: ProcessedImage[] = [];
     const failed: ProcessedImage[] = [];
 
-    // Process images sequentially
-    for (let i = 0; i < inputs.length; i++) {
-      const input = inputs[i];
-      
-      // Determine output format
-      const outputFormat = params.format || input.format;
-      
-      // Build output path preserving directory structure
-      const outputPath = this.getOutputPath(input, outputRoot, outputFormat);
+    // Create concurrency limiter (Requirements 5.1, 10.1)
+    const limit = pLimit(this.concurrencyLimit);
 
-      // Process the image
-      const result = await this.process(input, params, outputPath);
+    // Process images concurrently with limited concurrency
+    const tasks = inputs.map((input, index) =>
+      limit(async () => {
+        try {
+          // Determine output format
+          const outputFormat = params.format || input.format;
+          
+          // Build output path preserving directory structure
+          const outputPath = this.getOutputPath(input, outputRoot, outputFormat);
 
-      if (result.success) {
-        successful.push(result);
-      } else {
-        failed.push(result);
-      }
-      
-      // Report progress
-      if (onProgress) {
-        onProgress(i + 1, inputs.length);
-      }
-    }
+          // Process the image (Requirements 5.2)
+          const result = await this.process(input, params, outputPath);
+
+          // Categorize result (Requirements 5.4)
+          if (result.success) {
+            successful.push(result);
+          } else {
+            failed.push(result);
+          }
+          
+          // Report per-image progress (Requirements 5.3)
+          if (onProgress) {
+            onProgress(index, inputs.length, result);
+          }
+
+          return result;
+        } catch (error) {
+          // Handle unexpected errors (Requirements 5.4)
+          const failedResult: ProcessedImage = {
+            outputPath: '',
+            originalSize: input.size,
+            processedSize: 0,
+            success: false,
+            error: error instanceof Error ? error.message : String(error)
+          };
+          failed.push(failedResult);
+          
+          // Report failure (Requirements 5.3)
+          if (onProgress) {
+            onProgress(index, inputs.length, failedResult);
+          }
+
+          return failedResult;
+        }
+      })
+    );
+
+    // Wait for all tasks to complete
+    await Promise.all(tasks);
 
     const totalTime = Date.now() - startTime;
 

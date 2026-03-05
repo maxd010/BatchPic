@@ -62,19 +62,19 @@
   - 确保所有测试通过，询问用户是否有问题
 
 - [ ] 4. 修改 ImageProcessor 支持细粒度进度
-  - [ ] 4.1 添加并发控制依赖
+  - [x] 4.1 添加并发控制依赖
     - 安装 `p-limit` 库：`npm install p-limit`
     - 在 `ImageProcessor.ts` 中导入并配置并发限制
     - _Requirements: 5.1, 10.1_
   
-  - [ ] 4.2 修改 processBatch 方法
+  - [x] 4.2 修改 processBatch 方法
     - 更新 `processBatch` 方法签名，添加 `onProgress?: ImageProgressCallback` 参数
     - 实现并发处理逻辑（使用 p-limit 限制并发数为 CPU 核心数）
     - 在每张图片处理完成后调用 `onProgress` 回调
     - 确保失败的图片不中断批量处理
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 10.1_
   
-  - [ ] 4.3 添加大文件检测和处理
+  - [x] 4.3 添加大文件检测和处理
     - 检测图片像素数是否超过 1 亿（8000x8000）
     - 对超大图片自动缩小到安全尺寸
     - 记录警告日志
