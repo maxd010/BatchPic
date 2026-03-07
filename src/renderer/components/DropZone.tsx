@@ -57,9 +57,10 @@ export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0,
     e.preventDefault();
     e.stopPropagation();
     
-    // Only set isDragging to false if we're leaving the drop zone itself
-    // (not just moving between child elements)
-    if (e.currentTarget === e.target) {
+    // Only set isDragging to false if the mouse is leaving the drop zone container
+    // Check if relatedTarget is outside the currentTarget
+    const relatedTarget = e.relatedTarget as Node;
+    if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
       setIsDragging(false);
     }
   }, []);
