@@ -11,13 +11,11 @@ import {
   ImageProgressCallback,
 } from './types';
 
-// Dynamic import for ESM module
 let pLimit: any;
 
 async function initPLimit() {
   if (!pLimit) {
-    const module = await import('p-limit');
-    pLimit = module.default;
+    pLimit = (await import('p-limit')).default;
   }
   return pLimit;
 }
