@@ -1,7 +1,6 @@
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs/promises';
-import pLimit from 'p-limit';
 import os from 'os';
 import {
   ImageFile,
@@ -11,6 +10,17 @@ import {
   ProcessingResult,
   ImageProgressCallback,
 } from './types';
+
+// Dynamic import for ESM module
+let pLimit: any;
+
+async function initPLimit() {
+  if (!pLimit) {
+    const module = await import('p-limit');
+    pLimit = module.default;
+  }
+  return pLimit;
+}
 
 export class SharpImageProcessor implements ImageProcessor {
   private concurrencyLimit: number;
@@ -131,7 +141,8 @@ export class SharpImageProcessor implements ImageProcessor {
     console.log(`[Performance] Initial memory usage: ${(initialMemory.heapUsed / 1024 / 1024).toFixed(2)} MB`);
 
     // Create concurrency limiter (Requirements 5.1, 10.1)
-    const limit = pLimit(this.concurrencyLimit);
+    const pLimitFn = await initPLimit();
+    const limit = pLimitFn(this.concurrencyLimit);
 
     // Track individual image processing times
     const processingTimes: number[] = [];
