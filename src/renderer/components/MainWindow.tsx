@@ -51,6 +51,7 @@ export function MainWindow() {
   const [showErrorReport, setShowErrorReport] = useState(false);
   const [previewFile, setPreviewFile] = useState<any | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Create throttled version of updateImageProgress (Requirement 10.2)
   // Throttle to 100ms to avoid excessive re-renders during batch processing
@@ -301,8 +302,12 @@ export function MainWindow() {
   // Handle preview file click
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
   const handlePreviewFile = useCallback((file: any) => {
+    // Prevent preview if user is dragging
+    if (isDragging) {
+      return;
+    }
     setPreviewFile(file);
-  }, []);
+  }, [isDragging]);
 
   // Handle close preview
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
@@ -338,8 +343,32 @@ export function MainWindow() {
     return `workspace-dropzone ${hasFiles ? 'compact-container' : ''}`;
   }, [hasFiles]);
 
+  // Handle drag events on window level to track dragging state
+  const handleWindowDragEnter = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  const handleWindowDragLeave = useCallback((e: React.DragEvent) => {
+    // Only clear dragging state when leaving the window
+    if (e.target === e.currentTarget) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleWindowDrop = useCallback(() => {
+    // Clear dragging state after drop, with a small delay to prevent click
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 100);
+  }, []);
+
   return (
-    <div className="main-window">
+    <div 
+      className="main-window"
+      onDragEnter={handleWindowDragEnter}
+      onDragLeave={handleWindowDragLeave}
+      onDrop={handleWindowDrop}
+    >
       {/* Notification container (Requirement 8.2) */}
       <NotificationContainer 
         notifications={notifications}

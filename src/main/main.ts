@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { FileScannerImpl } from './FileScanner.js';
@@ -70,7 +70,6 @@ const outputManager = new OutputManagerImpl();
 // Open file dialog
 ipcMain.handle('open-file-dialog', async () => {
   try {
-    const { dialog } = require('electron');
     const result = await dialog.showOpenDialog(mainWindow!, {
       properties: ['openFile', 'multiSelections'],
       filters: [
