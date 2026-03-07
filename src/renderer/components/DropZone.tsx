@@ -70,23 +70,32 @@ export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0,
     e.stopPropagation();
     setIsDragging(false);
 
+    console.log('[DropZone] handleDrop triggered');
+
     // Extract file paths from dropped items
     const paths: string[] = [];
     
     if (e.dataTransfer.files) {
+      console.log('[DropZone] dataTransfer.files count:', e.dataTransfer.files.length);
       // Get file paths from dropped files
       for (let i = 0; i < e.dataTransfer.files.length; i++) {
         const file = e.dataTransfer.files[i];
         // In Electron, we can access the path property
         const path = (file as any).path;
+        console.log('[DropZone] File', i, 'path:', path);
         if (path) {
           paths.push(path);
         }
       }
     }
 
+    console.log('[DropZone] Extracted paths:', paths);
+
     if (paths.length > 0) {
+      console.log('[DropZone] Calling onFilesDropped with', paths.length, 'paths');
       onFilesDropped(paths);
+    } else {
+      console.log('[DropZone] No paths extracted, not calling onFilesDropped');
     }
   }, [onFilesDropped]);
 

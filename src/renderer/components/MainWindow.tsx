@@ -94,21 +94,28 @@ export function MainWindow() {
   // Auto-process images after drop (Requirements 2.1, 2.2, 2.3, 5.5, 7.1, 7.2, 7.3)
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
   const autoProcessImages = useCallback(async (files: any[]) => {
+    console.log('[MainWindow] autoProcessImages called with', files.length, 'files');
+    
     try {
+      console.log('[MainWindow] Setting isProcessing to true');
       setIsProcessing(true);
       
       // Create output directory (Requirements 2.3, 6.1)
+      console.log('[MainWindow] Creating output directory...');
       const outputDir = await window.electronAPI.createOutputDirectory(
         files.map((f: any) => f.path)
       );
+      console.log('[MainWindow] Output directory created:', outputDir);
       setOutputDirectory(outputDir);
       
       // Process images with per-image progress callback (Requirements 5.3, 5.5)
+      console.log('[MainWindow] Starting processImagesWithProgress...');
       const results = await window.electronAPI.processImagesWithProgress(
         files,
         state.processingParams,
         outputDir,
         (index: number, result: any) => {
+          console.log('[MainWindow] Progress callback for image', index, ':', result);
           // Update per-image progress with throttling (Requirements 3.2, 3.3, 3.4, 10.2)
           // Throttled to 100ms to prevent excessive re-renders during batch processing
           throttledUpdateImageProgress(index, {
@@ -121,6 +128,8 @@ export function MainWindow() {
           });
         }
       );
+      
+      console.log('[MainWindow] Processing completed:', results);
       
       // Update final result (Requirement 5.5)
       setResult(results);
@@ -145,13 +154,14 @@ export function MainWindow() {
         );
       }
     } catch (error) {
-      console.error('Auto-process failed:', error);
+      console.error('[MainWindow] Auto-process failed:', error);
       showNotification(
         `自动处理失败: ${error instanceof Error ? error.message : String(error)}`,
         'error',
         5000
       );
     } finally {
+      console.log('[MainWindow] Setting isProcessing to false');
       setIsProcessing(false);
     }
   }, [state.processingParams, throttledUpdateImageProgress, setIsProcessing, setOutputDirectory, setResult, showNotification]);
@@ -159,9 +169,14 @@ export function MainWindow() {
   // Handle files dropped into the drop zone
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
   const handleFilesDropped = useCallback(async (paths: string[]) => {
+    console.log('[MainWindow] handleFilesDropped called with paths:', paths);
+    console.log('[MainWindow] autoProcessOnDrop:', state.autoProcessOnDrop);
+    
     try {
       // Scan files via IPC (Requirements 1.1, 1.2)
+      console.log('[MainWindow] Calling scanFiles...');
       const scannedFiles = await window.electronAPI.scanFiles(paths);
+      console.log('[MainWindow] Scanned files:', scannedFiles.length, 'files');
       
       // Update state with scanned files
       // If files already exist, append new files (allow adding more files)
@@ -171,17 +186,26 @@ export function MainWindow() {
       setProcessingParams(DEFAULT_PARAMS);
       
       // Initialize image progress tracking (Requirements 3.1)
+      console.log('[MainWindow] Initializing image progress...');
       initializeImageProgress(scannedFiles);
       
       // Show notification confirming ready-to-use version (Requirement 2.5)
       showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
       
       // Auto-trigger processing if enabled (Requirements 2.1, 2.4)
+      console.log('[MainWindow] Checking auto-process condition:', {
+        autoProcessOnDrop: state.autoProcessOnDrop,
+        scannedFilesLength: scannedFiles.length
+      });
+      
       if (state.autoProcessOnDrop && scannedFiles.length > 0) {
+        console.log('[MainWindow] Auto-processing triggered!');
         await autoProcessImages(scannedFiles);
+      } else {
+        console.log('[MainWindow] Auto-processing NOT triggered');
       }
     } catch (error) {
-      console.error('Failed to scan files:', error);
+      console.error('[MainWindow] Failed to scan files:', error);
       showNotification('文件扫描失败', 'error', 3000);
     }
   }, [state.inputFiles, state.autoProcessOnDrop, setInputFiles, setProcessingParams, initializeImageProgress, showNotification, autoProcessImages]);
