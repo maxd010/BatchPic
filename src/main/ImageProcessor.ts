@@ -9,7 +9,7 @@ import {
   ProcessedImage,
   ProcessingResult,
   ImageProgressCallback,
-} from './types';
+} from './types.js';
 
 let pLimit: any;
 

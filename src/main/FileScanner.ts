@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import sharp from 'sharp';
 import * as fileType from 'file-type';
-import { FileScanner, ImageFile } from './types';
+import { FileScanner, ImageFile } from './types.js';
 
 const SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp'];
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

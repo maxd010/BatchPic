@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { Template, TemplateManager as ITemplateManager, ProcessingParams } from './types';
+import { Template, TemplateManager as ITemplateManager, ProcessingParams } from './types.js';
 
 interface TemplateStorage {
   templates: Template[];

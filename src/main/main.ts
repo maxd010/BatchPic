@@ -1,10 +1,15 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
-import { FileScannerImpl } from './FileScanner';
-import { SharpImageProcessor } from './ImageProcessor';
-import { TemplateManager } from './TemplateManager';
-import { OutputManagerImpl } from './OutputManager';
-import { ImageFile, ProcessingParams } from './types';
+import { fileURLToPath } from 'url';
+import { FileScannerImpl } from './FileScanner.js';
+import { SharpImageProcessor } from './ImageProcessor.js';
+import { TemplateManager } from './TemplateManager.js';
+import { OutputManagerImpl } from './OutputManager.js';
+import { ImageFile, ProcessingParams } from './types.js';
+
+// ES 模块中获取 __dirname 的方式
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 

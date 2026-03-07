@@ -2,6 +2,7 @@
   "name": "batchpic",
   "version": "1.0.0",
   "description": "图片交付准备工具 - 快速批量处理图片",
+  "type": "module",
   "main": "dist/main/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import type { OutputManager, ImageFile } from './types';
+import type { OutputManager, ImageFile } from './types.js';
 
 const execAsync = promisify(exec);
 
