@@ -1,8 +1,10 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import sharp from 'sharp';
-import * as fileType from 'file-type';
+import fileTypePkg from 'file-type';
 import { FileScanner, ImageFile } from './types.js';
+
+const { fromFile: fileTypeFromFile } = fileTypePkg;
 
 const SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp'];
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -131,7 +133,7 @@ export class FileScannerImpl implements FileScanner {
      */
     private async validateImageFile(filePath: string): Promise<boolean> {
       try {
-        const result = await fileType.fromFile(filePath);
+        const result = await fileTypeFromFile(filePath);
         
         // If file type cannot be determined, reject it
         if (!result) {
