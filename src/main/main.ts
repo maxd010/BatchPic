@@ -89,11 +89,16 @@ ipcMain.handle('open-file-dialog', async () => {
 
 // File scanning (Requirements 1.1, 1.2)
 ipcMain.handle('scan-files', async (_event, paths: string[]) => {
+  console.log('[main.ts] scan-files called with paths:', paths);
   try {
     const files = await fileScanner.scan(paths);
+    console.log('[main.ts] FileScanner returned', files.length, 'files');
+    if (files.length === 0) {
+      console.warn('[main.ts] No files found! Check FileScanner logic');
+    }
     return files;
   } catch (error) {
-    console.error('Error scanning files:', error);
+    console.error('[main.ts] Error scanning files:', error);
     throw error;
   }
 });

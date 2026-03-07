@@ -9,25 +9,38 @@ const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export class FileScannerImpl implements FileScanner {
   async scan(paths: string[]): Promise<ImageFile[]> {
+      console.log('[FileScanner] scan called with', paths.length, 'paths:', paths);
       const results: ImageFile[] = [];
 
       for (const inputPath of paths) {
+        console.log('[FileScanner] Processing path:', inputPath);
+        
         // Validate path before processing
-        this.validatePath(inputPath);
+        try {
+          this.validatePath(inputPath);
+          console.log('[FileScanner] Path validation passed');
+        } catch (error) {
+          console.error('[FileScanner] Path validation failed:', error);
+          throw error;
+        }
 
         const stat = await fs.stat(inputPath);
+        console.log('[FileScanner] Path is', stat.isFile() ? 'file' : 'directory');
 
         if (stat.isFile()) {
           const imageFile = await this.processFile(inputPath, path.dirname(inputPath));
+          console.log('[FileScanner] processFile returned:', imageFile ? 'valid image' : 'null');
           if (imageFile) {
             results.push(imageFile);
           }
         } else if (stat.isDirectory()) {
           const files = await this.scanDirectory(inputPath, inputPath);
+          console.log('[FileScanner] scanDirectory returned', files.length, 'files');
           results.push(...files);
         }
       }
 
+      console.log('[FileScanner] Total results:', results.length);
       return results;
     }
 
@@ -55,15 +68,20 @@ export class FileScannerImpl implements FileScanner {
   }
 
   private async processFile(filePath: string, rootPath: string): Promise<ImageFile | null> {
+    console.log('[FileScanner] processFile:', filePath);
     const ext = path.extname(filePath).toLowerCase();
+    console.log('[FileScanner] File extension:', ext);
     
     // Skip unsupported formats silently
     if (!SUPPORTED_FORMATS.includes(ext)) {
+      console.log('[FileScanner] Unsupported format, skipping');
       return null;
     }
 
     // Validate file type by checking actual file content (magic bytes)
+    console.log('[FileScanner] Validating image file...');
     const isValidImage = await this.validateImageFile(filePath);
+    console.log('[FileScanner] Image validation result:', isValidImage);
     if (!isValidImage) {
       return null;
     }
