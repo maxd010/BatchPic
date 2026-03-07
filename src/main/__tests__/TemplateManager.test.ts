@@ -1,5 +1,5 @@
-import { TemplateManager } from './TemplateManager';
-import { ProcessingParams, Template } from './types';
+import { TemplateManager } from '../TemplateManager';
+import { ProcessingParams, Template } from '../types';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { app } from 'electron';

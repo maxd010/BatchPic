@@ -23,7 +23,7 @@ jest.mock('electron', () => ({
 }));
 
 // Import after mocking
-import './preload';
+import '../preload';
 
 describe('IPC Parameter Validation', () => {
   let electronAPI: any;

@@ -1,5 +1,5 @@
-import { SharpImageProcessor } from './ImageProcessor';
-import { ImageFile, ProcessingParams } from './types';
+import { SharpImageProcessor } from '../ImageProcessor';
+import { ImageFile, ProcessingParams } from '../types';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';

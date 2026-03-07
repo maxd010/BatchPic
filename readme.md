@@ -156,17 +156,21 @@ batchpic/
 
 ### 快速链接
 
-- **设计文档**
-  - [设计系统规范](docs/design/DESIGN_SYSTEM.md)
-  - [布局优化说明](docs/design/LAYOUT_OPTIMIZATION.md)
-  - [UI 优化总结](docs/design/UI_OPTIMIZATION_SUMMARY.md)
-
 - **开发文档**
   - [开发环境配置](docs/development/SETUP.md)
+  - [自动处理功能指南](docs/development/AUTO_PROCESS_GUIDE.md)
 
 - **测试文档**
   - [快速测试指南](docs/testing/QUICK_TEST.md)
   - [故障排除](docs/testing/TROUBLESHOOTING.md)
+
+- **部署文档**
+  - [打包发布指南](docs/deployment/PACKAGING_GUIDE.md)
+
+- **业务文档**
+  - [技术债务](docs/业务文档/BatchPic/技术债.md)
+  - [性能优化总结](docs/业务文档/BatchPic/性能优化总结.md)
+  - [性能监控实现](docs/业务文档/BatchPic/性能监控实现.md)
 
 - **功能规格**
   - [自动处理功能规格](.kiro/specs/auto-process-on-drop/requirements.md)

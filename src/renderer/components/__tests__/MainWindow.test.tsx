@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { MainWindow } from './MainWindow';
-import { AppProvider } from '../context/AppContext';
+import { MainWindow } from '../MainWindow';
+import { AppProvider } from '../../context/AppContext';
 import { ImageFile, ProcessingResult } from '../../main/types';
 
 // Mock the electronAPI

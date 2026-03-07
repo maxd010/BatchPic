@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { DropZone } from './DropZone';
+import { DropZone } from '../DropZone';
 
 describe('DropZone', () => {
   test('renders empty state when isEmpty is true', () => {

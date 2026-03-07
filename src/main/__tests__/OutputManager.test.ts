@@ -1,8 +1,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { OutputManagerImpl } from './OutputManager';
-import type { ImageFile } from './types';
+import { OutputManagerImpl } from '../OutputManager';
+import type { ImageFile } from '../types';
 
 describe('OutputManager', () => {
   let outputManager: OutputManagerImpl;

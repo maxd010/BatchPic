@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { PreviewPanel } from './PreviewPanel';
+import { PreviewPanel } from '../PreviewPanel';
 import { ImageFile, ProcessingParams } from '../../main/types';
 
 describe('PreviewPanel', () => {

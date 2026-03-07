@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ParameterPanel } from './ParameterPanel';
+import { ParameterPanel } from '../ParameterPanel';
 import { ProcessingParams, ImageFile } from '../../main/types';
 
 describe('ParameterPanel', () => {

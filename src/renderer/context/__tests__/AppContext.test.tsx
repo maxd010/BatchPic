@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
-import { AppProvider, useAppContext, DEFAULT_PARAMS } from './AppContext';
+import { AppProvider, useAppContext, DEFAULT_PARAMS } from '../AppContext';
 import { ImageFile, ProcessingParams } from '../../main/types';
 
 // Wrapper component for testing hooks

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import sharp from 'sharp';
 import * as fc from 'fast-check';
-import { FileScannerImpl } from './FileScanner';
+import { FileScannerImpl } from '../FileScanner';
 
 describe('FileScanner', () => {
   let scanner: FileScannerImpl;

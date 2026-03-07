@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { TemplateSelector } from './TemplateSelector';
+import { TemplateSelector } from '../TemplateSelector';
 import { Template, ProcessingParams } from '../../main/types';
 
 describe('TemplateSelector', () => {

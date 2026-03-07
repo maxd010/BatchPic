@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ErrorReportDialog } from './ErrorReportDialog';
+import { ErrorReportDialog } from '../ErrorReportDialog';
 import { ProcessingResult } from '../../main/types';
 
 describe('ErrorReportDialog', () => {
