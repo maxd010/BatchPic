@@ -19,7 +19,14 @@
   // 需要打包的文件和目录
   files: [
     "dist/**/*",
-    "package.json"
+    "package.json",
+    "node_modules/sharp/**/*"
+  ],
+  
+  // 将 sharp 及其依赖从 asar 归档中排除 (native 模块需要直接访问文件系统)
+  asarUnpack: [
+    "node_modules/sharp/**/*",
+    "node_modules/@img/**/*"
   ],
   
   // 排除不需要打包的文件
@@ -38,29 +45,30 @@
     // 强化运行时 (macOS 10.14+ 安全要求)
     hardenedRuntime: true,
     // Gatekeeper 评估 (允许未签名应用运行)
-    gatekeeperAssess: false,
-    // DMG 窗口配置
-    dmg: {
-      // DMG 窗口大小
-      window: {
-        width: 540,
-        height: 380
+    gatekeeperAssess: false
+  },
+  
+  // DMG 窗口配置
+  dmg: {
+    // DMG 窗口大小
+    window: {
+      width: 540,
+      height: 380
+    },
+    // DMG 内容布局
+    contents: [
+      {
+        x: 140,
+        y: 180,
+        type: "file"
       },
-      // DMG 内容布局
-      contents: [
-        {
-          x: 140,
-          y: 180,
-          type: "file"
-        },
-        {
-          x: 400,
-          y: 180,
-          type: "link",
-          path: "/Applications"
-        }
-      ]
-    }
+      {
+        x: 400,
+        y: 180,
+        type: "link",
+        path: "/Applications"
+      }
+    ]
   },
   
   // Windows 平台配置
@@ -79,19 +87,20 @@
     // 应用图标路径
     icon: "build/icons/icon.ico",
     // 产物命名模式
-    artifactName: "${productName}-${version}-${os}-${arch}.${ext}",
-    // NSIS 安装器配置
-    nsis: {
-      // 一键安装 (false 表示显示安装向导)
-      oneClick: false,
-      // 为所有用户安装 (需要管理员权限)
-      perMachine: false,
-      // 允许用户选择安装目录
-      allowToChangeInstallationDirectory: true,
-      // 创建桌面快捷方式
-      createDesktopShortcut: true,
-      // 创建开始菜单快捷方式
-      createStartMenuShortcut: true
-    }
+    artifactName: "${productName}-${version}-${os}-${arch}.${ext}"
+  },
+  
+  // NSIS 安装器配置
+  nsis: {
+    // 一键安装 (false 表示显示安装向导)
+    oneClick: false,
+    // 为所有用户安装 (需要管理员权限)
+    perMachine: false,
+    // 允许用户选择安装目录
+    allowToChangeInstallationDirectory: true,
+    // 创建桌面快捷方式
+    createDesktopShortcut: true,
+    // 创建开始菜单快捷方式
+    createStartMenuShortcut: true
   }
 }
