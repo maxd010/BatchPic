@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BatchPic - 图片交付准备工具</title>
+    <script>
+      // Prevent default drag-and-drop behavior immediately on page load
+      // This must be done before React mounts to catch all drag events
+      (function() {
+        const preventDefaults = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        };
+        
+        // Add listeners as soon as possible
+        window.addEventListener('dragover', preventDefaults, false);
+        window.addEventListener('drop', preventDefaults, false);
+        window.addEventListener('dragenter', preventDefaults, false);
+        window.addEventListener('dragleave', preventDefaults, false);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
