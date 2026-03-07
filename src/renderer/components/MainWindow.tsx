@@ -185,13 +185,6 @@ export function MainWindow() {
       // Automatically apply default parameters (Requirement 8.1)
       setProcessingParams(DEFAULT_PARAMS);
       
-      // Initialize image progress tracking (Requirements 3.1)
-      console.log('[MainWindow] Initializing image progress...');
-      initializeImageProgress(scannedFiles);
-      
-      // Show notification confirming ready-to-use version (Requirement 2.5)
-      showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
-      
       // Auto-trigger processing if enabled (Requirements 2.1, 2.4)
       console.log('[MainWindow] Checking auto-process condition:', {
         autoProcessOnDrop: state.autoProcessOnDrop,
@@ -200,9 +193,17 @@ export function MainWindow() {
       
       if (state.autoProcessOnDrop && scannedFiles.length > 0) {
         console.log('[MainWindow] Auto-processing triggered!');
+        // Initialize image progress tracking (Requirements 3.1)
+        console.log('[MainWindow] Initializing image progress...');
+        initializeImageProgress(scannedFiles);
         await autoProcessImages(scannedFiles);
       } else {
         console.log('[MainWindow] Auto-processing NOT triggered');
+        // Initialize image progress tracking (Requirements 3.1)
+        console.log('[MainWindow] Initializing image progress...');
+        initializeImageProgress(scannedFiles);
+        // Show notification confirming ready-to-use version (Requirement 2.5)
+        showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
       }
     } catch (error) {
       console.error('[MainWindow] Failed to scan files:', error);
