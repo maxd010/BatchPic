@@ -6,6 +6,6 @@
     "outDir": "dist/main",
     "noEmit": false
   },
-  "include": ["src/main"],
-  "exclude": ["src/main/preload.ts"]
+  "include": ["src/main/**/*"],
+  "exclude": ["src/main/preload.ts", "**/*.test.ts"]
 }

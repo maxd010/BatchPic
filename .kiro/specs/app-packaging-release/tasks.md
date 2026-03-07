@@ -6,20 +6,20 @@
 
 ## Tasks
 
-- [~] 1. 配置构建系统
+- [-] 1. 配置构建系统
   - 创建 TypeScript 编译配置文件 (tsconfig.main.json, tsconfig.preload.json)
   - 配置 Vite 构建渲染进程
   - 在 package.json 中添加构建脚本 (clean, build, build:main, build:preload, build:renderer)
   - 实现构建前清理逻辑
   - _Requirements: 1.1, 1.2, 1.3, 1.5_
 
-- [~] 1.1 编写构建系统单元测试
+- [x] 1.1 编写构建系统单元测试
   - 测试构建脚本是否正确定义
   - 测试构建前清理功能
   - 测试 TypeScript 编译错误处理
   - _Requirements: 1.4, 1.6_
 
-- [~] 1.2 编写构建系统属性测试
+- [x] 1.2 编写构建系统属性测试
   - **Property 1: 构建输出目录正确性**
   - **Validates: Requirements 1.1, 1.2, 1.3**
   - **Property 2: 构建前清理**
@@ -60,7 +60,7 @@
   - 测试平台特定配置完整性
   - _Requirements: 2.4, 2.6, 2.7, 2.8_
 
-- [ ] 2.6 编写打包系统属性测试
+- [~] 2.6 编写打包系统属性测试
   - **Property 5: 跨平台打包支持**
   - **Validates: Requirements 2.1, 2.2**
   - **Property 8: 文件过滤正确性**
@@ -68,7 +68,7 @@
   - **Property 10: 打包输出目录**
   - **Validates: Requirements 2.9**
 
-- [ ] 3. 配置打包脚本
+- [~] 3. 配置打包脚本
   - 在 package.json 中添加 package 脚本 (打包所有平台)
   - 在 package.json 中添加 package:mac 脚本 (仅打包 macOS)
   - 在 package.json 中添加 package:win 脚本 (仅打包 Windows)
@@ -76,59 +76,59 @@
   - 确保打包脚本自动触发构建
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 3.1 编写脚本系统测试
+- [~] 3.1 编写脚本系统测试
   - 测试所有打包脚本正确定义
   - 测试脚本失败时的错误处理
   - _Requirements: 3.7_
 
-- [ ] 3.2 编写脚本系统属性测试
+- [~] 3.2 编写脚本系统属性测试
   - **Property 11: 打包前自动构建**
   - **Validates: Requirements 3.6**
   - **Property 12: 脚本失败错误处理**
   - **Validates: Requirements 3.7**
 
-- [ ] 4. Checkpoint - 验证构建和打包流程
+- [~] 4. Checkpoint - 验证构建和打包流程
   - 执行完整构建,确保所有文件正确输出到 dist/ 目录
   - 执行 macOS 打包,验证 DMG 和 ZIP 文件生成
   - 执行 Windows 打包,验证 NSIS 安装器和便携版生成
   - 确保所有测试通过,询问用户是否有问题
 
 - [ ] 5. 创建打包发布文档
-  - [ ] 5.1 创建 docs/PACKAGING_GUIDE.md 文档
+  - [~] 5.1 创建 docs/PACKAGING_GUIDE.md 文档
     - 编写文档概述和目录结构
     - _Requirements: 4.1_
   
-  - [ ] 5.2 编写版本管理规范章节
+  - [~] 5.2 编写版本管理规范章节
     - 说明语义化版本规范
     - 说明版本号更新流程
     - _Requirements: 4.2_
   
-  - [ ] 5.3 编写发布流程步骤章节
+  - [~] 5.3 编写发布流程步骤章节
     - 说明完整的发布流程
     - 提供发布检查清单
     - _Requirements: 4.3, 4.7_
   
-  - [ ] 5.4 编写代码签名配置章节
+  - [~] 5.4 编写代码签名配置章节
     - 说明 macOS 代码签名配置
     - 说明 Windows 代码签名配置
     - _Requirements: 4.4_
   
-  - [ ] 5.5 编写自动更新配置章节
+  - [~] 5.5 编写自动更新配置章节
     - 说明自动更新机制
     - 提供配置示例
     - _Requirements: 4.5_
   
-  - [ ] 5.6 编写常见问题解决章节
+  - [~] 5.6 编写常见问题解决章节
     - 列出常见构建错误及解决方法
     - 列出常见打包错误及解决方法
     - _Requirements: 4.6_
 
-- [ ] 5.7 编写文档测试
+- [~] 5.7 编写文档测试
   - 测试文档文件存在
   - 测试文档包含所有必需章节
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-- [ ] 6. Final Checkpoint - 完整验证
+- [~] 6. Final Checkpoint - 完整验证
   - 运行所有测试,确保测试通过
   - 在 macOS 上执行完整打包流程,验证安装包可用
   - 在 Windows 上执行完整打包流程,验证安装包可用
