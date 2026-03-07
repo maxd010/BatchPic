@@ -33,17 +33,18 @@ describe('FileScanner', () => {
   };
 
   describe('path validation', () => {
-    it('should reject paths containing ".."', async () => {
-      // Use a raw string with ".." to avoid Node.js path normalization
-      const maliciousPath = tempDir + '/../etc/passwd';
+    it('should reject paths containing ".." as path segment', async () => {
+      // Construct a path with ".." that won't be normalized by path.join
+      const maliciousPath = tempDir + path.sep + '..' + path.sep + 'etc' + path.sep + 'passwd';
 
       await expect(scanner.scan([maliciousPath])).rejects.toThrow(
-        'Suspicious path detected: path contains ".."'
+        'Suspicious path detected: path contains ".." segment'
       );
     });
 
     it('should reject paths containing "~"', async () => {
-      const tildePathUnix = '~/Documents/images';
+      // Create an absolute path with "~" in it (not at the start)
+      const tildePathUnix = path.join(tempDir, '~user', 'images');
 
       await expect(scanner.scan([tildePathUnix])).rejects.toThrow(
         'Suspicious path detected: path contains "~"'
@@ -70,11 +71,12 @@ describe('FileScanner', () => {
 
     it('should validate all paths in batch before processing', async () => {
       const validPath = path.join(tempDir, 'valid.jpg');
-      const invalidPath = '../malicious.jpg';
+      // Construct a path with ".." that won't be normalized by path.join
+      const invalidPath = tempDir + path.sep + '..' + path.sep + 'malicious.jpg';
 
       await createTestImage(validPath, 100, 100, 'jpeg');
 
-      // Should fail on the invalid path (contains ".." which is checked first)
+      // Should fail on the invalid path (contains ".." as a path segment)
       await expect(scanner.scan([validPath, invalidPath])).rejects.toThrow(
         'Suspicious path detected'
       );
@@ -86,10 +88,23 @@ describe('FileScanner', () => {
       const imagePath = path.join(dirWithDots, 'test.jpg');
       await createTestImage(imagePath, 100, 100, 'jpeg');
 
-      // This should be rejected because the path string contains ".."
-      await expect(scanner.scan([imagePath])).rejects.toThrow(
-        'Suspicious path detected: path contains ".."'
-      );
+      // After fix: This should be ACCEPTED because ".." is in the directory name, not a path segment
+      const results = await scanner.scan([imagePath]);
+      expect(results).toHaveLength(1);
+      expect(results[0].path).toBe(imagePath);
+    });
+
+    it('should accept filenames with multiple dots like "背....png"', async () => {
+      // Test case for the reported bug: long filename with multiple dots
+      const longFileName = 'jimeng-2026-02-08-9367-将图中的男孩变成超人，穿着经典的红蓝色超人紧身衣和披风，保持他的面部特征不变。背....png';
+      const imagePath = path.join(tempDir, longFileName);
+      await createTestImage(imagePath, 100, 100, 'png');
+
+      // Should be accepted - dots in filename are legitimate
+      const results = await scanner.scan([imagePath]);
+      expect(results).toHaveLength(1);
+      expect(results[0].path).toBe(imagePath);
+      expect(results[0].format).toBe('png');
     });
   });
 

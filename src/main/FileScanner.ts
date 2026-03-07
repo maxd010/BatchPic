@@ -162,9 +162,9 @@ export class FileScannerImpl implements FileScanner {
      * @throws Error if path is suspicious or invalid
      */
     private validatePath(filePath: string): void {
-      // Check for path traversal patterns
-      if (filePath.includes('..')) {
-        throw new Error(`Suspicious path detected: path contains ".." (${filePath})`);
+      // Ensure path is absolute
+      if (!path.isAbsolute(filePath)) {
+        throw new Error(`Invalid path: path must be absolute (${filePath})`);
       }
 
       // Check for home directory shorthand
@@ -172,9 +172,13 @@ export class FileScannerImpl implements FileScanner {
         throw new Error(`Suspicious path detected: path contains "~" (${filePath})`);
       }
 
-      // Ensure path is absolute
-      if (!path.isAbsolute(filePath)) {
-        throw new Error(`Invalid path: path must be absolute (${filePath})`);
+      // Check for path traversal patterns
+      // Split path into segments BEFORE normalization and check if any segment is exactly ".."
+      // This allows filenames like "背....png" while blocking "../etc/passwd"
+      const segments = filePath.split(path.sep);
+      
+      if (segments.includes('..')) {
+        throw new Error(`Suspicious path detected: path contains ".." segment (${filePath})`);
       }
     }
 
