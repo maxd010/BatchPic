@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { throttle } from 'lodash';
 import { useAppContext, DEFAULT_PARAMS } from '../context/AppContext';
 import { DropZone } from './DropZone';
 import { ParameterPanel } from './ParameterPanel';
@@ -51,6 +52,21 @@ export function MainWindow() {
   const [previewFile, setPreviewFile] = useState<any | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Create throttled version of updateImageProgress (Requirement 10.2)
+  // Throttle to 100ms to avoid excessive re-renders during batch processing
+  const throttledUpdateImageProgress = useRef(
+    throttle((index: number, progress: any) => {
+      updateImageProgress(index, progress);
+    }, 100)
+  ).current;
+
+  // Cleanup throttled function on unmount
+  useEffect(() => {
+    return () => {
+      throttledUpdateImageProgress.cancel();
+    };
+  }, [throttledUpdateImageProgress]);
+
   // Load templates on mount
   useEffect(() => {
     // TODO: Load templates from TemplateManager via IPC
@@ -75,7 +91,8 @@ export function MainWindow() {
   }, [setProgress]);
 
   // Handle files dropped into the drop zone
-  const handleFilesDropped = async (paths: string[]) => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleFilesDropped = useCallback(async (paths: string[]) => {
     try {
       // Scan files via IPC (Requirements 1.1, 1.2)
       const scannedFiles = await window.electronAPI.scanFiles(paths);
@@ -101,10 +118,11 @@ export function MainWindow() {
       console.error('Failed to scan files:', error);
       showNotification('文件扫描失败', 'error', 3000);
     }
-  };
+  }, [state.inputFiles, state.autoProcessOnDrop, setInputFiles, setProcessingParams, initializeImageProgress, showNotification]);
 
   // Auto-process images after drop (Requirements 2.1, 2.2, 2.3, 5.5, 7.1, 7.2, 7.3)
-  const autoProcessImages = async (files: any[]) => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const autoProcessImages = useCallback(async (files: any[]) => {
     try {
       setIsProcessing(true);
       
@@ -120,8 +138,9 @@ export function MainWindow() {
         state.processingParams,
         outputDir,
         (index: number, result: any) => {
-          // Update per-image progress (Requirements 3.2, 3.3, 3.4)
-          updateImageProgress(index, {
+          // Update per-image progress with throttling (Requirements 3.2, 3.3, 3.4, 10.2)
+          // Throttled to 100ms to prevent excessive re-renders during batch processing
+          throttledUpdateImageProgress(index, {
             status: result.success ? 'success' : 'failed',
             progress: 100,
             error: result.error,
@@ -164,7 +183,7 @@ export function MainWindow() {
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [state.processingParams, throttledUpdateImageProgress, setIsProcessing, setOutputDirectory, setResult, showNotification]);
 
   // Handle parameter changes with real-time feedback (Requirement 8.4)
   // The ParameterPanel now debounces parameter changes internally
@@ -191,16 +210,18 @@ export function MainWindow() {
   }, [setProcessingParams]);
 
   // Handle template selection (Requirement 5.3)
-  const handleSelectTemplate = (templateId: string) => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleSelectTemplate = useCallback((templateId: string) => {
     const template = state.templates.find(t => t.id === templateId);
     if (template) {
       setProcessingParams(template.params);
       setSelectedTemplateId(templateId);
     }
-  };
+  }, [state.templates, setProcessingParams, setSelectedTemplateId]);
 
   // Handle save template (Requirement 5.1)
-  const handleSaveTemplate = async (name: string) => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleSaveTemplate = useCallback(async (name: string) => {
     try {
       // TODO: Save template via IPC to TemplateManager
       // This will be implemented in task 9.1
@@ -208,10 +229,11 @@ export function MainWindow() {
     } catch (error) {
       console.error('Failed to save template:', error);
     }
-  };
+  }, [state.processingParams]);
 
   // Handle delete template (Requirement 5.4)
-  const handleDeleteTemplate = async (templateId: string) => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleDeleteTemplate = useCallback(async (templateId: string) => {
     try {
       // TODO: Delete template via IPC to TemplateManager
       // This will be implemented in task 9.1
@@ -219,10 +241,11 @@ export function MainWindow() {
     } catch (error) {
       console.error('Failed to delete template:', error);
     }
-  };
+  }, []);
 
   // Handle export button click (Requirements 10.1, 10.2)
-  const handleExport = async () => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleExport = useCallback(async () => {
     if (state.inputFiles.length === 0 || state.isProcessing) {
       return;
     }
@@ -253,10 +276,11 @@ export function MainWindow() {
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [state.inputFiles, state.isProcessing, state.processingParams, setIsProcessing, setProgress, setResult, setOutputDirectory, showNotification]);
 
   // Handle open output directory (Requirement 10.3)
-  const handleOpenOutputDirectory = async () => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleOpenOutputDirectory = useCallback(async () => {
     if (!state.outputDirectory) {
       return;
     }
@@ -266,12 +290,53 @@ export function MainWindow() {
     } catch (error) {
       console.error('Failed to open output directory:', error);
     }
-  };
+  }, [state.outputDirectory]);
 
   // Handle close error report dialog (Requirement 10.4)
-  const handleCloseErrorReport = () => {
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleCloseErrorReport = useCallback(() => {
     setShowErrorReport(false);
-  };
+  }, []);
+
+  // Handle preview file click
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handlePreviewFile = useCallback((file: any) => {
+    setPreviewFile(file);
+  }, []);
+
+  // Handle close preview
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleClosePreview = useCallback(() => {
+    setPreviewFile(null);
+  }, []);
+
+  // Handle clear files
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleClearFiles = useCallback(() => {
+    setInputFiles([]);
+  }, [setInputFiles]);
+
+  // Handle auto-process toggle
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleAutoProcessToggle = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setAutoProcessOnDrop(e.target.checked);
+  }, [setAutoProcessOnDrop]);
+
+  // Memoize expensive computations (Requirement 10.4)
+  // Calculate if export button should be disabled
+  const isExportDisabled = useMemo(() => {
+    return state.inputFiles.length === 0 || state.isProcessing;
+  }, [state.inputFiles.length, state.isProcessing]);
+
+  // Calculate if files are loaded (used in multiple places)
+  const hasFiles = useMemo(() => {
+    return state.inputFiles.length > 0;
+  }, [state.inputFiles.length]);
+
+  // Calculate workspace class name
+  const workspaceDropzoneClass = useMemo(() => {
+    return `workspace-dropzone ${hasFiles ? 'compact-container' : ''}`;
+  }, [hasFiles]);
 
   return (
     <div className="main-window">
@@ -294,7 +359,7 @@ export function MainWindow() {
         <FullScreenPreview 
           image={previewFile}
           params={state.processingParams}
-          onClose={() => setPreviewFile(null)}
+          onClose={handleClosePreview}
         />
       )}
 
@@ -311,7 +376,7 @@ export function MainWindow() {
             <input
               type="checkbox"
               checked={state.autoProcessOnDrop}
-              onChange={(e) => setAutoProcessOnDrop(e.target.checked)}
+              onChange={handleAutoProcessToggle}
               className="toggle-checkbox"
             />
             <span className="toggle-text">拖拽后自动处理</span>
@@ -334,18 +399,18 @@ export function MainWindow() {
         {/* Center workspace */}
         <section className="workspace-center">
           {/* Drop zone - compact when files loaded */}
-          <div className={`workspace-dropzone ${state.inputFiles.length > 0 ? 'compact-container' : ''}`}>
+          <div className={workspaceDropzoneClass}>
             <DropZone 
               onFilesDropped={handleFilesDropped}
-              onClearFiles={() => setInputFiles([])}
-              isEmpty={state.inputFiles.length === 0}
+              onClearFiles={handleClearFiles}
+              isEmpty={!hasFiles}
               fileCount={state.inputFiles.length}
-              compact={state.inputFiles.length > 0}
+              compact={hasFiles}
             />
           </div>
 
           {/* File list and preview */}
-          {state.inputFiles.length > 0 && (
+          {hasFiles && (
             <div className="workspace-content">
               {/* Progress Panel - Show real-time progress (Requirements 4.1) */}
               {state.imageProgress.length > 0 && (
@@ -366,7 +431,7 @@ export function MainWindow() {
                     <div 
                       key={index} 
                       className="file-card"
-                      onClick={() => setPreviewFile(file)}
+                      onClick={() => handlePreviewFile(file)}
                     >
                       <div className="file-card-inner">
                         <div className="file-info-main">
@@ -413,11 +478,11 @@ export function MainWindow() {
             )}
 
             {/* Export button */}
-            {state.inputFiles.length > 0 && (
+            {hasFiles && (
               <button 
                 className="export-button"
                 onClick={handleExport}
-                disabled={state.isProcessing}
+                disabled={isExportDisabled}
               >
                 {state.isProcessing ? '处理中...' : '开始导出图片'}
               </button>

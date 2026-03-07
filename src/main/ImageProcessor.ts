@@ -122,12 +122,25 @@ export class SharpImageProcessor implements ImageProcessor {
     const successful: ProcessedImage[] = [];
     const failed: ProcessedImage[] = [];
 
+    // Performance monitoring: Log batch processing start (Requirements 10.1, 10.5)
+    console.log(`[Performance] Starting batch processing: ${inputs.length} images`);
+    console.log(`[Performance] Concurrency limit: ${this.concurrencyLimit} (CPU cores: ${os.cpus().length})`);
+    
+    // Log initial memory usage
+    const initialMemory = process.memoryUsage();
+    console.log(`[Performance] Initial memory usage: ${(initialMemory.heapUsed / 1024 / 1024).toFixed(2)} MB`);
+
     // Create concurrency limiter (Requirements 5.1, 10.1)
     const limit = pLimit(this.concurrencyLimit);
+
+    // Track individual image processing times
+    const processingTimes: number[] = [];
 
     // Process images concurrently with limited concurrency
     const tasks = inputs.map((input, index) =>
       limit(async () => {
+        const imageStartTime = Date.now();
+        
         try {
           // Determine output format
           const outputFormat = params.format || input.format;
@@ -137,6 +150,10 @@ export class SharpImageProcessor implements ImageProcessor {
 
           // Process the image (Requirements 5.2)
           const result = await this.process(input, params, outputPath);
+
+          // Track processing time
+          const imageProcessingTime = Date.now() - imageStartTime;
+          processingTimes.push(imageProcessingTime);
 
           // Categorize result (Requirements 5.4)
           if (result.success) {
@@ -152,6 +169,10 @@ export class SharpImageProcessor implements ImageProcessor {
 
           return result;
         } catch (error) {
+          // Track processing time even for failures
+          const imageProcessingTime = Date.now() - imageStartTime;
+          processingTimes.push(imageProcessingTime);
+
           // Handle unexpected errors (Requirements 5.4)
           const failedResult: ProcessedImage = {
             outputPath: '',
@@ -176,6 +197,32 @@ export class SharpImageProcessor implements ImageProcessor {
     await Promise.all(tasks);
 
     const totalTime = Date.now() - startTime;
+
+    // Performance monitoring: Log batch processing results (Requirements 10.1, 10.5)
+    console.log(`[Performance] Batch processing completed in ${totalTime}ms`);
+    
+    // Calculate and log average processing time per image
+    if (processingTimes.length > 0) {
+      const avgTime = processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length;
+      const minTime = Math.min(...processingTimes);
+      const maxTime = Math.max(...processingTimes);
+      
+      console.log(`[Performance] Average time per image: ${avgTime.toFixed(2)}ms`);
+      console.log(`[Performance] Min/Max time: ${minTime}ms / ${maxTime}ms`);
+      
+      // Warn if average time exceeds requirement (500ms for 1920x1080 @ 70% quality)
+      if (avgTime > 500) {
+        console.warn(`[Performance] Warning: Average processing time (${avgTime.toFixed(2)}ms) exceeds 500ms target`);
+      }
+    }
+    
+    // Log final memory usage
+    const finalMemory = process.memoryUsage();
+    const memoryDelta = (finalMemory.heapUsed - initialMemory.heapUsed) / 1024 / 1024;
+    console.log(`[Performance] Final memory usage: ${(finalMemory.heapUsed / 1024 / 1024).toFixed(2)} MB (${memoryDelta > 0 ? '+' : ''}${memoryDelta.toFixed(2)} MB)`);
+    
+    // Log success/failure statistics
+    console.log(`[Performance] Results: ${successful.length} successful, ${failed.length} failed`);
 
     return {
       successful,

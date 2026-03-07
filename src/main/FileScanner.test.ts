@@ -32,6 +32,67 @@ describe('FileScanner', () => {
       .toFile(filePath);
   };
 
+  describe('path validation', () => {
+    it('should reject paths containing ".."', async () => {
+      // Use a raw string with ".." to avoid Node.js path normalization
+      const maliciousPath = tempDir + '/../etc/passwd';
+
+      await expect(scanner.scan([maliciousPath])).rejects.toThrow(
+        'Suspicious path detected: path contains ".."'
+      );
+    });
+
+    it('should reject paths containing "~"', async () => {
+      const tildePathUnix = '~/Documents/images';
+
+      await expect(scanner.scan([tildePathUnix])).rejects.toThrow(
+        'Suspicious path detected: path contains "~"'
+      );
+    });
+
+    it('should reject relative paths', async () => {
+      const relativePath = './images/test.jpg';
+
+      await expect(scanner.scan([relativePath])).rejects.toThrow(
+        'Invalid path: path must be absolute'
+      );
+    });
+
+    it('should accept valid absolute paths', async () => {
+      const validPath = path.join(tempDir, 'test.jpg');
+      await createTestImage(validPath, 100, 100, 'jpeg');
+
+      const results = await scanner.scan([validPath]);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].path).toBe(validPath);
+    });
+
+    it('should validate all paths in batch before processing', async () => {
+      const validPath = path.join(tempDir, 'valid.jpg');
+      const invalidPath = '../malicious.jpg';
+
+      await createTestImage(validPath, 100, 100, 'jpeg');
+
+      // Should fail on the invalid path (contains ".." which is checked first)
+      await expect(scanner.scan([validPath, invalidPath])).rejects.toThrow(
+        'Suspicious path detected'
+      );
+    });
+
+    it('should handle paths with legitimate ".." in directory names', async () => {
+      // Create a directory with ".." in its name (not as path traversal)
+      const dirWithDots = path.join(tempDir, 'folder..name');
+      const imagePath = path.join(dirWithDots, 'test.jpg');
+      await createTestImage(imagePath, 100, 100, 'jpeg');
+
+      // This should be rejected because the path string contains ".."
+      await expect(scanner.scan([imagePath])).rejects.toThrow(
+        'Suspicious path detected: path contains ".."'
+      );
+    });
+  });
+
   describe('single file scanning', () => {
     it('should scan a single JPG file', async () => {
       const filePath = path.join(tempDir, 'test.jpg');

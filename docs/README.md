@@ -37,6 +37,18 @@
   - 开发模式运行
   - 构建和打包
 
+### 📖 用户指南
+
+功能使用指南和最佳实践。
+
+- **[自动处理功能指南](AUTO_PROCESS_GUIDE.md)** - 自动处理功能完整使用指南
+  - 核心特性介绍
+  - 使用场景示例
+  - 进度面板详解
+  - 错误处理方案
+  - 性能优化建议
+  - 常见问题解答
+
 ### 🧪 测试文档 (`testing/`)
 
 测试相关的文档和检查清单。
@@ -49,16 +61,18 @@
 
 ## 🚀 快速开始
 
-1. 阅读 [项目 README](../readme.md) 了解项目概况
-2. 查看 [项目设置](development/SETUP.md) 配置开发环境
-3. 参考 [设计系统](design/DESIGN_SYSTEM.md) 了解设计规范
-4. 使用 [快速测试](testing/QUICK_TEST.md) 验证功能
+1. 阅读 [项目 README](../README.md) 了解项目概况
+2. 查看 [自动处理功能指南](AUTO_PROCESS_GUIDE.md) 了解核心功能
+3. 查看 [项目设置](development/SETUP.md) 配置开发环境
+4. 参考 [设计系统](design/DESIGN_SYSTEM.md) 了解设计规范
+5. 使用 [快速测试](testing/QUICK_TEST.md) 验证功能
 
 ## 📖 文档结构
 
 ```
 docs/
 ├── README.md                       # 文档中心导航
+├── AUTO_PROCESS_GUIDE.md          # 自动处理功能使用指南
 ├── design/                         # 设计相关文档
 │   ├── DESIGN_SYSTEM.md           # 设计系统规范
 │   ├── LAYOUT_OPTIMIZATION.md     # 布局优化说明
@@ -76,6 +90,9 @@ docs/
 
 ## 🔍 按主题查找
 
+### 用户指南
+- [自动处理功能完整指南](AUTO_PROCESS_GUIDE.md)
+
 ### 设计与 UI
 - [设计系统规范](design/DESIGN_SYSTEM.md)
 - [布局优化方案](design/LAYOUT_OPTIMIZATION.md)
@@ -83,7 +100,7 @@ docs/
 
 ### 开发与构建
 - [开发环境配置](development/SETUP.md)
-- [项目 README](../readme.md)
+- [项目 README](../README.md)
 
 ### 测试与调试
 - [快速测试指南](testing/QUICK_TEST.md)

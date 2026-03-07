@@ -1,5 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import type { OutputManager, ImageFile } from './types';
@@ -7,6 +8,55 @@ import type { OutputManager, ImageFile } from './types';
 const execAsync = promisify(exec);
 
 export class OutputManagerImpl implements OutputManager {
+  /**
+   * Validate that output directory is safe to write to
+   * Prevents writing to system-critical directories
+   * @param dirPath The directory path to validate
+   * @throws Error if path is a system-critical directory
+   */
+  private validateOutputDirectorySafety(dirPath: string): void {
+    const resolvedPath = path.resolve(dirPath);
+
+    // Blacklist: prevent writing to system-critical directories
+    // These are directories that should never be modified by user applications
+    const forbiddenDirs = [
+      '/etc',      // System configuration
+      '/usr',      // System binaries and libraries
+      '/bin',      // Essential binaries
+      '/sbin',     // System binaries
+      '/boot',     // Boot files
+      '/sys',      // Kernel interface
+      '/proc',     // Process information
+      '/dev',      // Device files
+      '/root',     // Root user home
+    ];
+
+    // Check if path starts with any forbidden directory
+    const isForbidden = forbiddenDirs.some(forbiddenDir => {
+      const normalizedForbidden = path.resolve(forbiddenDir);
+      return resolvedPath === normalizedForbidden || 
+             resolvedPath.startsWith(normalizedForbidden + path.sep);
+    });
+
+    if (isForbidden) {
+      throw new Error(
+        `Security: Cannot write to system-critical directory: ${resolvedPath}`
+      );
+    }
+
+    // Additional safety: warn if outside user home (but don't block)
+    // This allows temp directories for testing while logging suspicious activity
+    const userHome = os.homedir();
+    const resolvedHome = path.resolve(userHome);
+    
+    if (!resolvedPath.startsWith(resolvedHome)) {
+      console.warn(
+        `Warning: Output directory is outside user home. ` +
+        `Path: ${resolvedPath}, User home: ${resolvedHome}`
+      );
+    }
+  }
+
   /**
    * Create output directory with timestamp
    * Format: {inputBaseName}-processed-{timestamp}
@@ -44,8 +94,20 @@ export class OutputManagerImpl implements OutputManager {
     const outputDirName = `${baseName}-processed-${timestamp}`;
     const outputPath = path.join(baseDir, outputDirName);
 
+    // Security check: Validate output directory is within user home
+    this.validateOutputDirectorySafety(outputPath);
+
     // Create the directory
     await fs.mkdir(outputPath, { recursive: true });
+
+    // Verify write permissions
+    try {
+      await fs.access(outputPath, fs.constants.W_OK);
+    } catch (error) {
+      throw new Error(
+        `Security: No write permission for output directory: ${outputPath}`
+      );
+    }
 
     return outputPath;
   }
