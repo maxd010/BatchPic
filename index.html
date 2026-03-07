@@ -9,13 +9,13 @@
       // This must be done before React mounts to catch all drag events
       (function() {
         const preventDefaults = function(e) {
+          // CRITICAL: Only preventDefault, NOT stopPropagation
+          // We want to prevent browser's default file opening behavior
+          // but still allow the event to reach DropZone component handlers
           e.preventDefault();
-          e.stopPropagation();
         };
         
-        // CRITICAL: Use capture phase (true) to ensure these handlers run BEFORE
-        // any bubble-phase handlers in React components
-        // This prevents the odd/even behavior where handlers conflict
+        // Use capture phase to ensure this runs before React handlers
         window.addEventListener('dragover', preventDefaults, true);
         window.addEventListener('drop', preventDefaults, true);
         window.addEventListener('dragenter', preventDefaults, true);
