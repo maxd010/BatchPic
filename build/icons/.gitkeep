@@ -1,0 +1,4 @@
+# 此文件确保 build/icons 目录被 Git 追踪
+# 图标文件已生成:
+# - icon.icns (macOS)
+# - icon.ico (Windows)

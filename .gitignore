@@ -8,3 +8,5 @@ coverage/
 *.swp
 *.swo
 /test-temp-pbt
+/release/mac/BatchPic.app
+/release
