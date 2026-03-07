@@ -91,36 +91,6 @@ export function MainWindow() {
     };
   }, [setProgress]);
 
-  // Handle files dropped into the drop zone
-  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
-  const handleFilesDropped = useCallback(async (paths: string[]) => {
-    try {
-      // Scan files via IPC (Requirements 1.1, 1.2)
-      const scannedFiles = await window.electronAPI.scanFiles(paths);
-      
-      // Update state with scanned files
-      // If files already exist, append new files (allow adding more files)
-      setInputFiles([...state.inputFiles, ...scannedFiles]);
-      
-      // Automatically apply default parameters (Requirement 8.1)
-      setProcessingParams(DEFAULT_PARAMS);
-      
-      // Initialize image progress tracking (Requirements 3.1)
-      initializeImageProgress(scannedFiles);
-      
-      // Show notification confirming ready-to-use version (Requirement 2.5)
-      showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
-      
-      // Auto-trigger processing if enabled (Requirements 2.1, 2.4)
-      if (state.autoProcessOnDrop && scannedFiles.length > 0) {
-        await autoProcessImages(scannedFiles);
-      }
-    } catch (error) {
-      console.error('Failed to scan files:', error);
-      showNotification('文件扫描失败', 'error', 3000);
-    }
-  }, [state.inputFiles, state.autoProcessOnDrop, setInputFiles, setProcessingParams, initializeImageProgress, showNotification]);
-
   // Auto-process images after drop (Requirements 2.1, 2.2, 2.3, 5.5, 7.1, 7.2, 7.3)
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
   const autoProcessImages = useCallback(async (files: any[]) => {
@@ -185,6 +155,36 @@ export function MainWindow() {
       setIsProcessing(false);
     }
   }, [state.processingParams, throttledUpdateImageProgress, setIsProcessing, setOutputDirectory, setResult, showNotification]);
+
+  // Handle files dropped into the drop zone
+  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
+  const handleFilesDropped = useCallback(async (paths: string[]) => {
+    try {
+      // Scan files via IPC (Requirements 1.1, 1.2)
+      const scannedFiles = await window.electronAPI.scanFiles(paths);
+      
+      // Update state with scanned files
+      // If files already exist, append new files (allow adding more files)
+      setInputFiles([...state.inputFiles, ...scannedFiles]);
+      
+      // Automatically apply default parameters (Requirement 8.1)
+      setProcessingParams(DEFAULT_PARAMS);
+      
+      // Initialize image progress tracking (Requirements 3.1)
+      initializeImageProgress(scannedFiles);
+      
+      // Show notification confirming ready-to-use version (Requirement 2.5)
+      showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
+      
+      // Auto-trigger processing if enabled (Requirements 2.1, 2.4)
+      if (state.autoProcessOnDrop && scannedFiles.length > 0) {
+        await autoProcessImages(scannedFiles);
+      }
+    } catch (error) {
+      console.error('Failed to scan files:', error);
+      showNotification('文件扫描失败', 'error', 3000);
+    }
+  }, [state.inputFiles, state.autoProcessOnDrop, setInputFiles, setProcessingParams, initializeImageProgress, showNotification, autoProcessImages]);
 
   // Handle parameter changes with real-time feedback (Requirement 8.4)
   // The ParameterPanel now debounces parameter changes internally
