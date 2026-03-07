@@ -111,7 +111,7 @@ export function MainWindow() {
       showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
       
       // Auto-trigger processing if enabled (Requirements 2.1, 2.4)
-      if (state.autoProcessOnDrop) {
+      if (state.autoProcessOnDrop && scannedFiles.length > 0) {
         await autoProcessImages(scannedFiles);
       }
     } catch (error) {
