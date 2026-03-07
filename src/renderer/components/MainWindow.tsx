@@ -202,8 +202,8 @@ export function MainWindow() {
         // Initialize image progress tracking (Requirements 3.1)
         console.log('[MainWindow] Initializing image progress...');
         initializeImageProgress(scannedFiles);
-        // Show notification confirming ready-to-use version (Requirement 2.5)
-        showNotification('已为你准备好一个可直接使用的版本', 'success', 3000);
+        // Show notification for manual processing
+        showNotification(`已添加 ${scannedFiles.length} 张图片，点击"开始处理"按钮进行处理`, 'info', 3000);
       }
     } catch (error) {
       console.error('[MainWindow] Failed to scan files:', error);
