@@ -143,28 +143,15 @@ at MainWindow.tsx:98:53
 at DropZone.tsx:89:7
 ```
 
-**触发操作**: 拖拽上传图片
+**根本原因**: Preload 脚本使用 ES Module 编译,但 Electron 要求 CommonJS 格式
 
-**问题分析**:
-- 渲染进程尝试调用 `window.electron.scanFiles()` 失败
-- `window.electron` 对象未正确初始化或为 undefined
-- preload 脚本可能未正确加载或暴露 API
+**解决方案**: 
+- 创建独立的 `tsconfig.preload.json` 配置
+- 将 preload.ts 编译为 CommonJS
+- 修改构建脚本支持双配置编译
 
-**可能原因**:
-1. preload.js 未正确编译或加载
-2. contextBridge 未正确暴露 electron API
-3. preload 脚本路径错误
-4. 安全策略阻止了 preload 脚本执行
+**状态**: ✅ 已解决 (2026-03-07)
 
-**影响范围**:
-- 无法扫描文件
-- 拖拽上传功能失效
-- 所有依赖 IPC 通信的功能可能都无法使用
-
-**优先级**: 🔴 高 - 核心功能无法使用
-
-**下一步**:
-- [ ] 检查 preload.ts 是否正确暴露 API
-- [ ] 验证 preload.js 是否成功编译
-- [ ] 检查 main.ts 中 preload 路径是否正确
-- [ ] 在浏览器控制台检查 window.electron 对象
+**相关文档**: 
+- [技术债文档](../业务文档/BatchPic/技术债.md)
+- [Node.js ES模块迁移指南](../知识沉淀/Node.js%20ES模块迁移指南.md)

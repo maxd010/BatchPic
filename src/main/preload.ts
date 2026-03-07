@@ -181,6 +181,8 @@ function validateCallback(callback: any, fieldName: string): void {
 // Exposed API with Parameter Validation
 // ============================================================================
 
+console.log('[Preload] Starting to expose electronAPI...');
+
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -274,3 +276,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return resultPromise;
   }
 });
+
+console.log('[Preload] electronAPI exposed successfully!');
