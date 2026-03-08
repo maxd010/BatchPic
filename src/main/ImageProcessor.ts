@@ -80,7 +80,7 @@ export class SharpImageProcessor implements ImageProcessor {
 
       // Handle target size compression separately (requires iteration)
       if (params.compression?.mode === 'targetSize') {
-        const targetSizeKB = params.compression.value;
+        const targetSizeKB = params.compression.value ?? 200; // Default to 200KB
         const removeMetadata = params.compression.removeMetadata ?? true;
         await this.compressToTargetSize(
           pipeline,

@@ -219,7 +219,8 @@
 
 .mode-button,
 .aspect-button,
-.format-button {
+.format-button,
+.preset-button {
   flex: 1;
   min-width: 70px;
   padding: 8px 12px;
@@ -234,9 +235,15 @@
   white-space: nowrap;
 }
 
+.preset-button {
+  min-width: 50px;
+  font-weight: 600;
+}
+
 .mode-button:hover,
 .aspect-button:hover,
-.format-button:hover {
+.format-button:hover,
+.preset-button:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: rgba(79, 70, 229, 0.05);
@@ -245,7 +252,8 @@
 
 .mode-button.active,
 .aspect-button.active,
-.format-button.active {
+.format-button.active,
+.preset-button.active {
   background: rgba(79, 70, 229, 0.18);
   color: #4f46e5;
   border-color: transparent;
@@ -254,8 +262,36 @@
 
 .mode-button.active:hover,
 .aspect-button.active:hover,
-.format-button.active:hover {
+.format-button.active:hover,
+.preset-button.active:hover {
   background: rgba(79, 70, 229, 0.25);
+}
+
+/* Checkbox Styles */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text);
+  user-select: none;
+}
+
+.checkbox-label.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.param-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.param-checkbox:disabled {
+  cursor: not-allowed;
 }
 
 .select-wrapper {

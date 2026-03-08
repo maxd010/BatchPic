@@ -32,11 +32,17 @@ export function ParameterPanel({
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '4:5' | '16:9'>(
     params.resize?.aspectRatio || '1:1'
   );
-  const [compressionMode, setCompressionMode] = useState<CompressionParams['mode'] | 'none'>(
-    params.compression?.mode || 'quality'
+  const [compressionMode, setCompressionMode] = useState<CompressionParams['mode']>(
+    params.compression?.mode || 'smart'
   );
-  const [compressionValue, setCompressionValue] = useState<number>(
-    params.compression?.value || 70
+  const [qualityPreset, setQualityPreset] = useState<60 | 70 | 75 | 80 | 85 | 90>(
+    (params.compression?.value as 60 | 70 | 75 | 80 | 85 | 90) || 80
+  );
+  const [targetSize, setTargetSize] = useState<number>(
+    params.compression?.mode === 'targetSize' ? (params.compression?.value || 200) : 200
+  );
+  const [removeMetadata, setRemoveMetadata] = useState<boolean>(
+    params.compression?.removeMetadata ?? true
   );
   const [outputFormat, setOutputFormat] = useState<'jpg' | 'png' | 'webp' | 'original'>(
     params.format || 'original'
@@ -50,8 +56,10 @@ export function ParameterPanel({
       aspectRatio: resizeMode === 'aspectRatio' ? aspectRatio : undefined,
     },
     compression: compressionMode === 'none' ? undefined : {
-      mode: compressionMode as CompressionParams['mode'],
-      value: compressionValue,
+      mode: compressionMode,
+      value: compressionMode === 'quality' ? qualityPreset : 
+             compressionMode === 'targetSize' ? targetSize : undefined,
+      removeMetadata: compressionMode === 'smart' ? true : removeMetadata,
     },
     format: outputFormat === 'original' ? undefined : outputFormat,
   };
@@ -75,10 +83,12 @@ export function ParameterPanel({
     // Compression
     if (compressionMode === 'none') {
       parts.push('压缩: 不压缩');
+    } else if (compressionMode === 'smart') {
+      parts.push('压缩: 智能压缩');
     } else if (compressionMode === 'quality') {
-      parts.push(`压缩: 质量${compressionValue}%`);
+      parts.push(`压缩: 质量${qualityPreset}`);
     } else if (compressionMode === 'targetSize') {
-      parts.push(`压缩: ${compressionValue}KB`);
+      parts.push(`压缩: ${targetSize}KB`);
     }
     
     // Resize
@@ -138,10 +148,10 @@ export function ParameterPanel({
             <button 
               className={`tab-item ${activeTab === 'compression' ? 'active' : ''}`}
               onClick={() => setActiveTab('compression')}
-              title="压缩控制"
+              title="优化控制"
             >
-              <AdjustmentsIcon className="tab-icon" />
-              <span>压缩</span>
+              <AdjustmentsIcon className="tab-icon" aria-label="优化" />
+              <span>优化</span>
             </button>
             <button 
               className={`tab-item ${activeTab === 'format' ? 'active' : ''}`}
@@ -230,17 +240,19 @@ export function ParameterPanel({
                 <div className="param-group">
                   <label>压缩模式</label>
                   <div className="button-group">
-                    {(['quality', 'targetSize', 'none'] as const).map((mode) => (
+                    {(['smart', 'quality', 'targetSize', 'none'] as const).map((mode) => (
                       <button
                         key={mode}
                         className={`mode-button ${compressionMode === mode ? 'active' : ''}`}
                         onClick={() => setCompressionMode(mode)}
                         title={
-                          mode === 'quality' ? '按质量压缩' :
-                          mode === 'targetSize' ? '压缩至目标大小' :
-                          '不进行压缩'
+                          mode === 'smart' ? '根据图片格式自动选择最优参数' :
+                          mode === 'quality' ? '手动选择压缩质量' :
+                          mode === 'targetSize' ? '压缩至目标文件大小' :
+                          '保持原始质量'
                         }
                       >
+                        {mode === 'smart' && '智能压缩 (默认)'}
                         {mode === 'quality' && '按质量'}
                         {mode === 'targetSize' && '按大小'}
                         {mode === 'none' && '不压缩'}
@@ -249,39 +261,71 @@ export function ParameterPanel({
                   </div>
                 </div>
 
+                {compressionMode === 'quality' && (
+                  <div className="param-group">
+                    <label>质量预设</label>
+                    <div className="button-group">
+                      {([60, 70, 75, 80, 85, 90] as const).map((preset) => (
+                        <button
+                          key={preset}
+                          className={`preset-button ${qualityPreset === preset ? 'active' : ''}`}
+                          onClick={() => setQualityPreset(preset)}
+                          title={
+                            preset === 60 ? '高压缩，文件最小' :
+                            preset === 70 ? '较高压缩' :
+                            preset === 75 ? '平衡压缩' :
+                            preset === 80 ? '推荐质量' :
+                            preset === 85 ? '高质量' :
+                            '极高质量'
+                          }
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {compressionMode === 'targetSize' && (
                   <div className="param-group">
-                    <label htmlFor="target-size">目标(KB)</label>
+                    <label htmlFor="target-size">目标大小 (KB)</label>
                     <input
                       id="target-size"
                       type="number"
                       min="5"
                       max="10000"
-                      value={compressionValue}
-                      onChange={(e) => setCompressionValue(Math.max(5, parseInt(e.target.value) || 0))}
+                      value={targetSize}
+                      onChange={(e) => setTargetSize(Math.max(5, Math.min(10000, parseInt(e.target.value) || 5)))}
                       className="param-input"
                     />
                   </div>
                 )}
 
-                {compressionMode === 'quality' && (
-                  <div className="param-group compact">
-                    <div className="label-with-value">
-                      <label htmlFor="quality-slider">质量</label>
-                      <span className="value-display">{compressionValue}%</span>
-                    </div>
-                    <div className="range-wrapper">
+                {compressionMode !== 'smart' && (
+                  <div className="param-group">
+                    <label className="checkbox-label">
                       <input
-                        id="quality-slider"
-                        type="range"
-                        min="1"
-                        max="100"
-                        value={compressionValue}
-                        onChange={(e) => setCompressionValue(parseInt(e.target.value))}
-                        className="param-slider"
-                        style={{ backgroundSize: `${compressionValue}% 100%` }}
+                        type="checkbox"
+                        checked={removeMetadata}
+                        onChange={(e) => setRemoveMetadata(e.target.checked)}
+                        className="param-checkbox"
                       />
-                    </div>
+                      <span>移除元数据</span>
+                    </label>
+                  </div>
+                )}
+
+                {compressionMode === 'smart' && (
+                  <div className="param-group">
+                    <label className="checkbox-label disabled">
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled
+                        className="param-checkbox"
+                      />
+                      <span>移除元数据 (智能模式自动移除)</span>
+                    </label>
                   </div>
                 )}
 
