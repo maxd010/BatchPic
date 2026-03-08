@@ -5,7 +5,7 @@
  * including smart compression mappings and quality presets.
  */
 
-import type { SmartCompressionConfig, QualityPreset } from '../types';
+import type { SmartCompressionConfig, QualityPreset } from '../types.js';
 
 /**
  * Smart compression configuration mapping

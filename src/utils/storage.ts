@@ -5,7 +5,7 @@
  * 包含数据验证和错误处理，确保在 localStorage 不可用时静默失败。
  */
 
-import type { StoredCompressionSettings } from '../main/types';
+import type { StoredCompressionSettings } from '../main/types.js';
 
 /**
  * localStorage 存储键

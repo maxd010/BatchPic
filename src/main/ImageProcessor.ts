@@ -9,8 +9,8 @@ import {
   ProcessedImage,
   ProcessingResult,
   ImageProgressCallback,
-} from './types';
-import { SMART_COMPRESSION_MAP } from './processors/constants';
+} from './types.js';
+import { SMART_COMPRESSION_MAP } from './processors/constants.js';
 
 let pLimit: any;
 
