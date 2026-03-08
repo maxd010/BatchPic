@@ -21,8 +21,28 @@ export interface ResizeParams {
 }
 
 export interface CompressionParams {
-  mode: 'targetSize' | 'quality';
-  value: number;  // KB for targetSize, percentage for quality
+  mode: 'smart' | 'quality' | 'targetSize' | 'none';
+  value?: number;  // KB for targetSize, quality preset for quality mode (optional for smart/none)
+  removeMetadata?: boolean;  // Whether to remove image metadata (default: true)
+}
+
+// Quality preset type for quality mode
+export type QualityPreset = 60 | 70 | 75 | 80 | 85 | 90;
+
+// Smart compression configuration
+export interface SmartCompressionConfig {
+  format: 'jpg' | 'png' | 'webp' | 'unknown';
+  quality: number;
+  removeMetadata: boolean;
+}
+
+// Stored compression settings for persistence
+export interface StoredCompressionSettings {
+  mode: 'smart' | 'quality' | 'targetSize' | 'none';
+  qualityPreset?: QualityPreset;
+  targetSize?: number;
+  removeMetadata: boolean;
+  version: string;  // For future data migration
 }
 
 export interface ProcessingParams {

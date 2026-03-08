@@ -9,7 +9,8 @@ import {
   ProcessedImage,
   ProcessingResult,
   ImageProgressCallback,
-} from './types.js';
+} from './types';
+import { SMART_COMPRESSION_MAP } from './processors/constants';
 
 let pLimit: any;
 
@@ -80,11 +81,13 @@ export class SharpImageProcessor implements ImageProcessor {
       // Handle target size compression separately (requires iteration)
       if (params.compression?.mode === 'targetSize') {
         const targetSizeKB = params.compression.value;
+        const removeMetadata = params.compression.removeMetadata ?? true;
         await this.compressToTargetSize(
           pipeline,
           outputPath,
           outputFormat,
-          targetSizeKB
+          targetSizeKB,
+          removeMetadata
         );
       } else {
         // Apply compression and format conversion
@@ -310,22 +313,88 @@ export class SharpImageProcessor implements ImageProcessor {
    * For targetSize mode, this method is not used - see compressToTargetSize instead
    */
   private applyCompressionAndFormat(
-    pipeline: sharp.Sharp,
-    format: 'jpg' | 'png' | 'webp',
-    compression?: ProcessingParams['compression']
-  ): sharp.Sharp {
-    // Default compression: 70% quality (approximately -30% file size)
-    const defaultQuality = 70;
+        pipeline: sharp.Sharp,
+        format: 'jpg' | 'png' | 'webp',
+        compression?: ProcessingParams['compression']
+      ): sharp.Sharp {
+        // Handle smart compression mode (Requirement 2.4-2.6, 7.2)
+        if (compression?.mode === 'smart') {
+          const config = this.getSmartCompressionConfig(format);
+          console.log(`[Smart Compression] Format: ${format}, Quality: ${config.quality}`);
+          // Smart mode always removes metadata (Requirement 2.7)
+          return this.applyFormatWithQuality(pipeline, format, config.quality, true);
+        }
 
-    if (compression?.mode === 'quality') {
-      // Use specified quality percentage
-      const quality = compression.value;
-      return this.applyFormatWithQuality(pipeline, format, quality);
-    } else {
-      // No compression specified or targetSize mode, use default
-      return this.applyFormatWithQuality(pipeline, format, defaultQuality);
-    }
-  }
+        // Handle no compression mode (quality 100)
+        if (compression?.mode === 'none') {
+          console.log(`[No Compression] Using quality 100 for format: ${format}`);
+          // Respect user's metadata setting (Requirement 5.3, 5.4)
+          const removeMetadata = compression.removeMetadata ?? true;
+          return this.applyFormatWithQuality(pipeline, format, 100, removeMetadata);
+        }
+
+        // Handle quality mode
+        if (compression?.mode === 'quality' && compression.value !== undefined) {
+          // Respect user's metadata setting (Requirement 5.3, 5.4)
+          const removeMetadata = compression.removeMetadata ?? true;
+          return this.applyFormatWithQuality(pipeline, format, compression.value, removeMetadata);
+        }
+
+        // Default compression: 70% quality (approximately -30% file size)
+        const defaultQuality = 70;
+        const removeMetadata = compression?.removeMetadata ?? true;
+        return this.applyFormatWithQuality(pipeline, format, defaultQuality, removeMetadata);
+      }
+  /**
+   * Get smart compression configuration based on image format
+   *
+   * This method implements the smart compression algorithm that automatically
+   * selects optimal quality parameters based on the input image format.
+   *
+   * Requirements:
+   * - 2.3: Smart compression mode auto-detects input image format
+   * - 9.4: Unknown formats use default parameters
+   * - 9.5: Log applied parameters in smart compression mode
+   *
+   * @param format - The detected image format
+   * @returns Smart compression configuration with quality and metadata settings
+   */
+  /**
+     * Get smart compression configuration based on image format
+     *
+     * This method implements the smart compression algorithm that automatically
+     * selects optimal quality parameters based on the input image format.
+     *
+     * Requirements:
+     * - 2.3: Smart compression mode auto-detects input image format
+     * - 9.4: Unknown formats use default parameters
+     * - 9.5: Log applied parameters in smart compression mode
+     *
+     * @param format - The detected image format
+     * @returns Smart compression configuration with quality and metadata settings
+     */
+    private getSmartCompressionConfig(
+        format: 'jpg' | 'png' | 'webp'
+      ): { quality: number; removeMetadata: boolean } {
+        // Get configuration for the format from the smart compression map
+        const config = SMART_COMPRESSION_MAP[format];
+
+        if (!config) {
+          // Unknown format - use default configuration (Requirement 9.4)
+          console.warn(`[Smart Compression] Unknown format: ${format}, using default quality 80`);
+          return { quality: 80, removeMetadata: true };
+        }
+
+        // Log the selected configuration (Requirement 9.5)
+        console.log(`[Smart Compression] Format: ${format}, Quality: ${config.quality}`);
+
+        // Return only quality and removeMetadata (exclude format field)
+        return {
+          quality: config.quality,
+          removeMetadata: config.removeMetadata,
+        };
+      }
+
 
   /**
    * Compress image to target file size using iterative quality adjustment
@@ -333,106 +402,114 @@ export class SharpImageProcessor implements ImageProcessor {
    * Optimized to reuse resized buffer
    */
   private async compressToTargetSize(
-    pipeline: sharp.Sharp,
-    outputPath: string,
-    format: 'jpg' | 'png' | 'webp',
-    targetSizeKB: number
-  ): Promise<void> {
-    const targetSizeBytes = targetSizeKB * 1024;
-    const tolerance = 0.15; // ±15% tolerance
-    const minAcceptableSize = targetSizeBytes * (1 - tolerance);
-    const maxAcceptableSize = targetSizeBytes * (1 + tolerance);
-    
-    let minQuality = 1;
-    let maxQuality = 100;
-    let bestQuality = 70;
-    let bestSize = 0;
-    let bestBuffer: Buffer | null = null;
-    let iterations = 0;
-    const maxIterations = 7; // Reduced iterations for faster processing
+      pipeline: sharp.Sharp,
+      outputPath: string,
+      format: 'jpg' | 'png' | 'webp',
+      targetSizeKB: number,
+      removeMetadata: boolean = true
+    ): Promise<void> {
+      const targetSizeBytes = targetSizeKB * 1024;
+      const tolerance = 0.15; // ±15% tolerance
+      const minAcceptableSize = targetSizeBytes * (1 - tolerance);
+      const maxAcceptableSize = targetSizeBytes * (1 + tolerance);
 
-    // Get the resized/processed buffer once (without format conversion)
-    const inputBuffer = await pipeline.toBuffer();
+      let minQuality = 1;
+      let maxQuality = 100;
+      let bestQuality = 70;
+      let bestSize = 0;
+      let bestBuffer: Buffer | null = null;
+      let iterations = 0;
+      const maxIterations = 7; // Reduced iterations for faster processing
 
-    while (iterations < maxIterations && minQuality <= maxQuality) {
-      iterations++;
-      
-      // Try current quality
-      const currentQuality = Math.round((minQuality + maxQuality) / 2);
-      
-      // Create a new pipeline from the buffer with format and quality
-      let testPipeline = sharp(inputBuffer);
-      testPipeline = this.applyFormatWithQuality(testPipeline, format, currentQuality);
-      
-      // Get buffer to check size
-      const outputBuffer = await testPipeline.toBuffer();
-      const currentSize = outputBuffer.length;
+      // Get the resized/processed buffer once (without format conversion)
+      const inputBuffer = await pipeline.toBuffer();
 
-      // Check if we're within tolerance
-      if (currentSize >= minAcceptableSize && currentSize <= maxAcceptableSize) {
-        // Found acceptable quality, write to file
-        await fs.writeFile(outputPath, outputBuffer);
-        return;
+      while (iterations < maxIterations && minQuality <= maxQuality) {
+        iterations++;
+
+        // Try current quality
+        const currentQuality = Math.round((minQuality + maxQuality) / 2);
+
+        // Create a new pipeline from the buffer with format and quality
+        let testPipeline = sharp(inputBuffer);
+        testPipeline = this.applyFormatWithQuality(testPipeline, format, currentQuality, removeMetadata);
+
+        // Get buffer to check size
+        const outputBuffer = await testPipeline.toBuffer();
+        const currentSize = outputBuffer.length;
+
+        // Check if we're within tolerance
+        if (currentSize >= minAcceptableSize && currentSize <= maxAcceptableSize) {
+          // Found acceptable quality, write to file
+          await fs.writeFile(outputPath, outputBuffer);
+          return;
+        }
+
+        // Update best result
+        if (!bestBuffer || Math.abs(currentSize - targetSizeBytes) < Math.abs(bestSize - targetSizeBytes)) {
+          bestQuality = currentQuality;
+          bestSize = currentSize;
+          bestBuffer = outputBuffer;
+        }
+
+        // Adjust quality range based on result
+        if (currentSize > maxAcceptableSize) {
+          // File too large, reduce quality
+          maxQuality = currentQuality - 1;
+        } else {
+          // File too small, increase quality
+          minQuality = currentQuality + 1;
+        }
       }
 
-      // Update best result
-      if (!bestBuffer || Math.abs(currentSize - targetSizeBytes) < Math.abs(bestSize - targetSizeBytes)) {
-        bestQuality = currentQuality;
-        bestSize = currentSize;
-        bestBuffer = outputBuffer;
-      }
-
-      // Adjust quality range based on result
-      if (currentSize > maxAcceptableSize) {
-        // File too large, reduce quality
-        maxQuality = currentQuality - 1;
+      // Use the best result we found
+      if (bestBuffer) {
+        await fs.writeFile(outputPath, bestBuffer);
       } else {
-        // File too small, increase quality
-        minQuality = currentQuality + 1;
+        // Fallback: use default quality
+        let finalPipeline = sharp(inputBuffer);
+        finalPipeline = this.applyFormatWithQuality(finalPipeline, format, 70, removeMetadata);
+        await finalPipeline.toFile(outputPath);
       }
     }
-
-    // Use the best result we found
-    if (bestBuffer) {
-      await fs.writeFile(outputPath, bestBuffer);
-    } else {
-      // Fallback: use default quality
-      let finalPipeline = sharp(inputBuffer);
-      finalPipeline = this.applyFormatWithQuality(finalPipeline, format, 70);
-      await finalPipeline.toFile(outputPath);
-    }
-  }
 
   /**
    * Apply format conversion with quality setting and performance optimizations
    */
   private applyFormatWithQuality(
-    pipeline: sharp.Sharp,
-    format: 'jpg' | 'png' | 'webp',
-    quality: number
-  ): sharp.Sharp {
-    switch (format) {
-      case 'jpg':
-        return pipeline.jpeg({ 
-          quality,
-          mozjpeg: true, // Use mozjpeg for better compression
-          chromaSubsampling: '4:2:0'
-        });
-      case 'png':
-        return pipeline.png({ 
-          quality,
-          compressionLevel: 6, // Balance between speed and compression
-          adaptiveFiltering: false // Faster encoding
-        });
-      case 'webp':
-        return pipeline.webp({ 
-          quality,
-          effort: 4 // Balance between speed and compression (0-6, default 4)
-        });
-      default:
-        return pipeline;
+      pipeline: sharp.Sharp,
+      format: 'jpg' | 'png' | 'webp',
+      quality: number,
+      removeMetadata: boolean = true
+    ): sharp.Sharp {
+      // Metadata control (Requirements 2.7, 5.3, 5.4)
+      // When removeMetadata is false, preserve original metadata
+      if (!removeMetadata) {
+        pipeline = pipeline.withMetadata();
+      }
+
+      switch (format) {
+        case 'jpg':
+          return pipeline.jpeg({ 
+            quality,
+            mozjpeg: true, // Use mozjpeg for better compression
+            chromaSubsampling: '4:2:0'
+          });
+        case 'png':
+          return pipeline.png({ 
+            quality,
+            compressionLevel: 6, // Balance between speed and compression
+            adaptiveFiltering: false // Faster encoding
+          });
+        case 'webp':
+          return pipeline.webp({ 
+            quality,
+            effort: 4 // Balance between speed and compression (0-6, default 4)
+          });
+        default:
+          return pipeline;
+      }
     }
-  }
 
   /**
    * Parse aspect ratio string to width/height values
