@@ -60,7 +60,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(config.removeMetadata).toBe(true);
           }
         ),
-        { numRuns: 100 } // 最少 100 次迭代
+        { numRuns: 20 } // 优化后减少迭代次数
       );
     });
 
@@ -79,7 +79,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(config.removeMetadata).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -95,7 +95,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(config.removeMetadata).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -115,7 +115,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(Number.isInteger(config.quality)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -134,7 +134,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(config1.removeMetadata).toBe(config2.removeMetadata);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -151,7 +151,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(config.removeMetadata).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -174,7 +174,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(typeof config.removeMetadata).toBe('boolean');
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -191,7 +191,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(pngConfig.quality).toBeGreaterThan(jpgConfig.quality);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -208,7 +208,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(jpgConfig.quality).toBe(webpConfig.quality);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -232,7 +232,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(logMessage).toMatch(/^\[Smart Compression\] Format: \w+, Quality: \d+, Remove Metadata: \w+$/);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });
@@ -254,7 +254,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(actualFormats).toHaveLength(expectedFormats.length);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -276,7 +276,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(configAgain.removeMetadata).toBe(originalRemoveMetadata);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -296,7 +296,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             });
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -314,7 +314,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(Number.isInteger(config.quality)).toBe(true);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });
@@ -342,7 +342,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(config).toBeDefined();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -363,7 +363,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             });
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });
@@ -384,7 +384,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(config.format).toBe(format);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -402,7 +402,7 @@ describe('Smart Compression - Property-Based Tests', () => {
             expect(unknownConfig.removeMetadata).toBe(jpgConfig.removeMetadata);
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });

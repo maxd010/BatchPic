@@ -402,76 +402,124 @@ export class SharpImageProcessor implements ImageProcessor {
    * Optimized to reuse resized buffer
    */
   private async compressToTargetSize(
-      pipeline: sharp.Sharp,
-      outputPath: string,
-      format: 'jpg' | 'png' | 'webp',
-      targetSizeKB: number,
-      removeMetadata: boolean = true
-    ): Promise<void> {
-      const targetSizeBytes = targetSizeKB * 1024;
-      const tolerance = 0.15; // ±15% tolerance
-      const minAcceptableSize = targetSizeBytes * (1 - tolerance);
-      const maxAcceptableSize = targetSizeBytes * (1 + tolerance);
+        pipeline: sharp.Sharp,
+        outputPath: string,
+        format: 'jpg' | 'png' | 'webp',
+        targetSizeKB: number,
+        removeMetadata: boolean = true
+      ): Promise<void> {
+        const targetSizeBytes = targetSizeKB * 1024;
+        const tolerance = 0.15; // ±15% tolerance
+        const minAcceptableSize = targetSizeBytes * (1 - tolerance);
+        const maxAcceptableSize = targetSizeBytes * (1 + tolerance);
 
-      let minQuality = 1;
-      let maxQuality = 100;
-      let bestQuality = 70;
-      let bestSize = 0;
-      let bestBuffer: Buffer | null = null;
-      let iterations = 0;
-      const maxIterations = 7; // Reduced iterations for faster processing
+        let minQuality = 1;
+        let maxQuality = 100;
+        let bestQuality = 70;
+        let bestSize = 0;
+        let bestBuffer: Buffer | null = null;
+        let iterations = 0;
+        const maxIterations = 10; // Maximum iterations to avoid infinite loops
 
-      // Get the resized/processed buffer once (without format conversion)
-      const inputBuffer = await pipeline.toBuffer();
+        // Get the resized/processed buffer once (without format conversion)
+        const inputBuffer = await pipeline.toBuffer();
 
-      while (iterations < maxIterations && minQuality <= maxQuality) {
-        iterations++;
+        while (iterations < maxIterations && minQuality <= maxQuality) {
+          iterations++;
 
-        // Try current quality
-        const currentQuality = Math.round((minQuality + maxQuality) / 2);
+          // Try current quality
+          const currentQuality = Math.round((minQuality + maxQuality) / 2);
 
-        // Create a new pipeline from the buffer with format and quality
-        let testPipeline = sharp(inputBuffer);
-        testPipeline = this.applyFormatWithQuality(testPipeline, format, currentQuality, removeMetadata);
+          // Create a new pipeline from the buffer with format and quality
+          let testPipeline = sharp(inputBuffer);
+          testPipeline = this.applyFormatWithQuality(testPipeline, format, currentQuality, removeMetadata);
 
-        // Get buffer to check size
-        const outputBuffer = await testPipeline.toBuffer();
-        const currentSize = outputBuffer.length;
+          // Get buffer to check size
+          const outputBuffer = await testPipeline.toBuffer();
+          const currentSize = outputBuffer.length;
 
-        // Check if we're within tolerance
-        if (currentSize >= minAcceptableSize && currentSize <= maxAcceptableSize) {
-          // Found acceptable quality, write to file
-          await fs.writeFile(outputPath, outputBuffer);
-          return;
+          // Check if we're within tolerance
+          if (currentSize >= minAcceptableSize && currentSize <= maxAcceptableSize) {
+            // Found acceptable quality, write to file
+            await fs.writeFile(outputPath, outputBuffer);
+            return;
+          }
+
+          // Update best result
+          if (!bestBuffer || Math.abs(currentSize - targetSizeBytes) < Math.abs(bestSize - targetSizeBytes)) {
+            bestQuality = currentQuality;
+            bestSize = currentSize;
+            bestBuffer = outputBuffer;
+          }
+
+          // Adjust quality range based on result
+          if (currentSize > maxAcceptableSize) {
+            // File too large, reduce quality
+            maxQuality = currentQuality - 1;
+          } else {
+            // File too small, increase quality
+            minQuality = currentQuality + 1;
+          }
         }
 
-        // Update best result
-        if (!bestBuffer || Math.abs(currentSize - targetSizeBytes) < Math.abs(bestSize - targetSizeBytes)) {
-          bestQuality = currentQuality;
-          bestSize = currentSize;
-          bestBuffer = outputBuffer;
-        }
+        // If we couldn't reach the target within tolerance, use best result
+        if (bestBuffer) {
+          const bestSizeKB = (bestSize / 1024).toFixed(2);
+          const targetKB = targetSizeKB.toFixed(2);
 
-        // Adjust quality range based on result
-        if (currentSize > maxAcceptableSize) {
-          // File too large, reduce quality
-          maxQuality = currentQuality - 1;
+          // Check if best result is still too large (outside tolerance)
+          // This means even with lowest quality, we can't reach the target
+          if (bestSize > maxAcceptableSize && bestQuality === 1) {
+            // We already tried quality 1 and it's still too large
+            // Apply fallback strategy: use maximum compression (quality 1)
+            console.warn(
+              `[Compression] Unable to compress to target size ${targetKB}KB. ` +
+              `Even with maximum compression (quality 1), file size is ${bestSizeKB}KB. ` +
+              `Using maximum compression as fallback.`
+            );
+            await fs.writeFile(outputPath, bestBuffer);
+          } else if (bestSize > maxAcceptableSize) {
+            // Best result is too large, but we haven't tried quality 1 yet
+            // Try quality 1 as fallback
+            console.warn(
+              `[Compression] Unable to reach target size ${targetKB}KB within tolerance. ` +
+              `Best result: ${bestSizeKB}KB at quality ${bestQuality}. ` +
+              `Trying maximum compression (quality 1) as fallback.`
+            );
+
+            let fallbackPipeline = sharp(inputBuffer);
+            fallbackPipeline = this.applyFormatWithQuality(fallbackPipeline, format, 1, removeMetadata);
+            const fallbackBuffer = await fallbackPipeline.toBuffer();
+            const fallbackSize = fallbackBuffer.length;
+            const fallbackSizeKB = (fallbackSize / 1024).toFixed(2);
+
+            if (fallbackSize <= maxAcceptableSize) {
+              // Quality 1 works, use it
+              await fs.writeFile(outputPath, fallbackBuffer);
+            } else {
+              // Even quality 1 is too large, use it anyway and log warning
+              console.warn(
+                `[Compression] Even with maximum compression (quality 1), ` +
+                `file size ${fallbackSizeKB}KB exceeds target ${targetKB}KB.`
+              );
+              await fs.writeFile(outputPath, fallbackBuffer);
+            }
+          } else {
+            // Use the best result we found (within or below tolerance)
+            await fs.writeFile(outputPath, bestBuffer);
+          }
         } else {
-          // File too small, increase quality
-          minQuality = currentQuality + 1;
+          // Fallback: use maximum compression if no result was found
+          console.warn(
+            `[Compression] No valid compression result found for target ${targetSizeKB}KB. ` +
+            `Applying maximum compression (quality 1) as fallback.`
+          );
+
+          let fallbackPipeline = sharp(inputBuffer);
+          fallbackPipeline = this.applyFormatWithQuality(fallbackPipeline, format, 1, removeMetadata);
+          await fallbackPipeline.toFile(outputPath);
         }
       }
-
-      // Use the best result we found
-      if (bestBuffer) {
-        await fs.writeFile(outputPath, bestBuffer);
-      } else {
-        // Fallback: use default quality
-        let finalPipeline = sharp(inputBuffer);
-        finalPipeline = this.applyFormatWithQuality(finalPipeline, format, 70, removeMetadata);
-        await finalPipeline.toFile(outputPath);
-      }
-    }
 
   /**
    * Apply format conversion with quality setting and performance optimizations

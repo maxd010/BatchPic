@@ -1,6 +1,13 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ParameterPanel } from '../ParameterPanel';
 import { ProcessingParams, ImageFile } from '../../../main/types';
+import { loadSettings, saveSettings } from '../../../utils/storage';
+
+// Mock storage utilities to prevent interference between tests
+jest.mock('../../../utils/storage');
+
+const mockLoadSettings = loadSettings as jest.MockedFunction<typeof loadSettings>;
+const mockSaveSettings = saveSettings as jest.MockedFunction<typeof saveSettings>;
 
 describe('ParameterPanel', () => {
   const mockImageFile: ImageFile = {
@@ -15,6 +22,10 @@ describe('ParameterPanel', () => {
 
   beforeEach(() => {
     mockOnChange.mockClear();
+    mockLoadSettings.mockClear();
+    mockSaveSettings.mockClear();
+    // Return null to use default settings (smart mode)
+    mockLoadSettings.mockReturnValue(null);
   });
 
   /**

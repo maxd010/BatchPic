@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ProcessingParams, ResizeParams, CompressionParams, ImageFile } from '../../main/types';
+import { ProcessingParams, ResizeParams, CompressionParams, ImageFile, StoredCompressionSettings } from '../../main/types';
 import { useDebounce } from '../hooks/useDebounce';
+import { loadSettings, saveSettings } from '../../utils/storage';
 import { AdjustmentsIcon, ArrowsPointingInIcon, PhotoIcon } from './Icons';
 import './ParameterPanel.css';
 
@@ -48,6 +49,26 @@ export function ParameterPanel({
     params.format || 'original'
   );
 
+  // Load settings from localStorage on mount (Requirement 10.2)
+  useEffect(() => {
+    const stored = loadSettings();
+    
+    if (stored) {
+      // Apply loaded settings to component state
+      setCompressionMode(stored.mode);
+      setRemoveMetadata(stored.removeMetadata);
+      
+      if (stored.qualityPreset !== undefined) {
+        setQualityPreset(stored.qualityPreset);
+      }
+      
+      if (stored.targetSize !== undefined) {
+        setTargetSize(stored.targetSize);
+      }
+    }
+    // If no stored settings, use defaults (smart mode) - already initialized above
+  }, []);
+
   // Build current parameters object
   const currentParams: ProcessingParams = {
     resize: resizeMode === 'none' ? undefined : {
@@ -69,6 +90,30 @@ export function ParameterPanel({
   useEffect(() => {
     onChange(debouncedParams);
   }, [debouncedParams]);
+
+  // Save settings to localStorage with 500ms delay (Requirement 10.1, 10.4)
+  const debouncedCompressionMode = useDebounce(compressionMode, 500);
+  const debouncedQualityPreset = useDebounce(qualityPreset, 500);
+  const debouncedTargetSize = useDebounce(targetSize, 500);
+  const debouncedRemoveMetadata = useDebounce(removeMetadata, 500);
+
+  useEffect(() => {
+    // Build settings object to save
+    const settingsToSave: StoredCompressionSettings = {
+      mode: debouncedCompressionMode,
+      removeMetadata: debouncedRemoveMetadata,
+      version: '1.0',
+    };
+
+    // Add optional fields based on mode
+    if (debouncedCompressionMode === 'quality') {
+      settingsToSave.qualityPreset = debouncedQualityPreset;
+    } else if (debouncedCompressionMode === 'targetSize') {
+      settingsToSave.targetSize = debouncedTargetSize;
+    }
+
+    saveSettings(settingsToSave);
+  }, [debouncedCompressionMode, debouncedQualityPreset, debouncedTargetSize, debouncedRemoveMetadata]);
 
   const originalSize = inputFiles.length > 0 ? inputFiles[0].size : 0;
 

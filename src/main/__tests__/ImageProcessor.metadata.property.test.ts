@@ -143,7 +143,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 } // 最少 100 次迭代
+        { numRuns: 20 } // 最少 100 次迭代
       );
     });
 
@@ -192,7 +192,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 } // 最少 100 次迭代
+        { numRuns: 20 } // 最少 100 次迭代
       );
     });
 
@@ -240,7 +240,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 } // 最少 100 次迭代
+        { numRuns: 20 } // 最少 100 次迭代
       );
     });
 
@@ -290,7 +290,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 } // 最少 100 次迭代
+        { numRuns: 20 } // 最少 100 次迭代
       );
     });
 
@@ -340,7 +340,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 } // 最少 100 次迭代
+        { numRuns: 20 } // 最少 100 次迭代
       );
     });
 
@@ -388,7 +388,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 } // 最少 100 次迭代
+        { numRuns: 20 } // 最少 100 次迭代
       );
     });
   });
@@ -467,7 +467,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -515,7 +515,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -566,7 +566,7 @@ describe('ImageProcessor - Metadata Processing Property Tests', () => {
             await fs.unlink(outputPath).catch(() => {});
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });

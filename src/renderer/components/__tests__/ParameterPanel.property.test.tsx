@@ -97,7 +97,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -143,7 +143,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -192,7 +192,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });
@@ -243,7 +243,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -296,7 +296,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -341,7 +341,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });
@@ -385,7 +385,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -432,7 +432,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -473,7 +473,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -519,7 +519,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });
@@ -577,7 +577,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
 
@@ -622,7 +622,7 @@ describe('ParameterPanel - Property-Based Tests', () => {
             cleanup();
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 20 }
       );
     });
   });

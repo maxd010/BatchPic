@@ -195,8 +195,8 @@
   - 验证视觉反馈正确
   - 如有问题请询问用户
 
-- [ ] 6. 实现参数持久化
-  - [~] 6.1 创建持久化工具函数
+- [x] 6. 实现参数持久化
+  - [x] 6.1 创建持久化工具函数
     - 在 `src/utils/storage.ts` 中创建 `saveSettings()` 函数
     - 在 `src/utils/storage.ts` 中创建 `loadSettings()` 函数
     - 定义存储键：`'batchpic_compression_settings'`
@@ -204,21 +204,21 @@
     - 添加错误处理（localStorage 不可用时静默失败）
     - _Requirements: 10.1, 10.2, 10.4_
 
-  - [~] 6.2 在 ParameterPanel 中集成持久化
+  - [x] 6.2 在 ParameterPanel 中集成持久化
     - 在组件挂载时调用 `loadSettings()` 加载保存的设置
     - 如果没有保存的设置，使用默认值（智能模式）
     - 在参数变化时调用 `saveSettings()` 保存设置
     - 使用 500ms 延迟避免频繁写入
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
-  - [~] 6.3 实现向后兼容的数据迁移
+  - [x] 6.3 实现向后兼容的数据迁移
     - 创建 `migrateOldCompressionParams()` 函数
     - 处理旧版本的 'quality' 和 'targetSize' 模式
     - 为旧参数添加默认的 `removeMetadata: true`
     - 无法识别的模式转换为智能模式
     - _Requirements: 7.1, 7.3_
 
-  - [~] 6.4 编写持久化的单元测试
+  - [x] 6.4 编写持久化的单元测试
     - 测试保存设置到 localStorage
     - 测试从 localStorage 加载设置
     - 测试首次使用时使用默认设置
@@ -226,22 +226,22 @@
     - 测试 localStorage 不可用时的降级处理
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [~] 6.5 编写参数持久化的属性测试
+  - [x] 6.5 编写参数持久化的属性测试
     - **Property 12: 参数持久化往返**
     - **Validates: Requirements 10.1, 10.2**
     - 生成任意有效的压缩设置
     - 验证保存后加载，得到相同的设置
     - _Requirements: 10.1, 10.2_
 
-  - [~] 6.6 编写向后兼容的属性测试
+  - [x] 6.6 编写向后兼容的属性测试
     - **Property 10: 向后兼容参数转换**
     - **Validates: Requirements 7.1, 7.3**
     - 生成旧版本的 CompressionParams
     - 验证转换后的参数功能等效
     - _Requirements: 7.1, 7.3_
 
-- [ ] 7. 实现目标大小压缩增强
-  - [~] 7.1 优化目标大小压缩算法
+- [x] 7. 实现目标大小压缩增强
+  - [x] 7.1 优化目标大小压缩算法
     - 在 `SharpImageProcessor` 中改进二分查找逻辑
     - 目标容差设为 ±15%
     - 添加最大迭代次数限制（避免无限循环）
@@ -249,14 +249,14 @@
     - 记录警告日志
     - _Requirements: 4.4, 4.5_
 
-  - [~] 7.2 编写目标大小压缩的单元测试
+  - [x] 7.2 编写目标大小压缩的单元测试
     - 测试正常情况下压缩到目标大小
     - 测试目标大小过小时的降级处理
     - 测试压缩失败时的错误处理
     - 验证警告日志记录
     - _Requirements: 4.4, 4.5_
 
-  - [~] 7.3 编写目标大小压缩的属性测试
+  - [x] 7.3 编写目标大小压缩的属性测试
     - **Property 5: 目标大小压缩尝试**
     - **Validates: Requirements 4.4**
     - 生成有效的目标大小（5-10000 KB）
@@ -264,7 +264,7 @@
     - 验证压缩后的大小在目标大小的 ±15% 范围内
     - _Requirements: 4.4_
 
-- [~] 8. Checkpoint - 验证完整功能
+- [x] 8. Checkpoint - 验证完整功能
   - 确保所有单元测试和属性测试通过
   - 运行测试覆盖率报告，确保 ≥80%
   - 手动测试完整的用户流程
