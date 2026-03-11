@@ -256,6 +256,14 @@ export class SharpImageProcessor implements ImageProcessor {
     const { mode, value, aspectRatio } = resize;
 
     switch (mode) {
+      case 'scale': {
+        // Scale by percentage (value is percentage, e.g., 50 for 50%)
+        const scaleFactor = value / 100;
+        const newWidth = Math.round(originalDimensions.width * scaleFactor);
+        const newHeight = Math.round(originalDimensions.height * scaleFactor);
+        return pipeline.resize({ width: newWidth, height: newHeight });
+      }
+
       case 'width':
         return pipeline.resize({ width: value });
 

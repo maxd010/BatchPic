@@ -138,14 +138,12 @@ export function ParameterPanel({
     
     // Resize
     if (resizeMode === 'none') {
-      parts.push('尺寸: 保持原始');
-    } else if (resizeMode === 'aspectRatio') {
-      parts.push(`尺寸: ${aspectRatio}`);
+      parts.push('尺寸: Original');
+    } else if (resizeMode === 'scale') {
+      parts.push(`尺寸: Scale ${resizeValue}%`);
     } else {
-      const modeText = resizeMode === 'width' ? '宽' : 
-                       resizeMode === 'height' ? '高' : 
-                       resizeMode === 'longEdge' ? '长边' : '短边';
-      parts.push(`尺寸: ${modeText}${resizeValue}px`);
+      const modeText = resizeMode === 'width' ? 'Width' : 'Max edge';
+      parts.push(`尺寸: ${modeText} ${resizeValue}px`);
     }
     
     return parts.join(' · ');
@@ -215,65 +213,46 @@ export function ParameterPanel({
                 <div className="param-group">
                   <label>调整模式</label>
                   <div className="button-group">
-                    {['none', 'width', 'height', 'longEdge', 'shortEdge', 'aspectRatio'].map((mode) => (
+                    {['none', 'scale', 'width', 'longEdge'].map((mode) => (
                       <button
                         key={mode}
                         className={`mode-button ${resizeMode === mode ? 'active' : ''}`}
                         onClick={() => setResizeMode(mode as any)}
                         title={
                           mode === 'none' ? '保持原始尺寸' :
+                          mode === 'scale' ? '按百分比缩放' :
                           mode === 'width' ? '按宽度调整' :
-                          mode === 'height' ? '按高度调整' :
-                          mode === 'longEdge' ? '按长边调整' :
-                          mode === 'shortEdge' ? '按短边调整' :
-                          '按宽高比调整'
+                          '按长边调整'
                         }
                       >
-                        {mode === 'none' && '保持原始'}
-                        {mode === 'width' && '按宽度'}
-                        {mode === 'height' && '按高度'}
-                        {mode === 'longEdge' && '按长边'}
-                        {mode === 'shortEdge' && '按短边'}
-                        {mode === 'aspectRatio' && '宽高比'}
+                        {mode === 'none' && 'Original'}
+                        {mode === 'scale' && 'Scale'}
+                        {mode === 'width' && 'Width'}
+                        {mode === 'longEdge' && 'Max edge'}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {resizeMode !== 'none' && resizeMode !== 'aspectRatio' && (
+                {resizeMode !== 'none' && (
                   <div className="param-group">
                     <label htmlFor="resize-value">
-                      {resizeMode === 'width' && '宽度'}
-                      {resizeMode === 'height' && '高度'}
-                      {resizeMode === 'longEdge' && '长边'}
-                      {resizeMode === 'shortEdge' && '短边'}
+                      {resizeMode === 'scale' && '缩放比例 (%)'}
+                      {resizeMode === 'width' && '宽度 (px)'}
+                      {resizeMode === 'longEdge' && '长边 (px)'}
                     </label>
                     <input
                       id="resize-value"
                       type="number"
-                      min="10"
-                      max="5000"
+                      min={resizeMode === 'scale' ? 1 : 10}
+                      max={resizeMode === 'scale' ? 200 : 5000}
                       value={resizeValue}
-                      onChange={(e) => setResizeValue(Math.max(10, parseInt(e.target.value) || 0))}
+                      onChange={(e) => {
+                        const min = resizeMode === 'scale' ? 1 : 10;
+                        setResizeValue(Math.max(min, parseInt(e.target.value) || 0));
+                      }}
                       className="param-input"
                     />
-                  </div>
-                )}
-
-                {resizeMode === 'aspectRatio' && (
-                  <div className="param-group">
-                    <label>比例</label>
-                    <div className="button-group">
-                      {(['1:1', '4:5', '16:9'] as const).map((ratio) => (
-                        <button
-                          key={ratio}
-                          className={`aspect-button ${aspectRatio === ratio ? 'active' : ''}`}
-                          onClick={() => setAspectRatio(ratio)}
-                        >
-                          {ratio}
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>

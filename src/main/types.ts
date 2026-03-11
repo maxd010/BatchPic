@@ -15,7 +15,7 @@ export interface FileScanner {
 // Image processing types
 
 export interface ResizeParams {
-  mode: 'width' | 'height' | 'longEdge' | 'shortEdge' | 'aspectRatio';
+  mode: 'scale' | 'width' | 'height' | 'longEdge' | 'shortEdge' | 'aspectRatio';
   value: number;
   aspectRatio?: '1:1' | '4:5' | '16:9';  // Only when mode is 'aspectRatio'
 }
