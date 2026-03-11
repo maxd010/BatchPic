@@ -11,14 +11,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ParameterPanel } from '../ParameterPanel';
-import { loadSettings, saveSettings } from '../../../utils/storage';
-import type { ProcessingParams, ImageFile, StoredCompressionSettings } from '../../../main/types';
+import { loadProcessingSettings, saveProcessingSettings } from '../../../utils/storage';
+import type { ProcessingParams, ImageFile, StoredProcessingSettings } from '../../../main/types';
 
 // Mock storage utilities
 jest.mock('../../../utils/storage');
 
-const mockLoadSettings = loadSettings as jest.MockedFunction<typeof loadSettings>;
-const mockSaveSettings = saveSettings as jest.MockedFunction<typeof saveSettings>;
+const mockLoadSettings = loadProcessingSettings as jest.MockedFunction<typeof loadProcessingSettings>;
+const mockSaveSettings = saveProcessingSettings as jest.MockedFunction<typeof saveProcessingSettings>;
 
 describe('ParameterPanel - Persistence Integration', () => {
   const mockImageFile: ImageFile = {
@@ -47,10 +47,12 @@ describe('ParameterPanel - Persistence Integration', () => {
 
   describe('Requirement 10.2: Load settings on mount', () => {
     it('should load saved settings from localStorage on mount', () => {
-      const savedSettings: StoredCompressionSettings = {
-        mode: 'quality',
+      const savedSettings: StoredProcessingSettings = {
+        resizeMode: 'none',
+        compressionMode: 'quality',
         qualityPreset: 85,
         removeMetadata: false,
+        outputFormat: 'original',
         version: '1.0',
       };
 
@@ -69,10 +71,12 @@ describe('ParameterPanel - Persistence Integration', () => {
     });
 
     it('should apply loaded settings to component state', async () => {
-      const savedSettings: StoredCompressionSettings = {
-        mode: 'quality',
+      const savedSettings: StoredProcessingSettings = {
+        resizeMode: 'none',
+        compressionMode: 'quality',
         qualityPreset: 70,
         removeMetadata: false,
+        outputFormat: 'original',
         version: '1.0',
       };
 
@@ -157,7 +161,7 @@ describe('ParameterPanel - Persistence Integration', () => {
         () => {
           expect(mockSaveSettings).toHaveBeenCalled();
           const lastCall = mockSaveSettings.mock.calls[mockSaveSettings.mock.calls.length - 1];
-          expect(lastCall[0].mode).toBe('quality');
+          expect(lastCall[0].compressionMode).toBe('quality');
         },
         { timeout: 1000 }
       );
@@ -198,7 +202,7 @@ describe('ParameterPanel - Persistence Integration', () => {
           expect(mockSaveSettings).toHaveBeenCalled();
           const lastCall = mockSaveSettings.mock.calls[mockSaveSettings.mock.calls.length - 1];
           expect(lastCall[0]).toMatchObject({
-            mode: 'quality',
+            compressionMode: 'quality',
             qualityPreset: 85,
             removeMetadata: true,
             version: '1.0',
@@ -246,7 +250,7 @@ describe('ParameterPanel - Persistence Integration', () => {
           expect(mockSaveSettings).toHaveBeenCalled();
           const calls = mockSaveSettings.mock.calls;
           const lastCall = calls[calls.length - 1];
-          expect(lastCall[0].mode).toBe('quality');
+          expect(lastCall[0].compressionMode).toBe('quality');
           expect(lastCall[0].qualityPreset).toBe(90);
         },
         { timeout: 1500 }

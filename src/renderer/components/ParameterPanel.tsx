@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ProcessingParams, ResizeParams, CompressionParams, ImageFile, StoredCompressionSettings } from '../../main/types';
+import { ProcessingParams, ResizeParams, CompressionParams, ImageFile, StoredProcessingSettings } from '../../main/types';
 import { useDebounce } from '../hooks/useDebounce';
-import { loadSettings, saveSettings } from '../../utils/storage';
+import { loadProcessingSettings, saveProcessingSettings } from '../../utils/storage';
 import { AdjustmentsIcon, ArrowsPointingInIcon, PhotoIcon } from './Icons';
 import './ParameterPanel.css';
 
@@ -49,24 +49,31 @@ export function ParameterPanel({
     params.format || 'original'
   );
 
-  // Load settings from localStorage on mount (Requirement 10.2)
+  // Load settings from localStorage on mount
   useEffect(() => {
-    const stored = loadSettings();
+    const stored = loadProcessingSettings();
     
     if (stored) {
-      // Apply loaded settings to component state
-      setCompressionMode(stored.mode);
-      setRemoveMetadata(stored.removeMetadata);
+      // 应用所有保存的设置
+      setResizeMode(stored.resizeMode);
+      if (stored.resizeValue !== undefined) {
+        setResizeValue(stored.resizeValue);
+      }
+      if (stored.aspectRatio !== undefined) {
+        setAspectRatio(stored.aspectRatio);
+      }
       
+      setCompressionMode(stored.compressionMode);
+      setRemoveMetadata(stored.removeMetadata);
       if (stored.qualityPreset !== undefined) {
         setQualityPreset(stored.qualityPreset);
       }
-      
       if (stored.targetSize !== undefined) {
         setTargetSize(stored.targetSize);
       }
+      
+      setOutputFormat(stored.outputFormat);
     }
-    // If no stored settings, use defaults (smart mode) - already initialized above
   }, []);
 
   // Build current parameters object
@@ -91,29 +98,40 @@ export function ParameterPanel({
     onChange(debouncedParams);
   }, [debouncedParams]);
 
-  // Save settings to localStorage with 500ms delay (Requirement 10.1, 10.4)
+  // Save all settings to localStorage with 500ms delay
+  const debouncedResizeMode = useDebounce(resizeMode, 500);
+  const debouncedResizeValue = useDebounce(resizeValue, 500);
+  const debouncedAspectRatio = useDebounce(aspectRatio, 500);
   const debouncedCompressionMode = useDebounce(compressionMode, 500);
   const debouncedQualityPreset = useDebounce(qualityPreset, 500);
   const debouncedTargetSize = useDebounce(targetSize, 500);
   const debouncedRemoveMetadata = useDebounce(removeMetadata, 500);
+  const debouncedOutputFormat = useDebounce(outputFormat, 500);
 
   useEffect(() => {
-    // Build settings object to save
-    const settingsToSave: StoredCompressionSettings = {
-      mode: debouncedCompressionMode,
+    const settingsToSave: StoredProcessingSettings = {
+      resizeMode: debouncedResizeMode,
+      resizeValue: debouncedResizeMode !== 'none' ? debouncedResizeValue : undefined,
+      aspectRatio: debouncedResizeMode === 'aspectRatio' ? debouncedAspectRatio : undefined,
+      compressionMode: debouncedCompressionMode,
+      qualityPreset: debouncedCompressionMode === 'quality' ? debouncedQualityPreset : undefined,
+      targetSize: debouncedCompressionMode === 'targetSize' ? debouncedTargetSize : undefined,
       removeMetadata: debouncedRemoveMetadata,
+      outputFormat: debouncedOutputFormat,
       version: '1.0',
     };
 
-    // Add optional fields based on mode
-    if (debouncedCompressionMode === 'quality') {
-      settingsToSave.qualityPreset = debouncedQualityPreset;
-    } else if (debouncedCompressionMode === 'targetSize') {
-      settingsToSave.targetSize = debouncedTargetSize;
-    }
-
-    saveSettings(settingsToSave);
-  }, [debouncedCompressionMode, debouncedQualityPreset, debouncedTargetSize, debouncedRemoveMetadata]);
+    saveProcessingSettings(settingsToSave);
+  }, [
+    debouncedResizeMode,
+    debouncedResizeValue,
+    debouncedAspectRatio,
+    debouncedCompressionMode,
+    debouncedQualityPreset,
+    debouncedTargetSize,
+    debouncedRemoveMetadata,
+    debouncedOutputFormat,
+  ]);
 
   const originalSize = inputFiles.length > 0 ? inputFiles[0].size : 0;
 
@@ -211,7 +229,6 @@ export function ParameterPanel({
             {activeTab === 'resize' && (
               <div className="tab-pane active">
                 <div className="param-group">
-                  <label>调整模式</label>
                   <div className="button-group">
                     {['none', 'scale', 'width', 'longEdge'].map((mode) => (
                       <button
@@ -236,16 +253,16 @@ export function ParameterPanel({
 
                 {resizeMode !== 'none' && (
                   <div className="param-group">
-                    <label htmlFor="resize-value">
-                      {resizeMode === 'scale' && '缩放比例 (%)'}
-                      {resizeMode === 'width' && '宽度 (px)'}
-                      {resizeMode === 'longEdge' && '长边 (px)'}
-                    </label>
                     <input
                       id="resize-value"
                       type="number"
                       min={resizeMode === 'scale' ? 1 : 10}
                       max={resizeMode === 'scale' ? 200 : 5000}
+                      aria-label={
+                        resizeMode === 'scale' ? '缩放比例 (%)' :
+                        resizeMode === 'width' ? '宽度 (px)' :
+                        '长边 (px)'
+                      }
                       value={resizeValue}
                       onChange={(e) => {
                         const min = resizeMode === 'scale' ? 1 : 10;
@@ -262,7 +279,6 @@ export function ParameterPanel({
             {activeTab === 'compression' && (
               <div className="tab-pane active">
                 <div className="param-group">
-                  <label>压缩模式</label>
                   <div className="button-group">
                     {(['smart', 'quality', 'targetSize', 'none'] as const).map((mode) => (
                       <button
@@ -318,6 +334,7 @@ export function ParameterPanel({
                       type="number"
                       min="5"
                       max="10000"
+                      aria-label="目标大小 (KB)"
                       value={targetSize}
                       onChange={(e) => setTargetSize(Math.max(5, Math.min(10000, parseInt(e.target.value) || 5)))}
                       className="param-input"
@@ -370,7 +387,6 @@ export function ParameterPanel({
             {activeTab === 'format' && (
               <div className="tab-pane active">
                 <div className="param-group">
-                  <label>输出格式</label>
                   <div className="button-group">
                     {(['original', 'jpg', 'png', 'webp'] as const).map((format) => (
                       <button

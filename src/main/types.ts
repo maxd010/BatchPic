@@ -45,6 +45,25 @@ export interface StoredCompressionSettings {
   version: string;  // For future data migration
 }
 
+// Stored processing settings for full parameter persistence
+export interface StoredProcessingSettings {
+  // Resize settings
+  resizeMode: ResizeParams['mode'] | 'none';
+  resizeValue?: number;
+  aspectRatio?: '1:1' | '4:5' | '16:9';
+  
+  // Compression settings
+  compressionMode: CompressionParams['mode'];
+  qualityPreset?: QualityPreset;
+  targetSize?: number;
+  removeMetadata: boolean;
+  
+  // Format settings
+  outputFormat: 'jpg' | 'png' | 'webp' | 'original';
+  
+  version: string;  // For future data migration
+}
+
 export interface ProcessingParams {
   resize?: ResizeParams;
   compression?: CompressionParams;

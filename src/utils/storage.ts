@@ -1,16 +1,17 @@
 /**
- * 压缩设置持久化工具
+ * 处理参数持久化工具
  * 
- * 提供 localStorage 的保存和加载功能，用于持久化用户的压缩设置。
+ * 提供 localStorage 的保存和加载功能，用于持久化用户的所有处理参数。
  * 包含数据验证和错误处理，确保在 localStorage 不可用时静默失败。
  */
 
-import type { StoredCompressionSettings } from '../main/types.js';
+import type { StoredCompressionSettings, StoredProcessingSettings } from '../main/types.js';
 
 /**
  * localStorage 存储键
  */
-const STORAGE_KEY = 'batchpic_compression_settings';
+const STORAGE_KEY = 'batchpic_compression_settings'; // 保留旧键用于兼容
+const STORAGE_KEY_PROCESSING = 'batchpic_processing_settings';   // 新的完整参数存储键
 
 /**
  * 当前数据版本（用于未来的数据迁移）
@@ -176,4 +177,113 @@ export function migrateOldCompressionParams(oldParams: any): StoredCompressionSe
   }
 
   return migrated;
+}
+
+/**
+ * 验证存储的完整处理参数是否有效
+ */
+export function isValidProcessingSettings(data: any): data is StoredProcessingSettings {
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
+
+  // 验证 resizeMode
+  const validResizeModes = ['none', 'scale', 'width', 'height', 'longEdge', 'shortEdge', 'aspectRatio'];
+  if (!validResizeModes.includes(data.resizeMode)) {
+    return false;
+  }
+
+  // 验证 resizeValue（可选）
+  if (data.resizeValue !== undefined && typeof data.resizeValue !== 'number') {
+    return false;
+  }
+
+  // 验证 aspectRatio（可选）
+  if (data.aspectRatio !== undefined) {
+    const validRatios = ['1:1', '4:5', '16:9'];
+    if (!validRatios.includes(data.aspectRatio)) {
+      return false;
+    }
+  }
+
+  // 验证 compressionMode
+  const validCompressionModes = ['smart', 'quality', 'targetSize', 'none'];
+  if (!validCompressionModes.includes(data.compressionMode)) {
+    return false;
+  }
+
+  // 验证 qualityPreset（可选）
+  if (data.qualityPreset !== undefined) {
+    const validPresets = [60, 70, 75, 80, 85, 90];
+    if (!validPresets.includes(data.qualityPreset)) {
+      return false;
+    }
+  }
+
+  // 验证 targetSize（可选）
+  if (data.targetSize !== undefined) {
+    if (typeof data.targetSize !== 'number' || data.targetSize < 5 || data.targetSize > 10000) {
+      return false;
+    }
+  }
+
+  // 验证 removeMetadata
+  if (typeof data.removeMetadata !== 'boolean') {
+    return false;
+  }
+
+  // 验证 outputFormat
+  const validFormats = ['jpg', 'png', 'webp', 'original'];
+  if (!validFormats.includes(data.outputFormat)) {
+    return false;
+  }
+
+  // 验证 version
+  if (typeof data.version !== 'string') {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * 保存完整处理参数到 localStorage
+ */
+export function saveProcessingSettings(settings: StoredProcessingSettings): void {
+  try {
+    const settingsWithVersion = {
+      ...settings,
+      version: CURRENT_VERSION,
+    };
+
+    const serialized = JSON.stringify(settingsWithVersion);
+    localStorage.setItem(STORAGE_KEY_PROCESSING, serialized);
+  } catch (error) {
+    console.error('[Settings] Failed to save processing settings:', error);
+  }
+}
+
+/**
+ * 从 localStorage 加载完整处理参数
+ */
+export function loadProcessingSettings(): StoredProcessingSettings | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_PROCESSING);
+
+    if (!stored) {
+      return null;
+    }
+
+    const parsed = JSON.parse(stored);
+
+    if (!isValidProcessingSettings(parsed)) {
+      console.warn('[Settings] Invalid stored processing settings, using defaults');
+      return null;
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error('[Settings] Failed to load processing settings:', error);
+    return null;
+  }
 }

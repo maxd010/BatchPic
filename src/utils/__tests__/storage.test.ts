@@ -615,3 +615,158 @@ describe('storage utils', () => {
     });
   });
 });
+
+  describe('Processing Settings (Full Parameters)', () => {
+    describe('isValidProcessingSettings', () => {
+      it('should return true for valid complete settings', () => {
+        const settings = {
+          resizeMode: 'none' as const,
+          compressionMode: 'smart' as const,
+          removeMetadata: true,
+          outputFormat: 'original' as const,
+          version: '1.0',
+        };
+
+        const { isValidProcessingSettings } = require('../storage');
+        expect(isValidProcessingSettings(settings)).toBe(true);
+      });
+
+      it('should return true for settings with resize parameters', () => {
+        const settings = {
+          resizeMode: 'scale' as const,
+          resizeValue: 50,
+          compressionMode: 'quality' as const,
+          qualityPreset: 80 as const,
+          removeMetadata: false,
+          outputFormat: 'jpg' as const,
+          version: '1.0',
+        };
+
+        const { isValidProcessingSettings } = require('../storage');
+        expect(isValidProcessingSettings(settings)).toBe(true);
+      });
+
+      it('should return false for invalid resizeMode', () => {
+        const settings = {
+          resizeMode: 'invalid',
+          compressionMode: 'smart',
+          removeMetadata: true,
+          outputFormat: 'original',
+          version: '1.0',
+        };
+
+        const { isValidProcessingSettings } = require('../storage');
+        expect(isValidProcessingSettings(settings)).toBe(false);
+      });
+
+      it('should return false for invalid outputFormat', () => {
+        const settings = {
+          resizeMode: 'none',
+          compressionMode: 'smart',
+          removeMetadata: true,
+          outputFormat: 'invalid',
+          version: '1.0',
+        };
+
+        const { isValidProcessingSettings } = require('../storage');
+        expect(isValidProcessingSettings(settings)).toBe(false);
+      });
+    });
+
+    describe('saveProcessingSettings', () => {
+      it('should save complete processing settings', () => {
+        const settings = {
+          resizeMode: 'scale' as const,
+          resizeValue: 75,
+          compressionMode: 'quality' as const,
+          qualityPreset: 85 as const,
+          removeMetadata: false,
+          outputFormat: 'webp' as const,
+          version: '1.0',
+        };
+
+        const { saveProcessingSettings } = require('../storage');
+        saveProcessingSettings(settings);
+
+        const stored = localStorage.getItem('batchpic_processing_settings');
+        expect(stored).not.toBeNull();
+
+        const parsed = JSON.parse(stored!);
+        expect(parsed).toEqual(settings);
+      });
+
+      it('should overwrite existing processing settings', () => {
+        const settings1 = {
+          resizeMode: 'none' as const,
+          compressionMode: 'smart' as const,
+          removeMetadata: true,
+          outputFormat: 'original' as const,
+          version: '1.0',
+        };
+
+        const settings2 = {
+          resizeMode: 'width' as const,
+          resizeValue: 1920,
+          compressionMode: 'targetSize' as const,
+          targetSize: 200,
+          removeMetadata: false,
+          outputFormat: 'jpg' as const,
+          version: '1.0',
+        };
+
+        const { saveProcessingSettings } = require('../storage');
+        saveProcessingSettings(settings1);
+        saveProcessingSettings(settings2);
+
+        const stored = localStorage.getItem('batchpic_processing_settings');
+        const parsed = JSON.parse(stored!);
+
+        expect(parsed).toEqual(settings2);
+      });
+    });
+
+    describe('loadProcessingSettings', () => {
+      it('should return null when no settings are stored', () => {
+        localStorage.clear();
+        
+        const { loadProcessingSettings } = require('../storage');
+        const loaded = loadProcessingSettings();
+        expect(loaded).toBeNull();
+      });
+
+      it('should load saved processing settings correctly', () => {
+        const settings = {
+          resizeMode: 'longEdge' as const,
+          resizeValue: 2048,
+          compressionMode: 'quality' as const,
+          qualityPreset: 90 as const,
+          removeMetadata: true,
+          outputFormat: 'png' as const,
+          version: '1.0',
+        };
+
+        const { saveProcessingSettings, loadProcessingSettings } = require('../storage');
+        saveProcessingSettings(settings);
+        const loaded = loadProcessingSettings();
+
+        expect(loaded).toEqual(settings);
+      });
+
+      it('should return null for invalid processing settings', () => {
+        const invalidData = {
+          resizeMode: 'invalid',
+          compressionMode: 'smart',
+          removeMetadata: true,
+          outputFormat: 'original',
+          version: '1.0',
+        };
+
+        localStorage.setItem('batchpic_processing_settings', JSON.stringify(invalidData));
+
+        const { loadProcessingSettings } = require('../storage');
+        const loaded = loadProcessingSettings();
+        expect(loaded).toBeNull();
+      });
+    });
+  });
+});

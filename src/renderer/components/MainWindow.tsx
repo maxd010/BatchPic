@@ -4,7 +4,6 @@ import { useAppContext, DEFAULT_PARAMS } from '../context/AppContext';
 import { DropZone } from './DropZone';
 import { ParameterPanel } from './ParameterPanel';
 import { PreviewPanel } from './PreviewPanel';
-import { TemplateSelector } from './TemplateSelector';
 import { FullScreenPreview } from './FullScreenPreview';
 import { NotificationContainer } from './NotificationContainer';
 import { ErrorReportDialog } from './ErrorReportDialog';
@@ -32,9 +31,7 @@ export function MainWindow() {
   const { 
     state, 
     setInputFiles, 
-    setTemplates, 
     setProcessingParams, 
-    setSelectedTemplateId,
     setIsProcessing,
     setProgress,
     setResult,
@@ -67,12 +64,6 @@ export function MainWindow() {
       throttledUpdateImageProgress.cancel();
     };
   }, [throttledUpdateImageProgress]);
-
-  // Load templates on mount
-  useEffect(() => {
-    // TODO: Load templates from TemplateManager via IPC
-    // This will be implemented in task 9.1
-  }, [setTemplates]);
 
   // Listen for progress updates from main process (Requirement 9.5)
   useEffect(() => {
@@ -234,40 +225,6 @@ export function MainWindow() {
     }
     */
   }, [setProcessingParams]);
-
-  // Handle template selection (Requirement 5.3)
-  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
-  const handleSelectTemplate = useCallback((templateId: string) => {
-    const template = state.templates.find(t => t.id === templateId);
-    if (template) {
-      setProcessingParams(template.params);
-      setSelectedTemplateId(templateId);
-    }
-  }, [state.templates, setProcessingParams, setSelectedTemplateId]);
-
-  // Handle save template (Requirement 5.1)
-  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
-  const handleSaveTemplate = useCallback(async (name: string) => {
-    try {
-      // TODO: Save template via IPC to TemplateManager
-      // This will be implemented in task 9.1
-      console.log('Save template:', name, state.processingParams);
-    } catch (error) {
-      console.error('Failed to save template:', error);
-    }
-  }, [state.processingParams]);
-
-  // Handle delete template (Requirement 5.4)
-  // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
-  const handleDeleteTemplate = useCallback(async (templateId: string) => {
-    try {
-      // TODO: Delete template via IPC to TemplateManager
-      // This will be implemented in task 9.1
-      console.log('Delete template:', templateId);
-    } catch (error) {
-      console.error('Failed to delete template:', error);
-    }
-  }, []);
 
   // Handle export button click (Requirements 10.1, 10.2)
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
@@ -504,18 +461,8 @@ export function MainWindow() {
           )}
         </section>
 
-        {/* Template Selector and Export Actions */}
+        {/* Export Actions */}
         <div className="bottom-actions">
-          <div className="template-section-horizontal">
-            <TemplateSelector
-              templates={state.templates}
-              selectedId={state.selectedTemplateId}
-              onSelect={handleSelectTemplate}
-              onSave={handleSaveTemplate}
-              onDelete={handleDeleteTemplate}
-            />
-          </div>
-
           {/* Export button and results */}
           <div className="export-section">
             {/* Processing progress */}
