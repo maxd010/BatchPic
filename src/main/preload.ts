@@ -130,7 +130,7 @@ function validateCompressionParams(compression: any): void {
   validateObject(compression, 'params.compression');
   
   // Mode validation
-  const validModes = ['targetSize', 'quality'];
+  const validModes = ['smart', 'quality', 'targetSize', 'none'];
   if (!validModes.includes(compression.mode)) {
     throw new Error(`params.compression.mode must be one of: ${validModes.join(', ')}`);
   }
@@ -138,9 +138,10 @@ function validateCompressionParams(compression: any): void {
   // Value validation based on mode
   if (compression.mode === 'quality') {
     validateNumber(compression.value, 'params.compression.value', 0, 100);
-  } else {
+  } else if (compression.mode === 'targetSize') {
     validateNumber(compression.value, 'params.compression.value', 1);
   }
+  // smart and none modes don't require value validation
 }
 
 /**
