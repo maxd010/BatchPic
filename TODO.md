@@ -3,14 +3,14 @@
 
 ## 修改主窗口尺寸
 
-## 修改设置-尺寸，只保留以下选项
+##  - [x] 修改设置-尺寸，只保留以下选项
     
     ○ Scale 100%
     ○ Width  1200 px
     ○ Max edge 1920 px
 
 
-### 修改设置-压缩
+### - [x] 修改设置-压缩
     标题不要显示“Compression”，而是 Optimize
 
 #### 智能压缩 (default) Smart compression
