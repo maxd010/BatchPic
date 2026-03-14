@@ -1,9 +1,9 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import type { OutputManager, ImageFile } from './types.js';
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as os from "os";
+import { exec } from "child_process";
+import { promisify } from "util";
+import type { OutputManager, ImageFile } from "./types.js";
 
 const execAsync = promisify(exec);
 
@@ -20,27 +20,29 @@ export class OutputManagerImpl implements OutputManager {
     // Blacklist: prevent writing to system-critical directories
     // These are directories that should never be modified by user applications
     const forbiddenDirs = [
-      '/etc',      // System configuration
-      '/usr',      // System binaries and libraries
-      '/bin',      // Essential binaries
-      '/sbin',     // System binaries
-      '/boot',     // Boot files
-      '/sys',      // Kernel interface
-      '/proc',     // Process information
-      '/dev',      // Device files
-      '/root',     // Root user home
+      "/etc", // System configuration
+      "/usr", // System binaries and libraries
+      "/bin", // Essential binaries
+      "/sbin", // System binaries
+      "/boot", // Boot files
+      "/sys", // Kernel interface
+      "/proc", // Process information
+      "/dev", // Device files
+      "/root", // Root user home
     ];
 
     // Check if path starts with any forbidden directory
-    const isForbidden = forbiddenDirs.some(forbiddenDir => {
+    const isForbidden = forbiddenDirs.some((forbiddenDir) => {
       const normalizedForbidden = path.resolve(forbiddenDir);
-      return resolvedPath === normalizedForbidden || 
-             resolvedPath.startsWith(normalizedForbidden + path.sep);
+      return (
+        resolvedPath === normalizedForbidden ||
+        resolvedPath.startsWith(normalizedForbidden + path.sep)
+      );
     });
 
     if (isForbidden) {
       throw new Error(
-        `Security: Cannot write to system-critical directory: ${resolvedPath}`
+        `Security: Cannot write to system-critical directory: ${resolvedPath}`,
       );
     }
 
@@ -48,32 +50,32 @@ export class OutputManagerImpl implements OutputManager {
     // This allows temp directories for testing while logging suspicious activity
     const userHome = os.homedir();
     const resolvedHome = path.resolve(userHome);
-    
+
     if (!resolvedPath.startsWith(resolvedHome)) {
       console.warn(
         `Warning: Output directory is outside user home. ` +
-        `Path: ${resolvedPath}, User home: ${resolvedHome}`
+          `Path: ${resolvedPath}, User home: ${resolvedHome}`,
       );
     }
   }
 
   /**
-   * Create output directory with timestamp
-   * Format: {inputBaseName}-processed-{timestamp}
-   * Example: photos-processed-20240115-143022
+   * Create or reuse a fixed output directory
+   * Format: {inputBaseName}-processed
+   * Example: photos-processed
    */
   async createOutputDirectory(inputPaths: string[]): Promise<string> {
     if (inputPaths.length === 0) {
-      throw new Error('No input paths provided');
+      throw new Error("No input paths provided");
     }
 
     // Determine base name from first input path
     const firstPath = inputPaths[0];
     const stats = await fs.stat(firstPath);
-    
+
     let baseName: string;
     let baseDir: string;
-    
+
     if (stats.isDirectory()) {
       baseName = path.basename(firstPath);
       baseDir = path.dirname(firstPath);
@@ -83,15 +85,8 @@ export class OutputManagerImpl implements OutputManager {
       baseName = path.basename(baseDir);
     }
 
-    // Create timestamp: YYYYMMDD-HHMMSS
-    const now = new Date();
-    const timestamp = now.toISOString()
-      .replace(/[-:]/g, '')
-      .replace('T', '-')
-      .slice(0, 15); // YYYYMMDD-HHMMSS
-
-    // Create output directory name
-    const outputDirName = `${baseName}-processed-${timestamp}`;
+    // Create fixed output directory name and reuse it on subsequent runs
+    const outputDirName = `${baseName}-processed`;
     const outputPath = path.join(baseDir, outputDirName);
 
     // Security check: Validate output directory is within user home
@@ -105,7 +100,7 @@ export class OutputManagerImpl implements OutputManager {
       await fs.access(outputPath, fs.constants.W_OK);
     } catch (error) {
       throw new Error(
-        `Security: No write permission for output directory: ${outputPath}`
+        `Security: No write permission for output directory: ${outputPath}`,
       );
     }
 
@@ -119,7 +114,11 @@ export class OutputManagerImpl implements OutputManager {
    * @param format The output format (jpg, png, webp)
    * @returns The full output path
    */
-  getOutputPath(inputFile: ImageFile, outputRoot: string, format: string): string {
+  getOutputPath(
+    inputFile: ImageFile,
+    outputRoot: string,
+    format: string,
+  ): string {
     // Get the relative path without extension
     const parsedPath = path.parse(inputFile.relativePath);
     const relativeDir = parsedPath.dir;
@@ -140,12 +139,12 @@ export class OutputManagerImpl implements OutputManager {
     // Verify directory exists
     try {
       const stats = await fs.stat(dirPath);
-      
+
       if (!stats.isDirectory()) {
         throw new Error(`Path is not a directory: ${dirPath}`);
       }
     } catch (error: any) {
-      if (error.message && error.message.includes('Path is not a directory')) {
+      if (error.message && error.message.includes("Path is not a directory")) {
         throw error;
       }
       throw new Error(`Directory does not exist: ${dirPath}`);
@@ -153,12 +152,12 @@ export class OutputManagerImpl implements OutputManager {
 
     // Open directory based on platform
     const platform = process.platform;
-    
+
     try {
-      if (platform === 'win32') {
+      if (platform === "win32") {
         // Windows: use explorer
         await execAsync(`explorer "${dirPath}"`);
-      } else if (platform === 'darwin') {
+      } else if (platform === "darwin") {
         // macOS: use open
         await execAsync(`open "${dirPath}"`);
       } else {
@@ -166,8 +165,10 @@ export class OutputManagerImpl implements OutputManager {
         await execAsync(`xdg-open "${dirPath}"`);
       }
     } catch (error) {
-      console.error('Error opening directory:', error);
-      throw new Error(`Failed to open directory: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("Error opening directory:", error);
+      throw new Error(
+        `Failed to open directory: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 }
