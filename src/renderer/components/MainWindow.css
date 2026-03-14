@@ -54,7 +54,7 @@
 /* App Header - Top bar with title */
 .app-header {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  padding: var(--spacing-sm) var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
