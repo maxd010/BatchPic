@@ -1,10 +1,10 @@
 // Core types for BatchPic
 
 export interface ImageFile {
-  path: string;           // Full file path
-  relativePath: string;   // Relative path from input root
-  format: 'jpg' | 'png' | 'webp';
-  size: number;          // File size in bytes
+  path: string; // Full file path
+  relativePath: string; // Relative path from input root
+  format: "jpg" | "png" | "webp";
+  size: number; // File size in bytes
   dimensions: { width: number; height: number };
 }
 
@@ -15,59 +15,59 @@ export interface FileScanner {
 // Image processing types
 
 export interface ResizeParams {
-  mode: 'scale' | 'width' | 'height' | 'longEdge' | 'shortEdge' | 'aspectRatio';
+  mode: "scale" | "width" | "height" | "longEdge" | "shortEdge" | "aspectRatio";
   value: number;
-  aspectRatio?: '1:1' | '4:5' | '16:9';  // Only when mode is 'aspectRatio'
+  aspectRatio?: "1:1" | "4:5" | "16:9"; // Only when mode is 'aspectRatio'
 }
 
 export interface CompressionParams {
-  mode: 'smart' | 'quality' | 'targetSize' | 'none';
-  value?: number;  // KB for targetSize, quality preset for quality mode (optional for smart/none)
-  removeMetadata?: boolean;  // Whether to remove image metadata (default: true)
+  mode: "smart" | "quality" | "targetSize" | "none";
+  value?: number; // KB for targetSize, quality preset for quality mode (optional for smart/none)
+  removeMetadata?: boolean; // Whether to remove image metadata (default: true)
 }
 
-// Quality preset type for quality mode
-export type QualityPreset = 60 | 70 | 75 | 80 | 85 | 90;
+// Quality preset type for quality mode (10-100)
+export type QualityPreset = number;
 
 // Smart compression configuration
 export interface SmartCompressionConfig {
-  format: 'jpg' | 'png' | 'webp' | 'unknown';
+  format: "jpg" | "png" | "webp" | "unknown";
   quality: number;
   removeMetadata: boolean;
 }
 
 // Stored compression settings for persistence
 export interface StoredCompressionSettings {
-  mode: 'smart' | 'quality' | 'targetSize' | 'none';
+  mode: "smart" | "quality" | "targetSize" | "none";
   qualityPreset?: QualityPreset;
   targetSize?: number;
   removeMetadata: boolean;
-  version: string;  // For future data migration
+  version: string; // For future data migration
 }
 
 // Stored processing settings for full parameter persistence
 export interface StoredProcessingSettings {
   // Resize settings
-  resizeMode: ResizeParams['mode'] | 'none';
+  resizeMode: ResizeParams["mode"] | "none";
   resizeValue?: number;
-  aspectRatio?: '1:1' | '4:5' | '16:9';
-  
+  aspectRatio?: "1:1" | "4:5" | "16:9";
+
   // Compression settings
-  compressionMode: CompressionParams['mode'];
+  compressionMode: CompressionParams["mode"];
   qualityPreset?: QualityPreset;
   targetSize?: number;
   removeMetadata: boolean;
-  
+
   // Format settings
-  outputFormat: 'jpg' | 'png' | 'webp' | 'original';
-  
-  version: string;  // For future data migration
+  outputFormat: "jpg" | "png" | "webp" | "original";
+
+  version: string; // For future data migration
 }
 
 export interface ProcessingParams {
   resize?: ResizeParams;
   compression?: CompressionParams;
-  format?: 'jpg' | 'png' | 'webp';
+  format?: "jpg" | "png" | "webp";
 }
 
 export interface ProcessedImage {
@@ -90,19 +90,23 @@ export type ProgressCallback = (current: number, total: number) => void;
 export type ImageProgressCallback = (
   currentIndex: number,
   total: number,
-  processedImage: ProcessedImage
+  processedImage: ProcessedImage,
 ) => void;
 
 export interface ImageProcessor {
   // Process a single image
-  process(input: ImageFile, params: ProcessingParams, outputPath: string): Promise<ProcessedImage>;
-  
+  process(
+    input: ImageFile,
+    params: ProcessingParams,
+    outputPath: string,
+  ): Promise<ProcessedImage>;
+
   // Process multiple images with progress callback
   processBatch(
-    inputs: ImageFile[], 
-    params: ProcessingParams, 
+    inputs: ImageFile[],
+    params: ProcessingParams,
     outputRoot: string,
-    onProgress?: ImageProgressCallback
+    onProgress?: ImageProgressCallback,
   ): Promise<ProcessingResult>;
 }
 
@@ -111,10 +115,14 @@ export interface ImageProcessor {
 export interface OutputManager {
   // Create output directory with timestamp
   createOutputDirectory(inputPaths: string[]): Promise<string>;
-  
+
   // Calculate output file path (preserving directory structure)
-  getOutputPath(inputFile: ImageFile, outputRoot: string, format: string): string;
-  
+  getOutputPath(
+    inputFile: ImageFile,
+    outputRoot: string,
+    format: string,
+  ): string;
+
   // Open output directory (cross-platform)
   openOutputDirectory(path: string): Promise<void>;
 }
@@ -131,10 +139,10 @@ export interface Template {
 export interface TemplateManager {
   // Save a new template
   save(name: string, params: ProcessingParams): Promise<void>;
-  
+
   // Load all templates
   loadAll(): Promise<Template[]>;
-  
+
   // Delete a template
   delete(id: string): Promise<void>;
 }
