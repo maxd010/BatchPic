@@ -75,37 +75,21 @@ export function MainWindow() {
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
   const autoProcessImages = useCallback(
     async (files: any[]) => {
-      console.log(
-        "[MainWindow] autoProcessImages called with",
-        files.length,
-        "files",
-      );
-
       try {
-        console.log("[MainWindow] Setting isProcessing to true");
         setIsProcessing(true);
 
         // Create output directory (Requirements 2.3, 6.1)
-        console.log("[MainWindow] Creating output directory...");
         const outputDir = await window.electronAPI.createOutputDirectory(
           files.map((f: any) => f.path),
         );
-        console.log("[MainWindow] Output directory created:", outputDir);
         setOutputDirectory(outputDir);
 
         // Process images with per-image progress callback (Requirements 5.3, 5.5)
-        console.log("[MainWindow] Starting processImagesWithProgress...");
         const results = await window.electronAPI.processImagesWithProgress(
           files,
           state.processingParams,
           outputDir,
           (index: number, result: any) => {
-            console.log(
-              "[MainWindow] Progress callback for image",
-              index,
-              ":",
-              result,
-            );
             // Update per-image progress (Requirements 3.2, 3.3, 3.4)
             // Each image fires this callback exactly once, so no throttling needed.
             updateImageProgress(index, {
@@ -118,8 +102,6 @@ export function MainWindow() {
             });
           },
         );
-
-        console.log("[MainWindow] Processing completed:", results);
 
         // Update final result (Requirement 5.5)
         setResult(results);
@@ -151,7 +133,6 @@ export function MainWindow() {
           5000,
         );
       } finally {
-        console.log("[MainWindow] Setting isProcessing to false");
         setIsProcessing(false);
       }
     },
@@ -169,49 +150,30 @@ export function MainWindow() {
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
   const handleFilesDropped = useCallback(
     async (paths: string[]) => {
-      console.log("[MainWindow] handleFilesDropped called with paths:", paths);
-      console.log("[MainWindow] autoProcessOnDrop:", state.autoProcessOnDrop);
-
       try {
         // Scan files via IPC (Requirements 1.1, 1.2)
-        console.log("[MainWindow] Calling scanFiles...");
         const scannedFiles = await window.electronAPI.scanFiles(paths);
-        console.log(
-          "[MainWindow] Scanned files:",
-          scannedFiles.length,
-          "files",
-        );
 
         // Update state with scanned files, deduplicating by path to avoid duplicate keys
         const existingPaths = new Set(state.inputFiles.map((f) => f.path));
         const newFiles = scannedFiles.filter((f) => !existingPaths.has(f.path));
+
         setInputFiles([...state.inputFiles, ...newFiles]);
 
         // Automatically apply default parameters (Requirement 8.1)
         setProcessingParams(DEFAULT_PARAMS);
-
-        // Auto-trigger processing if enabled (Requirements 2.1, 2.4)
-        console.log("[MainWindow] Checking auto-process condition:", {
-          autoProcessOnDrop: state.autoProcessOnDrop,
-          scannedFilesLength: scannedFiles.length,
-        });
 
         if (newFiles.length === 0) {
           showNotification("所选文件已全部存在于当前批次中", "info", 2000);
           return;
         }
 
-        if (state.autoProcessOnDrop && newFiles.length > 0) {
-          console.log("[MainWindow] Auto-processing triggered!");
-          // Initialize image progress tracking (Requirements 3.1)
-          console.log("[MainWindow] Initializing image progress...");
-          initializeImageProgress(newFiles);
+        // Initialize image progress tracking (Requirements 3.1)
+        initializeImageProgress(newFiles);
+
+        if (state.autoProcessOnDrop) {
           await autoProcessImages(newFiles);
         } else {
-          console.log("[MainWindow] Auto-processing NOT triggered");
-          // Initialize image progress tracking (Requirements 3.1)
-          console.log("[MainWindow] Initializing image progress...");
-          initializeImageProgress(newFiles);
           // Show notification for manual processing
           showNotification(
             `已添加 ${newFiles.length} 张图片，点击"开始处理"按钮进行处理`,

@@ -204,7 +204,7 @@ function validateCallback(callback: any, fieldName: string): void {
 // Exposed API with Parameter Validation
 // ============================================================================
 
-console.log("[Preload] Starting to expose electronAPI...");
+// Startup debug log removed to reduce unnecessary initialization overhead.
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -305,4 +305,4 @@ contextBridge.exposeInMainWorld("electronAPI", {
   },
 });
 
-console.log("[Preload] electronAPI exposed successfully!");
+// Startup debug log removed to reduce unnecessary initialization overhead.

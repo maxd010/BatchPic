@@ -1,59 +1,56 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import sharp from 'sharp';
-import fileTypePkg from 'file-type';
-import { FileScanner, ImageFile } from './types.js';
+import * as fs from "fs/promises";
+import * as path from "path";
+import sharp from "sharp";
+import fileTypePkg from "file-type";
+import { FileScanner, ImageFile } from "./types.js";
 
 const { fromFile: fileTypeFromFile } = fileTypePkg;
 
-const SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp'];
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const SUPPORTED_FORMATS = [".jpg", ".jpeg", ".png", ".webp"];
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export class FileScannerImpl implements FileScanner {
   async scan(paths: string[]): Promise<ImageFile[]> {
-      console.log('[FileScanner] scan called with', paths.length, 'paths:', paths);
-      const results: ImageFile[] = [];
+    const results: ImageFile[] = [];
 
-      for (const inputPath of paths) {
-        console.log('[FileScanner] Processing path:', inputPath);
-        
-        // Validate path before processing
-        try {
-          this.validatePath(inputPath);
-          console.log('[FileScanner] Path validation passed');
-        } catch (error) {
-          console.error('[FileScanner] Path validation failed:', error);
-          throw error;
-        }
-
-        const stat = await fs.stat(inputPath);
-        console.log('[FileScanner] Path is', stat.isFile() ? 'file' : 'directory');
-
-        if (stat.isFile()) {
-          const imageFile = await this.processFile(inputPath, path.dirname(inputPath));
-          console.log('[FileScanner] processFile returned:', imageFile ? 'valid image' : 'null');
-          if (imageFile) {
-            results.push(imageFile);
-          }
-        } else if (stat.isDirectory()) {
-          const files = await this.scanDirectory(inputPath, inputPath);
-          console.log('[FileScanner] scanDirectory returned', files.length, 'files');
-          results.push(...files);
-        }
+    for (const inputPath of paths) {
+      // Validate path before processing
+      try {
+        this.validatePath(inputPath);
+      } catch (error) {
+        console.error("[FileScanner] Path validation failed:", error);
+        throw error;
       }
 
-      console.log('[FileScanner] Total results:', results.length);
-      return results;
+      const stat = await fs.stat(inputPath);
+
+      if (stat.isFile()) {
+        const imageFile = await this.processFile(
+          inputPath,
+          path.dirname(inputPath),
+        );
+        if (imageFile) {
+          results.push(imageFile);
+        }
+      } else if (stat.isDirectory()) {
+        const files = await this.scanDirectory(inputPath, inputPath);
+        results.push(...files);
+      }
     }
 
+    return results;
+  }
 
-  private async scanDirectory(dirPath: string, rootPath: string): Promise<ImageFile[]> {
+  private async scanDirectory(
+    dirPath: string,
+    rootPath: string,
+  ): Promise<ImageFile[]> {
     const results: ImageFile[] = [];
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
-      
+
       if (entry.isDirectory()) {
         // Recursively scan subdirectories
         const subFiles = await this.scanDirectory(fullPath, rootPath);
@@ -65,50 +62,50 @@ export class FileScannerImpl implements FileScanner {
         }
       }
     }
-    
+
     return results;
   }
 
-  private async processFile(filePath: string, rootPath: string): Promise<ImageFile | null> {
-    console.log('[FileScanner] processFile:', filePath);
+  private async processFile(
+    filePath: string,
+    rootPath: string,
+  ): Promise<ImageFile | null> {
     const ext = path.extname(filePath).toLowerCase();
-    console.log('[FileScanner] File extension:', ext);
-    
+
     // Skip unsupported formats silently
     if (!SUPPORTED_FORMATS.includes(ext)) {
-      console.log('[FileScanner] Unsupported format, skipping');
       return null;
     }
 
     // Validate file type by checking actual file content (magic bytes)
-    console.log('[FileScanner] Validating image file...');
     const isValidImage = await this.validateImageFile(filePath);
-    console.log('[FileScanner] Image validation result:', isValidImage);
     if (!isValidImage) {
       return null;
     }
-    
+
     try {
-      const stat = await fs.stat(filePath);
-      const metadata = await sharp(filePath).metadata();
-      
+      const [stat, metadata] = await Promise.all([
+        fs.stat(filePath),
+        sharp(filePath).metadata(),
+      ]);
+
       if (!metadata.width || !metadata.height || !metadata.format) {
         return null;
       }
-      
+
       // Normalize format name
-      let format: 'jpg' | 'png' | 'webp';
-      if (metadata.format === 'jpeg') {
-        format = 'jpg';
-      } else if (metadata.format === 'png' || metadata.format === 'webp') {
+      let format: "jpg" | "png" | "webp";
+      if (metadata.format === "jpeg") {
+        format = "jpg";
+      } else if (metadata.format === "png" || metadata.format === "webp") {
         format = metadata.format;
       } else {
         return null;
       }
-      
+
       // Calculate relative path
       const relativePath = path.relative(rootPath, filePath);
-      
+
       return {
         path: filePath,
         relativePath,
@@ -116,8 +113,8 @@ export class FileScannerImpl implements FileScanner {
         size: stat.size,
         dimensions: {
           width: metadata.width,
-          height: metadata.height
-        }
+          height: metadata.height,
+        },
       };
     } catch (error) {
       // Skip files that can't be processed (corrupted, etc.)
@@ -125,61 +122,64 @@ export class FileScannerImpl implements FileScanner {
     }
   }
 
-    /**
-     * Validates an image file by checking its actual MIME type using magic bytes
-     * This prevents processing of malicious files disguised as images
-     * @param filePath - The path to the file to validate
-     * @returns true if the file is a valid image with allowed MIME type, false otherwise
-     */
-    private async validateImageFile(filePath: string): Promise<boolean> {
-      try {
-        const result = await fileTypeFromFile(filePath);
-        
-        // If file type cannot be determined, reject it
-        if (!result) {
-          console.warn(`Cannot determine file type: ${filePath}`);
-          return false;
-        }
-        
-        // Check if MIME type is in the allowed list
-        if (!ALLOWED_MIME_TYPES.includes(result.mime)) {
-          console.warn(`Unsupported MIME type ${result.mime}: ${filePath}`);
-          return false;
-        }
-        
-        return true;
-      } catch (error) {
-        // If validation fails, skip the file silently
-        console.warn(`Failed to validate file ${filePath}:`, error);
+  /**
+   * Validates an image file by checking its actual MIME type using magic bytes
+   * This prevents processing of malicious files disguised as images
+   * @param filePath - The path to the file to validate
+   * @returns true if the file is a valid image with allowed MIME type, false otherwise
+   */
+  private async validateImageFile(filePath: string): Promise<boolean> {
+    try {
+      const result = await fileTypeFromFile(filePath);
+
+      // If file type cannot be determined, reject it
+      if (!result) {
+        console.warn(`Cannot determine file type: ${filePath}`);
         return false;
       }
+
+      // Check if MIME type is in the allowed list
+      if (!ALLOWED_MIME_TYPES.includes(result.mime)) {
+        console.warn(`Unsupported MIME type ${result.mime}: ${filePath}`);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      // If validation fails, skip the file silently
+      console.warn(`Failed to validate file ${filePath}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Validates a file path for security concerns
+   * Rejects paths containing ".." or "~" and ensures paths are absolute
+   * @param filePath - The path to validate
+   * @throws Error if path is suspicious or invalid
+   */
+  private validatePath(filePath: string): void {
+    // Ensure path is absolute
+    if (!path.isAbsolute(filePath)) {
+      throw new Error(`Invalid path: path must be absolute (${filePath})`);
     }
 
-    /**
-     * Validates a file path for security concerns
-     * Rejects paths containing ".." or "~" and ensures paths are absolute
-     * @param filePath - The path to validate
-     * @throws Error if path is suspicious or invalid
-     */
-    private validatePath(filePath: string): void {
-      // Ensure path is absolute
-      if (!path.isAbsolute(filePath)) {
-        throw new Error(`Invalid path: path must be absolute (${filePath})`);
-      }
-
-      // Check for home directory shorthand
-      if (filePath.includes('~')) {
-        throw new Error(`Suspicious path detected: path contains "~" (${filePath})`);
-      }
-
-      // Check for path traversal patterns
-      // Split path into segments BEFORE normalization and check if any segment is exactly ".."
-      // This allows filenames like "背....png" while blocking "../etc/passwd"
-      const segments = filePath.split(path.sep);
-      
-      if (segments.includes('..')) {
-        throw new Error(`Suspicious path detected: path contains ".." segment (${filePath})`);
-      }
+    // Check for home directory shorthand
+    if (filePath.includes("~")) {
+      throw new Error(
+        `Suspicious path detected: path contains "~" (${filePath})`,
+      );
     }
 
+    // Check for path traversal patterns
+    // Split path into segments BEFORE normalization and check if any segment is exactly ".."
+    // This allows filenames like "背....png" while blocking "../etc/passwd"
+    const segments = filePath.split(path.sep);
+
+    if (segments.includes("..")) {
+      throw new Error(
+        `Suspicious path detected: path contains ".." segment (${filePath})`,
+      );
+    }
+  }
 }

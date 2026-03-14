@@ -34,11 +34,6 @@ function createWindow() {
 
   if (isDev) {
     mainWindow.loadURL("http://localhost:3000");
-
-    // Open DevTools
-    mainWindow.webContents.on("did-finish-load", () => {
-      mainWindow!.webContents.openDevTools();
-    });
   } else {
     mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
@@ -121,7 +116,7 @@ ipcMain.handle(
         outputRoot,
         (current: number, total: number) => {
           // Send progress updates to renderer
-          const progress = Math.round((current / total) * 100);
+          const progress = Math.round(((current + 1) / total) * 100);
           event.sender.send("processing-progress", progress);
         },
       );
