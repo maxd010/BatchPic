@@ -45,7 +45,10 @@ export function MainWindow() {
   } = useAppContext();
   const [estimatedSize, setEstimatedSize] = useState<number | undefined>();
   const [showErrorReport, setShowErrorReport] = useState(false);
-  const [previewFile, setPreviewFile] = useState<any | null>(null);
+  const [previewFile, setPreviewFile] = useState<{
+    file: any;
+    outputPath?: string;
+  } | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -179,9 +182,10 @@ export function MainWindow() {
           "files",
         );
 
-        // Update state with scanned files
-        // If files already exist, append new files (allow adding more files)
-        setInputFiles([...state.inputFiles, ...scannedFiles]);
+        // Update state with scanned files, deduplicating by path to avoid duplicate keys
+        const existingPaths = new Set(state.inputFiles.map((f) => f.path));
+        const newFiles = scannedFiles.filter((f) => !existingPaths.has(f.path));
+        setInputFiles([...state.inputFiles, ...newFiles]);
 
         // Automatically apply default parameters (Requirement 8.1)
         setProcessingParams(DEFAULT_PARAMS);
@@ -192,20 +196,25 @@ export function MainWindow() {
           scannedFilesLength: scannedFiles.length,
         });
 
-        if (state.autoProcessOnDrop && scannedFiles.length > 0) {
+        if (newFiles.length === 0) {
+          showNotification("所选文件已全部存在于当前批次中", "info", 2000);
+          return;
+        }
+
+        if (state.autoProcessOnDrop && newFiles.length > 0) {
           console.log("[MainWindow] Auto-processing triggered!");
           // Initialize image progress tracking (Requirements 3.1)
           console.log("[MainWindow] Initializing image progress...");
-          initializeImageProgress(scannedFiles);
-          await autoProcessImages(scannedFiles);
+          initializeImageProgress(newFiles);
+          await autoProcessImages(newFiles);
         } else {
           console.log("[MainWindow] Auto-processing NOT triggered");
           // Initialize image progress tracking (Requirements 3.1)
           console.log("[MainWindow] Initializing image progress...");
-          initializeImageProgress(scannedFiles);
+          initializeImageProgress(newFiles);
           // Show notification for manual processing
           showNotification(
-            `已添加 ${scannedFiles.length} 张图片，点击"开始处理"按钮进行处理`,
+            `已添加 ${newFiles.length} 张图片，点击"开始处理"按钮进行处理`,
             "info",
             3000,
           );
@@ -343,12 +352,12 @@ export function MainWindow() {
   // Handle preview file click
   // Wrapped with useCallback to prevent recreation on every render (Requirement 10.4)
   const handlePreviewFile = useCallback(
-    (file: any) => {
+    (file: any, outputPath?: string) => {
       // Prevent preview if user is dragging
       if (isDragging) {
         return;
       }
-      setPreviewFile(file);
+      setPreviewFile({ file, outputPath });
     },
     [isDragging],
   );
@@ -433,7 +442,8 @@ export function MainWindow() {
       {/* Full screen preview modal */}
       {previewFile && (
         <FullScreenPreview
-          image={previewFile}
+          image={previewFile.file}
+          outputPath={previewFile.outputPath}
           params={state.processingParams}
           onClose={handleClosePreview}
         />

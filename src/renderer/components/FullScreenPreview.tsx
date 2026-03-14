@@ -1,45 +1,72 @@
-import { useState, useEffect } from 'react';
-import { ImageFile, ProcessingParams } from '../../main/types';
-import { XMarkIcon, MagnifyingGlassPlusIcon } from './Icons';
-import './FullScreenPreview.css';
+import { useState, useEffect } from "react";
+import { ImageFile, ProcessingParams } from "../../main/types";
+import { XMarkIcon, MagnifyingGlassPlusIcon } from "./Icons";
+import "./FullScreenPreview.css";
 
 interface FullScreenPreviewProps {
   image: ImageFile;
+  outputPath?: string;
   params: ProcessingParams;
   onClose: () => void;
 }
 
-export function FullScreenPreview({ image, params, onClose }: FullScreenPreviewProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+export function FullScreenPreview({
+  image,
+  outputPath,
+  params,
+  onClose,
+}: FullScreenPreviewProps) {
+  const [originalUrl, setOriginalUrl] = useState<string | null>(null);
+  const [processedUrl, setProcessedUrl] = useState<string | null>(null);
+  const [isLoadingOriginal, setIsLoadingOriginal] = useState(true);
+  const [isLoadingProcessed, setIsLoadingProcessed] = useState(!!outputPath);
 
+  // Load original image via IPC (file:// is blocked by same-origin policy in http renderer)
   useEffect(() => {
     let isMounted = true;
-
-    const generatePreview = async () => {
-      setIsProcessing(true);
-      try {
-        if (window.electronAPI?.generatePreview) {
-          const url = await window.electronAPI.generatePreview(image.path, params);
-          if (isMounted) {
-            setPreviewUrl(url);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to generate preview:', error);
-      } finally {
+    setIsLoadingOriginal(true);
+    window.electronAPI
+      .loadImagePreview(image.path)
+      .then((url) => {
         if (isMounted) {
-          setIsProcessing(false);
+          setOriginalUrl(url);
+          setIsLoadingOriginal(false);
         }
-      }
-    };
-
-    generatePreview();
-
+      })
+      .catch((err) => {
+        console.error("Failed to load original image:", err);
+        if (isMounted) setIsLoadingOriginal(false);
+      });
     return () => {
       isMounted = false;
     };
-  }, [image, params]);
+  }, [image.path]);
+
+  // Load processed image via IPC when outputPath is available
+  useEffect(() => {
+    if (!outputPath) {
+      setProcessedUrl(null);
+      setIsLoadingProcessed(false);
+      return;
+    }
+    let isMounted = true;
+    setIsLoadingProcessed(true);
+    window.electronAPI
+      .loadImagePreview(outputPath)
+      .then((url) => {
+        if (isMounted) {
+          setProcessedUrl(url);
+          setIsLoadingProcessed(false);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load processed image:", err);
+        if (isMounted) setIsLoadingProcessed(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [outputPath]);
 
   return (
     <div className="full-screen-preview-overlay" onClick={onClose}>
@@ -61,7 +88,14 @@ export function FullScreenPreview({ image, params, onClose }: FullScreenPreviewP
             <div className="comparison-side">
               <div className="side-label">处理前 (Original)</div>
               <div className="image-container checkered-bg">
-                <img src={`file://${image.path}`} alt="Original" />
+                {isLoadingOriginal ? (
+                  <div className="preview-loading">
+                    <div className="loading-spinner"></div>
+                    <p>加载中...</p>
+                  </div>
+                ) : (
+                  originalUrl && <img src={originalUrl} alt="Original" />
+                )}
               </div>
             </div>
 
@@ -69,13 +103,17 @@ export function FullScreenPreview({ image, params, onClose }: FullScreenPreviewP
             <div className="comparison-side">
               <div className="side-label processed">处理后 (Processed)</div>
               <div className="image-container checkered-bg">
-                {isProcessing ? (
+                {isLoadingProcessed ? (
                   <div className="preview-loading">
                     <div className="loading-spinner"></div>
-                    <p>正在生成预览...</p>
+                    <p>加载中...</p>
                   </div>
+                ) : processedUrl ? (
+                  <img src={processedUrl} alt="Processed" />
                 ) : (
-                  previewUrl && <img src={previewUrl} alt="Processed" />
+                  <div className="preview-loading">
+                    <p className="preview-not-processed">尚未处理</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -83,7 +121,9 @@ export function FullScreenPreview({ image, params, onClose }: FullScreenPreviewP
         </div>
 
         <div className="preview-modal-footer">
-          <p className="preview-tip">提示：调整右侧参数面板可实时查看效果变化</p>
+          <p className="preview-tip">
+            提示：调整右侧参数面板可实时查看效果变化
+          </p>
           <button className="preview-done-button" onClick={onClose}>
             关闭预览
           </button>
