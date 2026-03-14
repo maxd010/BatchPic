@@ -474,25 +474,11 @@ export function MainWindow() {
           )}
         </section>
 
-        {/* Export Actions */}
-        <div className="bottom-actions">
-          {/* Export button and results */}
-          <div className="export-section">
-            {/* Processing progress */}
-            {/* {state.isProcessing && (
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${state.progress}%` }}
-                  />
-                </div>
-                <span className="progress-text">{state.progress}%</span>
-              </div>
-            )} */}
-
-            {/* Export button — hidden when auto-process is on and results exist */}
-            {hasFiles && !(state.autoProcessOnDrop && state.result) && (
+        {/* Export Actions — only show when button should be visible */}
+        {hasFiles && !(state.autoProcessOnDrop && state.result) && (
+          <div className="bottom-actions">
+            {/* Export button and results */}
+            <div className="export-section">
               <button
                 className="export-button"
                 onClick={handleExport}
@@ -500,9 +486,9 @@ export function MainWindow() {
               >
                 {state.isProcessing ? "处理中..." : "开始导出图片"}
               </button>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );
