@@ -427,7 +427,7 @@ export function MainWindow() {
               onChange={handleAutoProcessToggle}
               className="toggle-checkbox"
             />
-            <span className="toggle-text">拖拽后自动处理</span>
+            <span className="toggle-text">自动处理</span>
           </label>
         </div>
       </header>

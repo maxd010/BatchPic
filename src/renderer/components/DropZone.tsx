@@ -148,7 +148,7 @@ export function DropZone({
             <span className="drop-zone-tag">PNG</span>
             <span className="drop-zone-tag">WEBP</span>
           </div>
-          <p className="drop-zone-subhint">可拖入单个文件或整个文件夹</p>
+          
         </div>
       ) : (
         // Files loaded state
