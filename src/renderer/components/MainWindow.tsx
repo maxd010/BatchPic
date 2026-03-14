@@ -7,14 +7,7 @@ import { FullScreenPreview } from "./FullScreenPreview";
 import { NotificationContainer } from "./NotificationContainer";
 import { ErrorReportDialog } from "./ErrorReportDialog";
 import { ProgressPanel } from "./ProgressPanel";
-import {
-  FolderOpenIcon,
-  ArrowPathIcon,
-  MagnifyingGlassPlusIcon,
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  AdjustmentsVerticalIcon,
-} from "./Icons";
+
 import "./MainWindow.css";
 
 /**
@@ -536,36 +529,6 @@ export function MainWindow() {
               >
                 {state.isProcessing ? "处理中..." : "开始导出图片"}
               </button>
-            )}
-
-            {/* Result message */}
-            {state.result && (
-              <div className="result-inline">
-                <div className="result-info">
-                  <p>
-                    ✓ 处理完成 ({state.result.successful.length} 成功,{" "}
-                    {state.result.failed.length} 失败)
-                  </p>
-                </div>
-                <div className="result-actions">
-                  {state.outputDirectory && (
-                    <button
-                      className="action-button"
-                      onClick={handleOpenOutputDirectory}
-                      title="打开文件夹"
-                    >
-                      <FolderOpenIcon className="action-icon" />
-                    </button>
-                  )}
-                  <button
-                    className="action-button"
-                    onClick={resetState}
-                    title="重置"
-                  >
-                    <ArrowPathIcon className="action-icon" />
-                  </button>
-                </div>
-              </div>
             )}
           </div>
         </div>
