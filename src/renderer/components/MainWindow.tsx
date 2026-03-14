@@ -478,7 +478,6 @@ export function MainWindow() {
           <div className={workspaceDropzoneClass}>
             <DropZone
               onFilesDropped={handleFilesDropped}
-              onClearFiles={handleClearFiles}
               isEmpty={!hasFiles}
               fileCount={state.inputFiles.length}
               compact={hasFiles}
@@ -520,8 +519,8 @@ export function MainWindow() {
               </div>
             )}
 
-            {/* Export button */}
-            {hasFiles && (
+            {/* Export button — hidden when auto-process is on and results exist */}
+            {hasFiles && !(state.autoProcessOnDrop && state.result) && (
               <button
                 className="export-button"
                 onClick={handleExport}

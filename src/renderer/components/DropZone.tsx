@@ -1,6 +1,11 @@
-import React, { useState, useCallback } from 'react';
-import { UploadIcon, CheckCircleIcon, PhotoIcon, ArrowDownTrayIcon, TrashIcon } from './Icons';
-import './DropZone.css';
+import React, { useState, useCallback } from "react";
+import {
+  UploadIcon,
+  CheckCircleIcon,
+  PhotoIcon,
+  ArrowDownTrayIcon,
+} from "./Icons";
+import "./DropZone.css";
 
 /**
  * DropZone - File and folder drag-drop component
@@ -8,36 +13,35 @@ import './DropZone.css';
 
 interface DropZoneProps {
   onFilesDropped: (paths: string[]) => void;
-  onClearFiles?: () => void;
   isEmpty: boolean;
   fileCount?: number;
   compact?: boolean;
 }
 
-export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0, compact = false }: DropZoneProps) {
+export function DropZone({
+  onFilesDropped,
+  isEmpty,
+  fileCount = 0,
+  compact = false,
+}: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
 
-  // Handle clear files
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the click-to-upload
-    if (onClearFiles) {
-      onClearFiles();
-    }
-  };
-
   // Handle click to open file browser
-  const handleClick = useCallback(async (e: React.MouseEvent) => {
-    try {
-      if (window.electronAPI?.openFileDialog) {
-        const paths = await window.electronAPI.openFileDialog();
-        if (paths.length > 0) {
-          onFilesDropped(paths);
+  const handleClick = useCallback(
+    async (e: React.MouseEvent) => {
+      try {
+        if (window.electronAPI?.openFileDialog) {
+          const paths = await window.electronAPI.openFileDialog();
+          if (paths.length > 0) {
+            onFilesDropped(paths);
+          }
         }
+      } catch (error) {
+        console.error("Failed to open file dialog:", error);
       }
-    } catch (error) {
-      console.error('Failed to open file dialog:', error);
-    }
-  }, [onFilesDropped]);
+    },
+    [onFilesDropped],
+  );
 
   // Handle drag enter
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -56,7 +60,7 @@ export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0,
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Only set isDragging to false if the mouse is leaving the drop zone container
     // Check if relatedTarget is outside the currentTarget
     const relatedTarget = e.relatedTarget as Node;
@@ -66,43 +70,55 @@ export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0,
   }, []);
 
   // Handle drop
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
 
-    console.log('[DropZone] handleDrop triggered');
+      console.log("[DropZone] handleDrop triggered");
 
-    // Extract file paths from dropped items
-    const paths: string[] = [];
-    
-    if (e.dataTransfer.files) {
-      console.log('[DropZone] dataTransfer.files count:', e.dataTransfer.files.length);
-      // Get file paths from dropped files
-      for (let i = 0; i < e.dataTransfer.files.length; i++) {
-        const file = e.dataTransfer.files[i];
-        // In Electron, we can access the path property
-        const path = (file as any).path;
-        console.log('[DropZone] File', i, 'path:', path);
-        if (path) {
-          paths.push(path);
+      // Extract file paths from dropped items
+      const paths: string[] = [];
+
+      if (e.dataTransfer.files) {
+        console.log(
+          "[DropZone] dataTransfer.files count:",
+          e.dataTransfer.files.length,
+        );
+        // Get file paths from dropped files
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          const file = e.dataTransfer.files[i];
+          // In Electron, we can access the path property
+          const path = (file as any).path;
+          console.log("[DropZone] File", i, "path:", path);
+          if (path) {
+            paths.push(path);
+          }
         }
       }
-    }
 
-    console.log('[DropZone] Extracted paths:', paths);
+      console.log("[DropZone] Extracted paths:", paths);
 
-    if (paths.length > 0) {
-      console.log('[DropZone] Calling onFilesDropped with', paths.length, 'paths');
-      onFilesDropped(paths);
-    } else {
-      console.log('[DropZone] No paths extracted, not calling onFilesDropped');
-    }
-  }, [onFilesDropped]);
+      if (paths.length > 0) {
+        console.log(
+          "[DropZone] Calling onFilesDropped with",
+          paths.length,
+          "paths",
+        );
+        onFilesDropped(paths);
+      } else {
+        console.log(
+          "[DropZone] No paths extracted, not calling onFilesDropped",
+        );
+      }
+    },
+    [onFilesDropped],
+  );
 
   return (
     <div
-      className={`drop-zone ${isDragging ? 'dragging' : ''} ${isEmpty ? 'empty' : 'has-files'} ${compact ? 'compact' : ''}`}
+      className={`drop-zone ${isDragging ? "dragging" : ""} ${isEmpty ? "empty" : "has-files"} ${compact ? "compact" : ""}`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -113,7 +129,7 @@ export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0,
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           handleClick(e as any);
         }
@@ -146,15 +162,6 @@ export function DropZone({ onFilesDropped, onClearFiles, isEmpty, fileCount = 0,
               <p className="drop-zone-hint">点击或拖入更多文件以添加到批次</p>
             </div>
           </div>
-          
-          <button 
-            className="drop-zone-clear-button"
-            onClick={handleClear}
-            title="清空所有图片"
-          >
-            <TrashIcon className="clear-icon-svg" />
-            <span>清空全部</span>
-          </button>
         </div>
       )}
 
