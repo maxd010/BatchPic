@@ -10,6 +10,7 @@
   --color-background: #F8FAFC;
   --color-text: #0F172A;
   --color-text-muted: #64748B;
+  --color-text-secondary: #3d4044;
   --color-surface: #ffffff;
   --color-border: #E2E8F0;
   --color-success: #10B981;
@@ -102,7 +103,6 @@
 .top-parameter-panel {
   flex-shrink: 0;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
   position: relative;
 }
 

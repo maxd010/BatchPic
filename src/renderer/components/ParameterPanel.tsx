@@ -206,52 +206,60 @@ export function ParameterPanel({
     <div
       className={`parameter-panel-tabs ${isExpanded ? "expanded" : "collapsed"}`}
     >
-      {/* Collapsed Summary View */}
-      {!isExpanded && (
-        <div className="panel-summary" onClick={() => setIsExpanded(true)}>
-          <div className="summary-content">
-            <span className="summary-text">{getSummaryText()}</span>
-          </div>
-          <svg
-            className="expand-icon"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-          >
-            <path
-              d="M4 6L8 10L12 6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      )}
-
-      {/* Expanded Full Panel */}
-      {isExpanded && (
-        <>
-          <div className="panel-header">
+      <div
+        className="panel-summary"
+        onClick={() => !isExpanded && setIsExpanded(true)}
+      >
+        <div className="summary-content">
+          {isExpanded ? (
             <span className="panel-title">参数设置</span>
-            <button
-              className="collapse-button"
-              onClick={() => setIsExpanded(false)}
-              title="收起面板"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M12 10L8 6L4 10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
+          ) : (
+            <span className="summary-text">{getSummaryText()}</span>
+          )}
+        </div>
+        {isExpanded ? (
+          <button
+            className="toggle-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(false);
+            }}
+            title="收起面板"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M12 10L8 6L4 10"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : (
+          <button
+            className="toggle-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(true);
+            }}
+            title="展开面板"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M4 6L8 10L12 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
+      </div>
 
+      {isExpanded && (
+        <div className="panel-expanded-content">
           <div className="tabs-header">
             <button
               className={`tab-item ${activeTab === "resize" ? "active" : ""}`}
@@ -537,7 +545,7 @@ export function ParameterPanel({
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
