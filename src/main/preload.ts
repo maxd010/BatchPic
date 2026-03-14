@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from "electron";
 
 // ============================================================================
 // Parameter Validation Functions (Requirement 11.4)
@@ -20,7 +20,7 @@ function validateArray(value: any, fieldName: string): void {
  * Validates that a value is a non-empty string
  */
 function validateString(value: any, fieldName: string): void {
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     throw new TypeError(`${fieldName} must be a string`);
   }
   if (value.trim().length === 0) {
@@ -31,8 +31,13 @@ function validateString(value: any, fieldName: string): void {
 /**
  * Validates that a value is a number within a specified range
  */
-function validateNumber(value: any, fieldName: string, min?: number, max?: number): void {
-  if (typeof value !== 'number') {
+function validateNumber(
+  value: any,
+  fieldName: string,
+  min?: number,
+  max?: number,
+): void {
+  if (typeof value !== "number") {
     throw new TypeError(`${fieldName} must be a number`);
   }
   if (isNaN(value) || !isFinite(value)) {
@@ -50,7 +55,7 @@ function validateNumber(value: any, fieldName: string, min?: number, max?: numbe
  * Validates that a value is a valid object (not null, not array)
  */
 function validateObject(value: any, fieldName: string): void {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new TypeError(`${fieldName} must be an object`);
   }
 }
@@ -59,7 +64,7 @@ function validateObject(value: any, fieldName: string): void {
  * Validates file paths array
  */
 function validateFilePaths(paths: any): void {
-  validateArray(paths, 'paths');
+  validateArray(paths, "paths");
   paths.forEach((path: any, index: number) => {
     validateString(path, `paths[${index}]`);
   });
@@ -71,18 +76,20 @@ function validateFilePaths(paths: any): void {
 function validateImageFile(file: any, index: number): void {
   const prefix = `files[${index}]`;
   validateObject(file, prefix);
-  
+
   // Required fields
   validateString(file.path, `${prefix}.path`);
   validateString(file.relativePath, `${prefix}.relativePath`);
   validateNumber(file.size, `${prefix}.size`, 0);
-  
+
   // Format validation
-  const validFormats = ['jpg', 'png', 'webp'];
+  const validFormats = ["jpg", "png", "webp"];
   if (!validFormats.includes(file.format)) {
-    throw new Error(`${prefix}.format must be one of: ${validFormats.join(', ')}`);
+    throw new Error(
+      `${prefix}.format must be one of: ${validFormats.join(", ")}`,
+    );
   }
-  
+
   // Dimensions validation
   validateObject(file.dimensions, `${prefix}.dimensions`);
   validateNumber(file.dimensions.width, `${prefix}.dimensions.width`, 1);
@@ -93,7 +100,7 @@ function validateImageFile(file: any, index: number): void {
  * Validates ImageFile array
  */
 function validateImageFiles(files: any): void {
-  validateArray(files, 'files');
+  validateArray(files, "files");
   files.forEach((file: any, index: number) => {
     validateImageFile(file, index);
   });
@@ -103,22 +110,33 @@ function validateImageFiles(files: any): void {
  * Validates ResizeParams object
  */
 function validateResizeParams(resize: any): void {
-  validateObject(resize, 'params.resize');
-  
+  validateObject(resize, "params.resize");
+
   // Mode validation
-  const validModes = ['width', 'height', 'longEdge', 'shortEdge', 'aspectRatio'];
+  const validModes = [
+    "scale",
+    "width",
+    "height",
+    "longEdge",
+    "shortEdge",
+    "aspectRatio",
+  ];
   if (!validModes.includes(resize.mode)) {
-    throw new Error(`params.resize.mode must be one of: ${validModes.join(', ')}`);
+    throw new Error(
+      `params.resize.mode must be one of: ${validModes.join(", ")}`,
+    );
   }
-  
+
   // Value validation
-  validateNumber(resize.value, 'params.resize.value', 1);
-  
+  validateNumber(resize.value, "params.resize.value", 1);
+
   // AspectRatio validation (only required when mode is 'aspectRatio')
-  if (resize.mode === 'aspectRatio') {
-    const validRatios = ['1:1', '4:5', '16:9'];
+  if (resize.mode === "aspectRatio") {
+    const validRatios = ["1:1", "4:5", "16:9"];
     if (!validRatios.includes(resize.aspectRatio)) {
-      throw new Error(`params.resize.aspectRatio must be one of: ${validRatios.join(', ')}`);
+      throw new Error(
+        `params.resize.aspectRatio must be one of: ${validRatios.join(", ")}`,
+      );
     }
   }
 }
@@ -127,19 +145,21 @@ function validateResizeParams(resize: any): void {
  * Validates CompressionParams object
  */
 function validateCompressionParams(compression: any): void {
-  validateObject(compression, 'params.compression');
-  
+  validateObject(compression, "params.compression");
+
   // Mode validation
-  const validModes = ['smart', 'quality', 'targetSize', 'none'];
+  const validModes = ["smart", "quality", "targetSize", "none"];
   if (!validModes.includes(compression.mode)) {
-    throw new Error(`params.compression.mode must be one of: ${validModes.join(', ')}`);
+    throw new Error(
+      `params.compression.mode must be one of: ${validModes.join(", ")}`,
+    );
   }
-  
+
   // Value validation based on mode
-  if (compression.mode === 'quality') {
-    validateNumber(compression.value, 'params.compression.value', 0, 100);
-  } else if (compression.mode === 'targetSize') {
-    validateNumber(compression.value, 'params.compression.value', 1);
+  if (compression.mode === "quality") {
+    validateNumber(compression.value, "params.compression.value", 0, 100);
+  } else if (compression.mode === "targetSize") {
+    validateNumber(compression.value, "params.compression.value", 1);
   }
   // smart and none modes don't require value validation
 }
@@ -148,23 +168,25 @@ function validateCompressionParams(compression: any): void {
  * Validates ProcessingParams object
  */
 function validateProcessingParams(params: any): void {
-  validateObject(params, 'params');
-  
+  validateObject(params, "params");
+
   // Optional resize validation
   if (params.resize !== undefined && params.resize !== null) {
     validateResizeParams(params.resize);
   }
-  
+
   // Optional compression validation
   if (params.compression !== undefined && params.compression !== null) {
     validateCompressionParams(params.compression);
   }
-  
+
   // Optional format validation
   if (params.format !== undefined && params.format !== null) {
-    const validFormats = ['jpg', 'png', 'webp'];
+    const validFormats = ["jpg", "png", "webp"];
     if (!validFormats.includes(params.format)) {
-      throw new Error(`params.format must be one of: ${validFormats.join(', ')}`);
+      throw new Error(
+        `params.format must be one of: ${validFormats.join(", ")}`,
+      );
     }
   }
 }
@@ -173,7 +195,7 @@ function validateProcessingParams(params: any): void {
  * Validates callback function
  */
 function validateCallback(callback: any, fieldName: string): void {
-  if (typeof callback !== 'function') {
+  if (typeof callback !== "function") {
     throw new TypeError(`${fieldName} must be a function`);
   }
 }
@@ -182,100 +204,105 @@ function validateCallback(callback: any, fieldName: string): void {
 // Exposed API with Parameter Validation
 // ============================================================================
 
-console.log('[Preload] Starting to expose electronAPI...');
+console.log("[Preload] Starting to expose electronAPI...");
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
-contextBridge.exposeInMainWorld('electronAPI', {
+contextBridge.exposeInMainWorld("electronAPI", {
   // File operations
-  openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
-  
+  openFileDialog: () => ipcRenderer.invoke("open-file-dialog"),
+
   scanFiles: (paths: string[]) => {
     validateFilePaths(paths);
-    return ipcRenderer.invoke('scan-files', paths);
+    return ipcRenderer.invoke("scan-files", paths);
   },
-  
+
   // Image processing
   processImages: (files: any[], params: any) => {
     validateImageFiles(files);
     validateProcessingParams(params);
-    return ipcRenderer.invoke('process-images', files, params);
+    return ipcRenderer.invoke("process-images", files, params);
   },
-  
+
   estimateFileSize: (filePath: string, params: any) => {
-    validateString(filePath, 'filePath');
+    validateString(filePath, "filePath");
     validateProcessingParams(params);
-    return ipcRenderer.invoke('estimate-file-size', filePath, params);
+    return ipcRenderer.invoke("estimate-file-size", filePath, params);
   },
-  
+
   // Template management
   saveTemplate: (name: string, params: any) => {
-    validateString(name, 'name');
+    validateString(name, "name");
     validateProcessingParams(params);
-    return ipcRenderer.invoke('save-template', name, params);
+    return ipcRenderer.invoke("save-template", name, params);
   },
-  
-  loadTemplates: () => ipcRenderer.invoke('load-templates'),
-  
+
+  loadTemplates: () => ipcRenderer.invoke("load-templates"),
+
   deleteTemplate: (id: string) => {
-    validateString(id, 'id');
-    return ipcRenderer.invoke('delete-template', id);
+    validateString(id, "id");
+    return ipcRenderer.invoke("delete-template", id);
   },
-  
+
   // Output management
   openOutputDirectory: (path: string) => {
-    validateString(path, 'path');
-    return ipcRenderer.invoke('open-output-directory', path);
+    validateString(path, "path");
+    return ipcRenderer.invoke("open-output-directory", path);
   },
-  
+
   // Image preview
   loadImagePreview: (filePath: string) => {
-    validateString(filePath, 'filePath');
-    return ipcRenderer.invoke('load-image-preview', filePath);
+    validateString(filePath, "filePath");
+    return ipcRenderer.invoke("load-image-preview", filePath);
   },
-  
+
   // Progress updates
   onProcessingProgress: (callback: (progress: number) => void) => {
-    validateCallback(callback, 'callback');
+    validateCallback(callback, "callback");
     const listener = (_event: any, progress: number) => callback(progress);
-    ipcRenderer.on('processing-progress', listener);
-    return () => ipcRenderer.removeListener('processing-progress', listener);
+    ipcRenderer.on("processing-progress", listener);
+    return () => ipcRenderer.removeListener("processing-progress", listener);
   },
-  
+
   // Auto-process on drop APIs (Requirements 2.3, 5.3, 6.1)
   createOutputDirectory: (inputPaths: string[]) => {
     validateFilePaths(inputPaths);
-    return ipcRenderer.invoke('create-output-directory', inputPaths);
+    return ipcRenderer.invoke("create-output-directory", inputPaths);
   },
-  
-  processImagesWithProgress: (files: any[], params: any, outputDir: string, onImageProcessed: (index: number, result: any) => void) => {
+
+  processImagesWithProgress: (
+    files: any[],
+    params: any,
+    outputDir: string,
+    onImageProcessed: (index: number, result: any) => void,
+  ) => {
     // Validate all parameters (Requirement 11.4)
     validateImageFiles(files);
     validateProcessingParams(params);
-    validateString(outputDir, 'outputDir');
-    validateCallback(onImageProcessed, 'onImageProcessed');
-    
+    validateString(outputDir, "outputDir");
+    validateCallback(onImageProcessed, "onImageProcessed");
+
     // Register progress listener (Requirements 5.3)
     const progressHandler = (_event: any, index: number, result: any) => {
       onImageProcessed(index, result);
     };
-    ipcRenderer.on('image-processed', progressHandler);
-    
+    ipcRenderer.on("image-processed", progressHandler);
+
     // Invoke processing request
     const resultPromise = ipcRenderer.invoke(
-      'process-images-with-progress',
+      "process-images-with-progress",
       files,
       params,
-      outputDir
+      outputDir,
     );
-    
+
     // Clean up listener when promise completes (Requirements 2.2)
     resultPromise.finally(() => {
-      ipcRenderer.removeListener('image-processed', progressHandler);
+      ipcRenderer.removeListener("image-processed", progressHandler);
     });
-    
+
     return resultPromise;
-  }
+  },
 });
 
-console.log('[Preload] electronAPI exposed successfully!');
+console.log("[Preload] electronAPI exposed successfully!");

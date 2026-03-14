@@ -1,14 +1,26 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { ImageFile, ProcessingParams, Template, ProcessingResult } from '../../main/types';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+  useEffect,
+} from "react";
+import {
+  ImageFile,
+  ProcessingParams,
+  Template,
+  ProcessingResult,
+} from "../../main/types";
 
 // Default processing parameters (Requirements 8.1)
 export const DEFAULT_PARAMS: ProcessingParams = {
-  resize: undefined,  // Keep original size
+  resize: undefined, // Keep original size
   compression: {
-    mode: 'quality',
-    value: 70  // Approximately -30% compression
+    mode: "quality",
+    value: 70, // Approximately -30% compression
   },
-  format: undefined  // Keep original format
+  format: undefined, // Keep original format
 };
 
 // Image progress tracking interface (Requirements 3.1, 8.1)
@@ -16,7 +28,7 @@ export interface ImageProgress {
   index: number;
   fileName: string;
   filePath: string;
-  status: 'pending' | 'processing' | 'success' | 'failed';
+  status: "pending" | "processing" | "success" | "failed";
   progress: number; // 0-100
   error?: string;
   outputPath?: string;
@@ -29,25 +41,25 @@ export interface ImageProgress {
 export interface AppState {
   // Input files
   inputFiles: ImageFile[];
-  
+
   // Processing parameters (with defaults)
   processingParams: ProcessingParams;
-  
+
   // Templates
   templates: Template[];
   selectedTemplateId?: string;
-  
+
   // Processing state
   isProcessing: boolean;
-  progress: number;  // 0-100
-  
+  progress: number; // 0-100
+
   // Results
   result?: ProcessingResult;
   outputDirectory?: string;
-  
+
   // Per-image progress tracking (Requirements 3.1)
   imageProgress: ImageProgress[];
-  
+
   // Auto-process toggle (Requirements 8.1)
   autoProcessOnDrop: boolean;
 }
@@ -56,7 +68,7 @@ export interface AppState {
 export interface Notification {
   id: string;
   message: string;
-  type: 'success' | 'info' | 'warning' | 'error';
+  type: "success" | "info" | "warning" | "error";
   duration?: number; // milliseconds, undefined = persistent
 }
 
@@ -72,13 +84,20 @@ interface AppContextValue {
   setResult: (result: ProcessingResult | undefined) => void;
   setOutputDirectory: (directory: string | undefined) => void;
   resetState: () => void;
-  showNotification: (message: string, type: 'success' | 'info' | 'warning' | 'error', duration?: number) => void;
+  showNotification: (
+    message: string,
+    type: "success" | "info" | "warning" | "error",
+    duration?: number,
+  ) => void;
   dismissNotification: (id: string) => void;
   notifications: Notification[];
-  
+
   // Image progress management (Requirements 3.1, 3.2, 3.3, 3.4, 8.1)
   initializeImageProgress: (files: ImageFile[]) => void;
-  updateImageProgress: (index: number, progress: Partial<ImageProgress>) => void;
+  updateImageProgress: (
+    index: number,
+    progress: Partial<ImageProgress>,
+  ) => void;
   setAutoProcessOnDrop: (enabled: boolean) => void;
 }
 
@@ -106,58 +125,65 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Load settings from localStorage on mount (Requirements 8.4)
   useEffect(() => {
     try {
-      const savedSettings = localStorage.getItem('batchpic-settings');
+      const savedSettings = localStorage.getItem("batchpic-settings");
       if (savedSettings) {
         const settings = JSON.parse(savedSettings);
-        if (typeof settings.autoProcessOnDrop === 'boolean') {
-          setState(prev => ({ ...prev, autoProcessOnDrop: settings.autoProcessOnDrop }));
+        if (typeof settings.autoProcessOnDrop === "boolean") {
+          setState((prev) => ({
+            ...prev,
+            autoProcessOnDrop: settings.autoProcessOnDrop,
+          }));
         }
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      console.error("Failed to load settings:", error);
     }
   }, []);
 
   const setInputFiles = (files: ImageFile[]) => {
-    setState(prev => ({ ...prev, inputFiles: files }));
+    setState((prev) => ({ ...prev, inputFiles: files }));
   };
 
   const setProcessingParams = (params: ProcessingParams) => {
-    setState(prev => ({ ...prev, processingParams: params }));
+    setState((prev) => ({ ...prev, processingParams: params }));
   };
 
   const setTemplates = (templates: Template[]) => {
-    setState(prev => ({ ...prev, templates }));
+    setState((prev) => ({ ...prev, templates }));
   };
 
   const setSelectedTemplateId = (id: string | undefined) => {
-    setState(prev => ({ ...prev, selectedTemplateId: id }));
+    setState((prev) => ({ ...prev, selectedTemplateId: id }));
   };
 
   const setIsProcessing = (isProcessing: boolean) => {
-    setState(prev => ({ ...prev, isProcessing }));
+    setState((prev) => ({ ...prev, isProcessing }));
   };
 
   const setProgress = (progress: number) => {
-    setState(prev => ({ ...prev, progress }));
+    setState((prev) => ({ ...prev, progress }));
   };
 
   const setResult = (result: ProcessingResult | undefined) => {
-    setState(prev => ({ ...prev, result }));
+    setState((prev) => ({ ...prev, result }));
   };
 
   const setOutputDirectory = (directory: string | undefined) => {
-    setState(prev => ({ ...prev, outputDirectory: directory }));
+    setState((prev) => ({ ...prev, outputDirectory: directory }));
   };
 
   const resetState = () => {
     setState(initialState);
   };
 
-  const showNotification = (message: string, type: 'success' | 'info' | 'warning' | 'error', duration?: number) => {
+  const showNotification = (
+    message: string,
+    type: "success" | "info" | "warning" | "error",
+    duration?: number,
+  ) => {
     const id = `notification-${Date.now()}-${Math.random()}`;
     const notification: Notification = { id, message, type, duration };
-    setNotifications(prev => [...prev, notification]);
+    setNotifications((prev) => [...prev, notification]);
 
     // Auto-dismiss if duration is specified
     if (duration) {
@@ -168,7 +194,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const dismissNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   // Initialize image progress list (Requirements 3.1)
@@ -177,60 +203,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
       index,
       fileName: file.relativePath,
       filePath: file.path,
-      status: 'pending',
+      status: "pending",
       progress: 0,
     }));
-    setState(prev => ({ ...prev, imageProgress: progressList }));
+    setState((prev) => ({ ...prev, imageProgress: progressList }));
   };
 
   // Update single image progress (Requirements 3.2, 3.3, 3.4, 12.2)
-  const updateImageProgress = (index: number, progress: Partial<ImageProgress>) => {
-    setState(prev => {
-      // Validate index
-      if (index < 0 || index >= prev.imageProgress.length) {
-        console.error(`Invalid image progress index: ${index}`);
-        return prev;
-      }
-
-      // Validate state transition (Requirements 3.5, 12.2)
-      const currentStatus = prev.imageProgress[index].status;
-      const newStatus = progress.status;
-      
-      if (newStatus) {
-        const validTransitions: Record<string, string[]> = {
-          'pending': ['processing'],
-          'processing': ['success', 'failed'],
-          'success': [],
-          'failed': [],
-        };
-        
-        if (!validTransitions[currentStatus].includes(newStatus)) {
-          console.error(`Invalid state transition: ${currentStatus} -> ${newStatus}`);
+  // Wrapped with useCallback so its reference is stable across renders,
+  // allowing it to be used directly in useCallback deps without causing loops.
+  const updateImageProgress = useCallback(
+    (index: number, progress: Partial<ImageProgress>) => {
+      setState((prev) => {
+        // Validate index
+        if (index < 0 || index >= prev.imageProgress.length) {
+          console.error(`Invalid image progress index: ${index}`);
           return prev;
         }
-      }
 
-      // Update progress
-      const updatedProgress = [...prev.imageProgress];
-      updatedProgress[index] = {
-        ...updatedProgress[index],
-        ...progress,
-      };
+        // Validate state transition (Requirements 3.5, 12.2)
+        // Allow pending→success/failed for the common case where the main process
+        // fires the per-image callback only once (after completion), skipping
+        // the intermediate 'processing' status entirely.
+        const currentStatus = prev.imageProgress[index].status;
+        const newStatus = progress.status;
 
-      return { ...prev, imageProgress: updatedProgress };
-    });
-  };
+        if (newStatus) {
+          const validTransitions: Record<string, string[]> = {
+            pending: ["processing", "success", "failed"],
+            processing: ["success", "failed"],
+            success: [],
+            failed: [],
+          };
+
+          if (!validTransitions[currentStatus].includes(newStatus)) {
+            console.error(
+              `Invalid state transition: ${currentStatus} -> ${newStatus}`,
+            );
+            return prev;
+          }
+        }
+
+        // Update progress
+        const updatedProgress = [...prev.imageProgress];
+        updatedProgress[index] = {
+          ...updatedProgress[index],
+          ...progress,
+        };
+
+        return { ...prev, imageProgress: updatedProgress };
+      });
+      // stable: only depends on setState which is guaranteed stable by React
+    },
+    [],
+  );
 
   // Toggle auto-process on drop (Requirements 8.1, 8.4)
   const setAutoProcessOnDrop = (enabled: boolean) => {
-    setState(prev => ({ ...prev, autoProcessOnDrop: enabled }));
-    
+    setState((prev) => ({ ...prev, autoProcessOnDrop: enabled }));
+
     // Persist to localStorage (Requirements 8.4)
     try {
       const settings = { autoProcessOnDrop: enabled };
-      localStorage.setItem('batchpic-settings', JSON.stringify(settings));
+      localStorage.setItem("batchpic-settings", JSON.stringify(settings));
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      console.error("Failed to save settings:", error);
     }
   };
 
@@ -260,7 +297,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 export function useAppContext() {
   const context = useContext(AppContext);
   if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
+    throw new Error("useAppContext must be used within an AppProvider");
   }
   return context;
 }
