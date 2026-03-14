@@ -479,7 +479,7 @@ export function MainWindow() {
           {/* Export button and results */}
           <div className="export-section">
             {/* Processing progress */}
-            {state.isProcessing && (
+            {/* {state.isProcessing && (
               <div className="progress-container">
                 <div className="progress-bar">
                   <div
@@ -489,7 +489,7 @@ export function MainWindow() {
                 </div>
                 <span className="progress-text">{state.progress}%</span>
               </div>
-            )}
+            )} */}
 
             {/* Export button — hidden when auto-process is on and results exist */}
             {hasFiles && !(state.autoProcessOnDrop && state.result) && (
