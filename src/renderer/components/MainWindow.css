@@ -123,6 +123,10 @@
   gap: var(--spacing-lg);
 }
 
+.workspace-center.is-empty {
+  justify-content: center;
+}
+
 /* Workspace dropzone */
 .workspace-dropzone {
   flex-shrink: 0;

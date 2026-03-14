@@ -445,7 +445,7 @@ export function MainWindow() {
       {/* Main content area */}
       <main className="main-content-vertical">
         {/* Center workspace */}
-        <section className="workspace-center">
+        <section className={`workspace-center ${!hasFiles ? "is-empty" : ""}`}>
           {/* Drop zone - compact when files loaded */}
           <div className={workspaceDropzoneClass}>
             <DropZone
