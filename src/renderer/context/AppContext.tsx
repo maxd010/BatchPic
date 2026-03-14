@@ -15,12 +15,14 @@ export const DEFAULT_PARAMS: ProcessingParams = {
 export interface ImageProgress {
   index: number;
   fileName: string;
+  filePath: string;
   status: 'pending' | 'processing' | 'success' | 'failed';
   progress: number; // 0-100
   error?: string;
   outputPath?: string;
   originalSize?: number;
   processedSize?: number;
+  estimatedSize?: number;
 }
 
 // Application state interface (Requirement 7.1)
@@ -174,6 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const progressList: ImageProgress[] = files.map((file, index) => ({
       index,
       fileName: file.relativePath,
+      filePath: file.path,
       status: 'pending',
       progress: 0,
     }));

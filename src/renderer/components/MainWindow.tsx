@@ -423,40 +423,15 @@ export function MainWindow() {
           {/* File list and preview */}
           {hasFiles && (
             <div className="workspace-content">
-              {/* Progress Panel - Show real-time progress (Requirements 4.1) */}
-              {state.imageProgress.length > 0 && (
-                <ProgressPanel 
-                  imageProgress={state.imageProgress}
-                  isProcessing={state.isProcessing}
-                />
-              )}
-              
-              {/* File list - compact horizontal cards */}
-              <div className="file-list-compact">
-                <div className="file-list-header">
-                  <h3>已选择 {state.inputFiles.length} 张图片</h3>
-                  <p className="file-list-tip">点击图片卡片可查看沉浸式对比预览</p>
-                </div>
-                <div className="file-grid">
-                  {state.inputFiles.map((file, index) => (
-                    <div 
-                      key={index} 
-                      className="file-card"
-                      onClick={() => handlePreviewFile(file)}
-                    >
-                      <div className="file-card-inner">
-                        <div className="file-info-main">
-                          <div className="file-name">{file.relativePath}</div>
-                          <div className="file-size">{Math.round(file.size / 1024)} KB</div>
-                        </div>
-                        <div className="file-card-action">
-                          <MagnifyingGlassPlusIcon className="preview-trigger-icon" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Merged file list + progress panel */}
+              <ProgressPanel
+                inputFiles={state.inputFiles}
+                imageProgress={state.imageProgress}
+                isProcessing={state.isProcessing}
+                onPreviewClick={handlePreviewFile}
+                onClearAll={handleClearFiles}
+                onOpenFolder={state.outputDirectory ? handleOpenOutputDirectory : undefined}
+              />
             </div>
           )}
         </section>

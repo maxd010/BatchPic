@@ -35,14 +35,14 @@ export interface ProcessingParams {
 }
 
 export interface ResizeParams {
-  mode: 'width' | 'height' | 'longEdge' | 'shortEdge' | 'aspectRatio';
+  mode: 'scale' | 'width' | 'height' | 'longEdge' | 'shortEdge' | 'aspectRatio';
   value: number;
   aspectRatio?: '1:1' | '4:5' | '16:9';
 }
 
 export interface CompressionParams {
-  mode: 'targetSize' | 'quality';
-  value: number;
+  mode: 'smart' | 'quality' | 'targetSize' | 'none';
+  value?: number;
 }
 
 export interface ProcessedImage {

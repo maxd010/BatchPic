@@ -1,11 +1,16 @@
 import { memo } from 'react';
 import { ImageProgress } from '../context/AppContext';
-import { ClockIcon, CheckCircleIcon, XCircleIcon } from './Icons';
+import { ImageFile } from '../../main/types';
+import { ClockIcon, CheckCircleIcon, XCircleIcon, MagnifyingGlassPlusIcon } from './Icons';
 import './ProgressPanel.css';
 
 interface ProgressPanelProps {
+  inputFiles: ImageFile[];
   imageProgress: ImageProgress[];
   isProcessing: boolean;
+  onPreviewClick?: (file: ImageFile, outputPath?: string) => void;
+  onClearAll?: () => void;
+  onOpenFolder?: () => void;
 }
 
 /**
@@ -27,35 +32,52 @@ interface ProgressPanelProps {
  * - For lists > 100 items, consider implementing virtual scrolling
  *   using libraries like react-window or react-virtualized
  */
-export const ProgressPanel = memo(function ProgressPanel({ imageProgress, isProcessing }: ProgressPanelProps) {
-  // Don't render if no images (Requirement 4.1)
-  if (imageProgress.length === 0) {
+export const ProgressPanel = memo(function ProgressPanel({ inputFiles, imageProgress, isProcessing, onPreviewClick, onClearAll, onOpenFolder }: ProgressPanelProps) {
+  // Don't render if no files
+  if (inputFiles.length === 0) {
     return null;
   }
 
   // Calculate statistics (Requirement 4.5)
-  const totalCount = imageProgress.length;
+  const totalCount = inputFiles.length;
   const completedCount = imageProgress.filter(
     p => p.status === 'success' || p.status === 'failed'
   ).length;
   const successCount = imageProgress.filter(p => p.status === 'success').length;
   const failedCount = imageProgress.filter(p => p.status === 'failed').length;
+  const hasProgress = imageProgress.length > 0;
+
+  // Build a lookup map: filePath -> progress
+  const progressMap = new Map<string, ImageProgress>();
+  imageProgress.forEach(p => progressMap.set(p.filePath, p));
 
   return (
     <div className="progress-panel">
       {/* Header with statistics (Requirement 4.5) */}
       <div className="progress-header">
-        <h3>处理进度</h3>
-        <span className="progress-summary">
-          {completedCount} / {totalCount}
-          {!isProcessing && ` (${successCount} 成功, ${failedCount} 失败)`}
-        </span>
+        <div className="header-left">
+          <h3>{hasProgress ? '处理进度' : `已选择 ${totalCount} 张图片`}</h3>
+          {hasProgress && (
+            <span className="progress-summary">
+              {completedCount} / {totalCount}
+              {!isProcessing && successCount + failedCount > 0 && ` (${successCount} 成功${failedCount > 0 ? `, ${failedCount} 失败` : ''})`}
+            </span>
+          )}
+        </div>
+        <div className="header-actions">
+          {onOpenFolder && !isProcessing && completedCount > 0 && (
+            <button className="action-button action-open-folder" onClick={onOpenFolder} title="打开输出文件夹">打开文件夹</button>
+          )}
+          {onClearAll && !isProcessing && (
+            <button className="action-button action-clear" onClick={onClearAll} title="清空全部文件">清空全部</button>
+          )}
+        </div>
       </div>
 
       {/* Progress list (Requirements 4.1, 4.2) */}
       <div className="progress-list">
-        {imageProgress.map((item, index) => (
-          <ProgressItem key={index} item={item} />
+        {inputFiles.map((file) => (
+          <ProgressItem key={file.path} file={file} progress={progressMap.get(file.path)} onPreviewClick={onPreviewClick} />
         ))}
       </div>
     </div>
@@ -70,6 +92,9 @@ export const ProgressPanel = memo(function ProgressPanel({ imageProgress, isProc
   }
   
   // Check if array length changed
+  if (prevProps.inputFiles.length !== nextProps.inputFiles.length) {
+    return false; // Props changed, need to re-render
+  }
   if (prevProps.imageProgress.length !== nextProps.imageProgress.length) {
     return false; // Props changed, need to re-render
   }
@@ -82,8 +107,6 @@ export const ProgressPanel = memo(function ProgressPanel({ imageProgress, isProc
       prevItem.status !== nextItem.status ||
       prevItem.progress !== nextItem.progress ||
       prevItem.error !== nextItem.error ||
-      prevItem.outputPath !== nextItem.outputPath ||
-      prevItem.originalSize !== nextItem.originalSize ||
       prevItem.processedSize !== nextItem.processedSize
     );
   });
@@ -99,61 +122,91 @@ export const ProgressPanel = memo(function ProgressPanel({ imageProgress, isProc
  * - Memoized to prevent re-rendering when other items change
  * - Only re-renders when its own item data changes
  */
-const ProgressItem = memo(function ProgressItem({ item }: { item: ImageProgress }) {
+const ProgressItem = memo(function ProgressItem({ file, progress, onPreviewClick }: { file: ImageFile; progress?: ImageProgress; onPreviewClick?: (file: ImageFile, outputPath?: string) => void }) {
+  const status = progress?.status || 'pending';
+  const isClickable = !!(onPreviewClick && (status === 'success' || !progress));
+
+  const handleClick = () => {
+    if (isClickable && onPreviewClick) {
+      onPreviewClick(file, progress?.outputPath);
+    }
+  };
+
   return (
-    <div className={`progress-item status-${item.status}`}>
+    <div className={`progress-item status-${status}${isClickable ? ' clickable' : ''}`} onClick={handleClick} title={file.relativePath}>
       {/* Status icon (Requirement 4.2) */}
       <div className="progress-item-icon">
-        {item.status === 'pending' && <ClockIcon />}
-        {item.status === 'processing' && <SpinnerIcon />}
-        {item.status === 'success' && <CheckCircleIcon />}
-        {item.status === 'failed' && <XCircleIcon />}
+        {status === 'pending' && <ClockIcon />}
+        {status === 'processing' && <SpinnerIcon />}
+        {status === 'success' && <CheckCircleIcon />}
+        {status === 'failed' && <XCircleIcon />}
       </div>
 
       {/* File info (Requirements 4.3, 4.4) */}
       <div className="progress-item-info">
-        <div className="progress-item-name">{item.fileName}</div>
-        
+        <div className="progress-item-name" title={file.relativePath}>{truncateFileName(file.relativePath, 40)}</div>
+
         {/* Error message for failed images (Requirement 4.4) */}
-        {item.status === 'failed' && item.error && (
-          <div className="progress-item-error">{item.error}</div>
+        {status === 'failed' && progress?.error && (
+          <div className="progress-item-error">{progress.error}</div>
         )}
-        
-        {/* File sizes and compression for successful images (Requirement 4.3) */}
-        {item.status === 'success' && item.originalSize && item.processedSize && (
-          <div className="progress-item-size">
-            {formatSize(item.originalSize)} → {formatSize(item.processedSize)}
-            {' '}({calculateCompression(item.originalSize, item.processedSize)})
-          </div>
-        )}
+
+        {/* File sizes (Requirement 4.3) */}
+        <div className="progress-item-size">
+          <span className="size-label">Original: </span>
+          <span className="size-value size-original">{formatSize(file.size)}</span>
+          {(status === 'pending' || status === 'processing') && progress?.estimatedSize && (
+            <><span className="size-separator"> • </span><span className="size-label">Estimated: </span><span className="size-value size-estimated">{formatSize(progress.estimatedSize)}</span></>
+          )}
+          {status === 'success' && progress?.processedSize && (
+            <><span className="size-separator"> → </span><span className="size-value size-processed">{formatSize(progress.processedSize)}</span><span className="compression-ratio">{calculateCompression(file.size, progress.processedSize)}</span></>
+          )}
+        </div>
       </div>
 
+      {/* Preview icon for clickable items */}
+      {isClickable && (
+        <div className="progress-item-action">
+          <MagnifyingGlassPlusIcon className="preview-icon" />
+        </div>
+      )}
+
       {/* Progress bar for processing state (Requirement 4.2) */}
-      {item.status === 'processing' && (
+      {status === 'processing' && (
         <div className="progress-item-bar">
-          <div 
-            className="progress-item-fill" 
-            style={{ width: `${item.progress}%` }}
-          />
+          <div className="progress-item-fill" style={{ width: `${progress?.progress || 0}%` }} />
         </div>
       )}
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison: only re-render if item actually changed
-  const prev = prevProps.item;
-  const next = nextProps.item;
-  
+  const prev = prevProps.progress;
+  const next = nextProps.progress;
+  if (!prev && !next) return true;
+  if (!prev || !next) return false;
   return (
     prev.status === next.status &&
     prev.progress === next.progress &&
     prev.error === next.error &&
-    prev.outputPath === next.outputPath &&
-    prev.originalSize === next.originalSize &&
     prev.processedSize === next.processedSize &&
-    prev.fileName === next.fileName
+    prev.estimatedSize === next.estimatedSize
   );
 });
+
+/**
+ * Truncate file name to max length, preserving extension
+ */
+function truncateFileName(fileName: string, maxLength: number): string {
+  if (fileName.length <= maxLength) return fileName;
+  const lastDot = fileName.lastIndexOf('.');
+  if (lastDot > 0) {
+    const name = fileName.substring(0, lastDot);
+    const ext = fileName.substring(lastDot);
+    const avail = maxLength - ext.length - 3;
+    if (avail > 0) return name.substring(0, avail) + '...' + ext;
+  }
+  return fileName.substring(0, maxLength - 3) + '...';
+}
 
 /**
  * SpinnerIcon - Animated spinner for processing state
