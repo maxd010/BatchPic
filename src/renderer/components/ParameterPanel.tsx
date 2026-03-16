@@ -268,12 +268,12 @@ export function ParameterPanel({
         <div className="panel-expanded-content">
           <div className="tabs-header">
             <button
-              className={`tab-item ${activeTab === "resize" ? "active" : ""}`}
-              onClick={() => setActiveTab("resize")}
-              title="尺寸调整"
+              className={`tab-item ${activeTab === "format" ? "active" : ""}`}
+              onClick={() => setActiveTab("format")}
+              title="输出格式"
             >
-              <ArrowsPointingInIcon className="tab-icon" />
-              <span>尺寸</span>
+              <PhotoIcon className="tab-icon" />
+              <span>格式</span>
             </button>
             <button
               className={`tab-item ${activeTab === "compression" ? "active" : ""}`}
@@ -284,12 +284,12 @@ export function ParameterPanel({
               <span>优化</span>
             </button>
             <button
-              className={`tab-item ${activeTab === "format" ? "active" : ""}`}
-              onClick={() => setActiveTab("format")}
-              title="输出格式"
+              className={`tab-item ${activeTab === "resize" ? "active" : ""}`}
+              onClick={() => setActiveTab("resize")}
+              title="尺寸调整"
             >
-              <PhotoIcon className="tab-icon" />
-              <span>格式</span>
+              <ArrowsPointingInIcon className="tab-icon" />
+              <span>尺寸</span>
             </button>
           </div>
 
