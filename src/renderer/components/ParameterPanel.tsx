@@ -283,7 +283,7 @@ export function ParameterPanel({
                     />
                   </div>
                   <div className="button-group">
-                    {([60, 75, 80, 85, 90, 95] as const).map((preset) => (
+                    {([75, 80, 85, 90] as const).map((preset) => (
                       <button
                         key={preset}
                         className={`preset-button ${qualityPreset === preset ? "active" : ""}`}

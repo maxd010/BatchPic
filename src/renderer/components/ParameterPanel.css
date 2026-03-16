@@ -5,6 +5,7 @@
     flex-direction: column;
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
+    position: relative;
 }
 
 .tabs-bar {
@@ -85,8 +86,10 @@
     position: absolute;
     top: 100%;
     left: 0;
-    /* min-width: 160px; */
     width: max-content;
+    right: 0;
+    min-width: 160px;
+    max-width: 300px;
     background: var(--color-surface, #ffffff);
     border: 1px solid var(--color-border);
     border-radius: 10px;
