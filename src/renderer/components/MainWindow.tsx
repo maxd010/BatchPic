@@ -435,16 +435,6 @@ export function MainWindow() {
         </div> */}
       </header>
 
-      {/* Parameter Panel - Always at top */}
-      <div className="top-parameter-panel">
-        <ParameterPanel
-          params={state.processingParams}
-          onChange={handleParametersChange}
-          inputFiles={state.inputFiles}
-          estimatedSize={estimatedSize}
-        />
-      </div>
-
       {/* Main content area */}
       <main className="main-content-vertical">
         {/* Center workspace */}
@@ -493,6 +483,16 @@ export function MainWindow() {
           </div>
         )}
       </main>
+
+      {/* Parameter Panel - Fixed at bottom */}
+      <div className="bottom-parameter-panel">
+        <ParameterPanel
+          params={state.processingParams}
+          onChange={handleParametersChange}
+          inputFiles={state.inputFiles}
+          estimatedSize={estimatedSize}
+        />
+      </div>
     </div>
   );
 }
