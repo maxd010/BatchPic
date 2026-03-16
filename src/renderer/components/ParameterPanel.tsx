@@ -168,38 +168,37 @@ export function ParameterPanel({
 
   const originalSize = inputFiles.length > 0 ? inputFiles[0].size : 0;
 
-  // Generate summary text
-  const getSummaryText = () => {
-    const parts: string[] = [];
-
+  // Generate summary badges
+  const getSummaryBadges = () => {
+    const badges: { label: string; value: string }[] = [];
     // Format
     const formatText =
       outputFormat === "original" ? "原始格式" : outputFormat.toUpperCase();
-    parts.push(`格式: ${formatText}`);
+    badges.push({ label: "格式", value: formatText });
 
     // Compression
     if (compressionMode === "none") {
-      parts.push("压缩: 不压缩");
+      badges.push({ label: "压缩", value: "不压缩" });
     } else if (compressionMode === "smart") {
-      parts.push("压缩: 智能压缩");
+      badges.push({ label: "压缩", value: "智能" });
     } else if (compressionMode === "quality") {
-      parts.push(`压缩: 质量${qualityPreset}`);
+      badges.push({ label: "压缩", value: `质量 ${qualityPreset}` });
     } else if (compressionMode === "targetSize") {
-      parts.push(`压缩: ${targetSize}KB`);
+      badges.push({ label: "压缩", value: `${targetSize} KB` });
     }
 
     // Resize
     if (resizeMode === "none") {
-      parts.push("尺寸: 保持原始");
+      badges.push({ label: "尺寸", value: "原始" });
     } else if (resizeMode === "scale") {
-      parts.push(`尺寸: 缩放 ${resizeValue}%`);
+      badges.push({ label: "尺寸", value: `缩放 ${resizeValue}%` });
     } else if (resizeMode === "width") {
-      parts.push(`尺寸: 宽度 ${resizeValue}px`);
+      badges.push({ label: "尺寸", value: `宽 ${resizeValue}px` });
     } else if (resizeMode === "longEdge") {
-      parts.push(`尺寸: 长边 ${resizeValue}px`);
+      badges.push({ label: "尺寸", value: `最大 ${resizeValue}px` });
     }
 
-    return parts.join(" · ");
+    return badges;
   };
 
   return (
@@ -214,7 +213,14 @@ export function ParameterPanel({
           {isExpanded ? (
             <span className="panel-title">参数设置</span>
           ) : (
-            <span className="summary-text">{getSummaryText()}</span>
+            <div className="summary-badges">
+              {getSummaryBadges().map((badge, i) => (
+                <span key={i} className="summary-badge">
+                  <span className="badge-label">{badge.label}</span>
+                  <span className="badge-value">{badge.value}</span>
+                </span>
+              ))}
+            </div>
           )}
         </div>
         {isExpanded ? (
