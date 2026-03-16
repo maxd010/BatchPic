@@ -211,7 +211,7 @@ const ProgressItem = memo(
 
           {/* File sizes (Requirement 4.3) */}
           <div className="progress-item-size">
-            <span className="size-label">Original: </span>
+            {/* <span className="size-label">Original: </span> */}
             <span className="size-value size-original">
               {formatSize(file.size)}
             </span>
