@@ -418,11 +418,11 @@ export function MainWindow() {
       <header className="app-header">
         <div className="app-title">
           <h1>BatchPic</h1>
-          <p className="subtitle">图片交付准备工具</p>
+          <p className="subtitle">拖入，即处理</p>
         </div>
 
         {/* Auto-process toggle (Requirements 8.1, 8.2, 8.3, 8.5) */}
-        <div className="auto-process-toggle">
+        {/* <div className="auto-process-toggle">
           <label className="toggle-label">
             <input
               type="checkbox"
@@ -432,7 +432,7 @@ export function MainWindow() {
             />
             <span className="toggle-text">自动处理</span>
           </label>
-        </div>
+        </div> */}
       </header>
 
       {/* Parameter Panel - Always at top */}
