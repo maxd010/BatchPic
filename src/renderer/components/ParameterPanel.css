@@ -1,4 +1,4 @@
-/* ParameterPanel - Inline Tab Accordion Theme */
+/* ParameterPanel - Horizontal Tab + Dropdown Theme */
 
 .parameter-panel-tabs {
     display: flex;
@@ -9,43 +9,52 @@
 
 .tabs-bar {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: stretch;
 }
 
-/* 每行 Tab */
-.tab-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    min-height: 44px;
-    border-bottom: 1px solid var(--color-border);
-    transition: background 150ms ease;
-}
-
-.tab-row:last-child {
-    border-bottom: none;
-}
-
-.tab-row.active {
-    background: rgba(79, 70, 229, 0.03);
-}
-
-.tab-row-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+/* 每个 Tab 容器（相对定位，用于下拉菜单定位） */
+.tab-item {
+    position: relative;
     flex: 1;
+    border-right: 1px solid var(--color-border);
+}
+
+.tab-item:last-child {
+    border-right: none;
+}
+
+/* Tab 触发按钮 */
+.tab-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 0 10px;
+    min-height: 44px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background 150ms ease;
+    text-align: left;
+}
+
+.tab-trigger:hover {
+    background: rgba(79, 70, 229, 0.04);
+}
+
+.tab-item.active .tab-trigger {
+    background: rgba(79, 70, 229, 0.06);
 }
 
 .tab-icon {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
     color: var(--color-text-muted);
     flex-shrink: 0;
 }
 
-.tab-row.active .tab-icon {
+.tab-item.active .tab-icon {
     color: var(--color-primary);
 }
 
@@ -53,61 +62,88 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--color-text-muted);
-    min-width: 28px;
+    flex-shrink: 0;
 }
 
-.tab-row.active .tab-label {
+.tab-item.active .tab-label {
     color: var(--color-primary);
 }
 
 .tab-value {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--color-text);
-    background: var(--color-surface-secondary, #f1f5f9);
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    padding: 2px 7px;
     font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.tab-expand-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
+/* 下拉菜单 */
+.tab-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* min-width: 160px; */
+    width: max-content;
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+    z-index: 100;
+    overflow: hidden;
+    animation: dropdownFadeIn 150ms ease;
+    padding: 4px;
+}
+
+/* 最后一个 Tab 的下拉菜单靠右对齐，防止溢出 */
+.tab-item:last-child .tab-dropdown {
+    left: auto;
+    right: 0;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 下拉菜单选项 */
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
     border: none;
+    border-radius: 7px;
     background: transparent;
-    color: var(--color-text-muted);
+    color: var(--color-text);
     cursor: pointer;
-    border-radius: 6px;
-    transition: all 150ms ease;
-    flex-shrink: 0;
+    transition: background 120ms ease, color 120ms ease;
+    white-space: nowrap;
 }
 
-.tab-expand-btn:hover {
-    background: rgba(79, 70, 229, 0.1);
+.dropdown-item:hover {
+    background: rgba(79, 70, 229, 0.07);
     color: var(--color-primary);
 }
 
-.tab-row.active .tab-expand-btn {
-    color: var(--color-primary);
+.dropdown-item.active {
+    background: var(--color-primary);
+    color: #ffffff;
+    font-weight: 600;
 }
 
-/* 展开的内容面板 */
-.tab-pane-inline {
-    padding: 16px;
-    background: linear-gradient(to bottom, rgba(79, 70, 229, 0.02), transparent);
-    border-bottom: 1px solid var(--color-border);
+/* 下拉菜单内的额外控件区域（slider、input 等） */
+.dropdown-extra {
+    padding: 8px 12px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 4px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    animation: tabFadeIn 200ms ease;
-}
-
-@keyframes tabFadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    gap: 8px;
 }
 
 /* Reusing existing param styles */
@@ -176,18 +212,18 @@
 .format-button,
 .preset-button {
     flex: 1;
-    min-width: 85px;
-    padding: 9px 12px;
+    min-width: 40px;
+    padding: 4px;
     font-size: 12px;
     font-weight: 500;
     border: 1px solid var(--color-border);
-    border-radius: 10px;
+    border-radius: 7px;
     background: #ffffff;
     color: var(--color-text-muted);
     cursor: pointer;
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    /* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02); */
 }
 
 .preset-button {

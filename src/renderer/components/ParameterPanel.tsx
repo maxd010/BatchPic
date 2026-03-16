@@ -190,239 +190,208 @@ export function ParameterPanel({
     setActiveTab(activeTab === tab ? null : tab);
   };
 
+  // 点击外部关闭下拉
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setActiveTab(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="parameter-panel-tabs">
-      {/* 常显示的 Tab 栏 */}
+    <div className="parameter-panel-tabs" ref={panelRef}>
       <div className="tabs-bar">
+
         {/* 格式 Tab */}
-        <div className={`tab-row ${activeTab === "format" ? "active" : ""}`}>
-          <div className="tab-row-left">
+        <div className={`tab-item ${activeTab === "format" ? "active" : ""}`}>
+          <button className="tab-trigger" onClick={() => handleTabToggle("format")} title="展开格式设置">
             <PhotoIcon className="tab-icon" />
             <span className="tab-label">格式</span>
             <span className="tab-value">{getFormatValue()}</span>
-          </div>
-          <button
-            className="tab-expand-btn"
-            onClick={() => handleTabToggle("format")}
-            title="展开格式设置"
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-              style={{ transform: activeTab === "format" ? "rotate(180deg)" : "none", transition: "transform 200ms ease" }}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
+              style={{ transform: activeTab === "format" ? "rotate(180deg)" : "none", transition: "transform 200ms ease", flexShrink: 0 }}>
               <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
+          {activeTab === "format" && (
+            <div className="tab-dropdown">
+              {(["original", "jpg", "png", "webp"] as const).map((format) => (
+                <button
+                  key={format}
+                  className={`dropdown-item ${outputFormat === format ? "active" : ""}`}
+                  onClick={() => { setOutputFormat(format); setActiveTab(null); }}
+                >
+                  {format === "original" && "保持原格式"}
+                  {format === "jpg" && "转为 JPG"}
+                  {format === "png" && "转为 PNG"}
+                  {format === "webp" && "转为 WebP"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {activeTab === "format" && (
-          <div className="tab-pane-inline">
-            <div className="param-group">
-              <div className="button-group">
-                {(["original", "jpg", "png", "webp"] as const).map((format) => (
-                  <button
-                    key={format}
-                    className={`format-button ${outputFormat === format ? "active" : ""}`}
-                    onClick={() => setOutputFormat(format)}
-                    title={
-                      format === "original" ? "保持原始格式"
-                      : format === "jpg" ? "转换为 JPG 格式"
-                      : format === "png" ? "转换为 PNG 格式"
-                      : "转换为 WebP 格式"
-                    }
-                  >
-                    {format === "original" && "保持原格式"}
-                    {format === "jpg" && "转为 JPG"}
-                    {format === "png" && "转为 PNG"}
-                    {format === "webp" && "转为 WebP"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* 优化 Tab */}
-        <div className={`tab-row ${activeTab === "compression" ? "active" : ""}`}>
-          <div className="tab-row-left">
+        <div className={`tab-item ${activeTab === "compression" ? "active" : ""}`}>
+          <button className="tab-trigger" onClick={() => handleTabToggle("compression")} title="展开优化设置">
             <AdjustmentsIcon className="tab-icon" />
             <span className="tab-label">优化</span>
             <span className="tab-value">{getCompressionValue()}</span>
-          </div>
-          <button
-            className="tab-expand-btn"
-            onClick={() => handleTabToggle("compression")}
-            title="展开优化设置"
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-              style={{ transform: activeTab === "compression" ? "rotate(180deg)" : "none", transition: "transform 200ms ease" }}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
+              style={{ transform: activeTab === "compression" ? "rotate(180deg)" : "none", transition: "transform 200ms ease", flexShrink: 0 }}>
               <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-        </div>
+          {activeTab === "compression" && (
+            <div className="tab-dropdown">
+              {(["smart", "quality", "targetSize", "none"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  className={`dropdown-item ${compressionMode === mode ? "active" : ""}`}
+                  onClick={() => setCompressionMode(mode)}
+                  title={
+                    mode === "smart" ? "推荐模式：自动平衡清晰度与文件大小"
+                    : mode === "quality" ? "通过数值控制图片质量"
+                    : mode === "targetSize" ? "尝试将图片压缩到指定大小以内"
+                    : "不进行任何压缩，仅转换格式或调整尺寸"
+                  }
+                >
+                  {mode === "smart" && "智能压缩"}
+                  {mode === "quality" && "设定质量"}
+                  {mode === "targetSize" && "目标大小"}
+                  {mode === "none" && "无损模式"}
+                </button>
+              ))}
 
-        {activeTab === "compression" && (
-          <div className="tab-pane-inline">
-            <div className="param-group">
-              <div className="button-group">
-                {(["smart", "quality", "targetSize", "none"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    className={`mode-button ${compressionMode === mode ? "active" : ""}`}
-                    onClick={() => setCompressionMode(mode)}
-                    title={
-                      mode === "smart" ? "推荐模式：自动平衡清晰度与文件大小"
-                      : mode === "quality" ? "通过数值控制图片质量"
-                      : mode === "targetSize" ? "尝试将图片压缩到指定大小以内"
-                      : "不进行任何压缩，仅转换格式或调整尺寸"
-                    }
-                  >
-                    {mode === "smart" && "智能压缩"}
-                    {mode === "quality" && "设定质量"}
-                    {mode === "targetSize" && "目标大小"}
-                    {mode === "none" && "无损模式"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {compressionMode === "quality" && (
-              <div className="param-group">
-                <div className="label-with-value">
-                  <label>质量级别</label>
-                  <span className="value-display">{qualityPreset}</span>
+              {compressionMode === "quality" && (
+                <div className="dropdown-extra">
+                  <div className="label-with-value">
+                    <label>质量级别</label>
+                    <span className="value-display">{qualityPreset}</span>
+                  </div>
+                  <div className="range-wrapper">
+                    <input
+                      type="range" min="10" max="100" step="1"
+                      value={qualityPreset}
+                      onChange={(e) => setQualityPreset(parseInt(e.target.value))}
+                      className="param-slider"
+                      style={{ "--value": `${qualityPreset}%`, backgroundSize: `${qualityPreset}% 100%` } as React.CSSProperties}
+                    />
+                  </div>
+                  <div className="button-group">
+                    {([60, 75, 80, 85, 90, 95] as const).map((preset) => (
+                      <button
+                        key={preset}
+                        className={`preset-button ${qualityPreset === preset ? "active" : ""}`}
+                        onClick={() => setQualityPreset(preset)}
+                      >
+                        {preset === 80 ? "推荐" : preset}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="range-wrapper">
+              )}
+
+              {compressionMode === "targetSize" && (
+                <div className="dropdown-extra">
+                  <div className="label-with-value">
+                    <label htmlFor="target-size">目标文件大小</label>
+                    <span className="value-display">{targetSize} KB</span>
+                  </div>
                   <input
-                    type="range" min="10" max="100" step="1"
-                    value={qualityPreset}
-                    onChange={(e) => setQualityPreset(parseInt(e.target.value))}
-                    className="param-slider"
-                    style={{ "--value": `${qualityPreset}%`, backgroundSize: `${qualityPreset}% 100%` } as React.CSSProperties}
+                    id="target-size" type="number" min="10" max="20480"
+                    aria-label="目标大小 (KB)"
+                    value={targetSize}
+                    onChange={(e) => setTargetSize(Math.max(10, Math.min(20480, parseInt(e.target.value) || 10)))}
+                    className="param-input"
+                    placeholder="输入目标 KB 值"
                   />
                 </div>
-                <div className="button-group">
-                  {([60, 75, 80, 85, 90, 95] as const).map((preset) => (
-                    <button
-                      key={preset}
-                      className={`preset-button ${qualityPreset === preset ? "active" : ""}`}
-                      onClick={() => setQualityPreset(preset)}
-                    >
-                      {preset === 80 ? "推荐" : preset}
-                    </button>
-                  ))}
+              )}
+
+              <div className="dropdown-extra">
+                {compressionMode !== "smart" ? (
+                  <label className="checkbox-label" title="移除相机型号、拍摄时间、GPS 等 EXIF 信息，可进一步缩小体积并保护隐私">
+                    <input type="checkbox" checked={removeMetadata} onChange={(e) => setRemoveMetadata(e.target.checked)} className="param-checkbox" />
+                    <span>清除隐私元数据 (EXIF)</span>
+                  </label>
+                ) : (
+                  <label className="checkbox-label disabled" title="智能模式已自动包含此项优化">
+                    <input type="checkbox" checked={true} disabled className="param-checkbox" />
+                    <span>清除元数据 (智能模式已开启)</span>
+                  </label>
+                )}
+              </div>
+
+              {originalSize > 0 && (
+                <div className="dropdown-extra file-size-info compact">
+                  <div className="size-row">
+                    <span>原始大小: <span className="size-value original">{(originalSize / 1024).toFixed(1)} KB</span></span>
+                    {estimatedSize && (
+                      <span>预计压缩后: <span className="size-value estimated">{(estimatedSize / 1024).toFixed(1)} KB</span></span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {compressionMode === "targetSize" && (
-              <div className="param-group">
-                <div className="label-with-value">
-                  <label htmlFor="target-size">目标文件大小</label>
-                  <span className="value-display">{targetSize} KB</span>
-                </div>
-                <input
-                  id="target-size" type="number" min="10" max="20480"
-                  aria-label="目标大小 (KB)"
-                  value={targetSize}
-                  onChange={(e) => setTargetSize(Math.max(10, Math.min(20480, parseInt(e.target.value) || 10)))}
-                  className="param-input"
-                  placeholder="输入目标 KB 值"
-                />
-              </div>
-            )}
-
-            {compressionMode !== "smart" && (
-              <div className="param-group">
-                <label className="checkbox-label" title="移除相机型号、拍摄时间、GPS 等 EXIF 信息，可进一步缩小体积并保护隐私">
-                  <input type="checkbox" checked={removeMetadata} onChange={(e) => setRemoveMetadata(e.target.checked)} className="param-checkbox" />
-                  <span>清除隐私元数据 (EXIF)</span>
-                </label>
-              </div>
-            )}
-
-            {compressionMode === "smart" && (
-              <div className="param-group">
-                <label className="checkbox-label disabled" title="智能模式已自动包含此项优化">
-                  <input type="checkbox" checked={true} disabled className="param-checkbox" />
-                  <span>清除元数据 (智能模式已开启)</span>
-                </label>
-              </div>
-            )}
-
-            {originalSize > 0 && (
-              <div className="file-size-info compact">
-                <div className="size-row">
-                  <span>原始大小: <span className="size-value original">{(originalSize / 1024).toFixed(1)} KB</span></span>
-                  {estimatedSize && (
-                    <span>预计压缩后: <span className="size-value estimated">{(estimatedSize / 1024).toFixed(1)} KB</span></span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 尺寸 Tab */}
-        <div className={`tab-row ${activeTab === "resize" ? "active" : ""}`}>
-          <div className="tab-row-left">
+        <div className={`tab-item ${activeTab === "resize" ? "active" : ""}`}>
+          <button className="tab-trigger" onClick={() => handleTabToggle("resize")} title="展开尺寸设置">
             <ArrowsPointingInIcon className="tab-icon" />
             <span className="tab-label">尺寸</span>
             <span className="tab-value">{getResizeValue()}</span>
-          </div>
-          <button
-            className="tab-expand-btn"
-            onClick={() => handleTabToggle("resize")}
-            title="展开尺寸设置"
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
-              style={{ transform: activeTab === "resize" ? "rotate(180deg)" : "none", transition: "transform 200ms ease" }}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
+              style={{ transform: activeTab === "resize" ? "rotate(180deg)" : "none", transition: "transform 200ms ease", flexShrink: 0 }}>
               <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
+          {activeTab === "resize" && (
+            <div className="tab-dropdown">
+              {["none", "scale", "width", "longEdge"].map((mode) => (
+                <button
+                  key={mode}
+                  className={`dropdown-item ${resizeMode === mode ? "active" : ""}`}
+                  onClick={() => setResizeMode(mode as any)}
+                  title={
+                    mode === "none" ? "不改变图片尺寸"
+                    : mode === "scale" ? "按百分比等比例缩放"
+                    : mode === "width" ? "固定宽度，高度自动适应"
+                    : "限制图片最长边，另一边自动适应"
+                  }
+                >
+                  {mode === "none" && "原始尺寸"}
+                  {mode === "scale" && "比例缩放"}
+                  {mode === "width" && "固定宽度"}
+                  {mode === "longEdge" && "限制长边"}
+                </button>
+              ))}
+              {resizeMode !== "none" && (
+                <div className="dropdown-extra">
+                  <input
+                    id="resize-value" type="number"
+                    min={resizeMode === "scale" ? 1 : 10}
+                    max={resizeMode === "scale" ? 200 : 5000}
+                    aria-label={resizeMode === "scale" ? "缩放比例" : resizeMode === "width" ? "像素宽度" : "最大像素"}
+                    value={resizeValue}
+                    onChange={(e) => {
+                      const min = resizeMode === "scale" ? 1 : 10;
+                      setResizeValue(Math.max(min, parseInt(e.target.value) || 0));
+                    }}
+                    className="param-input"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {activeTab === "resize" && (
-          <div className="tab-pane-inline">
-            <div className="param-group">
-              <div className="button-group">
-                {["none", "scale", "width", "longEdge"].map((mode) => (
-                  <button
-                    key={mode}
-                    className={`mode-button ${resizeMode === mode ? "active" : ""}`}
-                    onClick={() => setResizeMode(mode as any)}
-                    title={
-                      mode === "none" ? "不改变图片尺寸"
-                      : mode === "scale" ? "按百分比等比例缩放"
-                      : mode === "width" ? "固定宽度，高度自动适应"
-                      : "限制图片最长边，另一边自动适应"
-                    }
-                  >
-                    {mode === "none" && "原始尺寸"}
-                    {mode === "scale" && "比例缩放"}
-                    {mode === "width" && "固定宽度"}
-                    {mode === "longEdge" && "限制长边"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {resizeMode !== "none" && (
-              <div className="param-group">
-                <input
-                  id="resize-value" type="number"
-                  min={resizeMode === "scale" ? 1 : 10}
-                  max={resizeMode === "scale" ? 200 : 5000}
-                  aria-label={resizeMode === "scale" ? "缩放比例" : resizeMode === "width" ? "像素宽度" : "最大像素"}
-                  value={resizeValue}
-                  onChange={(e) => {
-                    const min = resizeMode === "scale" ? 1 : 10;
-                    setResizeValue(Math.max(min, parseInt(e.target.value) || 0));
-                  }}
-                  className="param-input"
-                />
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
