@@ -1,215 +1,116 @@
-/* ParameterPanel - Tabbed Navigation Theme */
+/* ParameterPanel - Inline Tab Accordion Theme */
 
 .parameter-panel-tabs {
     display: flex;
     flex-direction: column;
     background: var(--color-surface);
-    /* border-bottom: 1px solid var(--color-border); */
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
+    border-bottom: 1px solid var(--color-border);
 }
 
-.panel-summary {
+.tabs-bar {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 每行 Tab */
+.tab-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
-    cursor: pointer;
-    background: var(--color-surface);
-    transition: all 200ms ease;
-    border-bottom: 1px solid var(--color-border);
     min-height: 44px;
+    border-bottom: 1px solid var(--color-border);
+    transition: background 150ms ease;
 }
 
-.panel-summary:hover {
-    background: rgba(67, 117, 255, 0.03);
+.tab-row:last-child {
+    border-bottom: none;
 }
 
-.parameter-panel-tabs.expanded .panel-summary {
-    cursor: default;
+.tab-row.active {
+    background: rgba(79, 70, 229, 0.03);
 }
 
-.parameter-panel-tabs.expanded .panel-summary:hover {
-    background: var(--color-surface);
-}
-
-.summary-content {
+.tab-row-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex: 1;
 }
 
-.summary-text,
-.panel-title {
+.tab-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+.tab-row.active .tab-icon {
+    color: var(--color-primary);
+}
+
+.tab-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    min-width: 28px;
+}
+
+.tab-row.active .tab-label {
+    color: var(--color-primary);
+}
+
+.tab-value {
     font-size: 12px;
     color: var(--color-text);
-    /* font-weight: 500; */
-}
-.summary-text{
-    color: var(--color-text-secondary);
-}
-
-.summary-badges {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0;
-    flex: 1;
-}
-
-.summary-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    overflow: hidden;
-    font-size: 11px;
-    line-height: 1;
-    padding-right:24px;
-}
-
-.badge-label {
-    color: var(--color-text-muted);
+    background: var(--color-surface-secondary, #f1f5f9);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    padding: 2px 7px;
     font-weight: 500;
-    white-space: nowrap;
 }
 
-.badge-value {
-    padding: 3px 4px;
-    color: var(--color-text);
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.toggle-button {
+.tab-expand-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border: none;
     background: transparent;
     color: var(--color-text-muted);
     cursor: pointer;
     border-radius: 6px;
     transition: all 150ms ease;
+    flex-shrink: 0;
 }
 
-.toggle-button:hover {
+.tab-expand-btn:hover {
     background: rgba(79, 70, 229, 0.1);
     color: var(--color-primary);
 }
 
-.panel-expanded-content {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-lg);
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
-    border: 1px solid var(--color-border);
-    border-top: none;
+.tab-row.active .tab-expand-btn {
+    color: var(--color-primary);
 }
 
-/* Tabs Header */
-.tabs-header {
-    display: flex;
-    background: var(--color-surface);
-    padding: 0;
+/* 展开的内容面板 */
+.tab-pane-inline {
+    padding: 16px;
+    background: linear-gradient(to bottom, rgba(79, 70, 229, 0.02), transparent);
     border-bottom: 1px solid var(--color-border);
-}
-
-.tab-item {
-    flex: 1;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 4px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    color: var(--color-text-muted);
-    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    border-radius: 0;
-}
-
-.tab-item:hover {
-    background: rgba(79, 70, 229, 0.03);
-    color: var(--color-primary);
-}
-
-.tab-item.active {
-    color: var(--color-primary);
-    background: transparent;
-}
-
-.tab-item::after {
-    content: "";
-    position: absolute;
-    bottom: -1px;
-    left: 15%;
-    right: 15%;
-    height: 3px;
-    background: var(--color-primary);
-    border-radius: 3px 3px 0 0;
-    transform: scaleX(0);
-    transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 -1px 4px rgba(79, 70, 229, 0.2);
-}
-
-.tab-item.active::after {
-    transform: scaleX(1);
-}
-
-.tab-icon {
-    width: 16px;
-    height: 16px;
-    transition: transform 250ms ease;
-}
-
-.tab-item.active .tab-icon {
-    transform: scale(1.1);
-}
-
-.tab-item span {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-/* Tabs Content */
-.tabs-content {
-    padding: 20px 16px;
-    min-height: 160px;
-    background: linear-gradient(to bottom, #ffffff, var(--color-surface));
-}
-
-.tab-pane {
-    display: none;
-    animation: tabFadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    flex-direction: column;
+    gap: 14px;
+    animation: tabFadeIn 200ms ease;
 }
 
 @keyframes tabFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.tab-pane.active {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-/* Reusing existing param styles with adjustments */
+/* Reusing existing param styles */
 .param-row {
     display: flex;
     gap: 12px;
@@ -322,15 +223,8 @@
 .aspect-button.active:hover,
 .format-button.active:hover,
 .preset-button.active:hover {
-    background: #4338ca;
-    transform: translateY(-1px);
-}
-
-.mode-button.active:hover,
-.aspect-button.active:hover,
-.format-button.active:hover,
-.preset-button.active:hover {
     background: rgba(79, 70, 229, 0.25);
+    transform: translateY(-1px);
 }
 
 /* Checkbox Styles */
