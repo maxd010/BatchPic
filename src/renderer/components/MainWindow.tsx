@@ -152,6 +152,9 @@ export function MainWindow() {
     async (paths: string[]) => {
       try {
         // Scan files via IPC (Requirements 1.1, 1.2)
+        if (!window.electronAPI?.scanFiles) {
+          throw new Error("electronAPI 未就绪，请重启应用");
+        }
         const scannedFiles = await window.electronAPI.scanFiles(paths);
 
         // Update state with scanned files, deduplicating by path to avoid duplicate keys

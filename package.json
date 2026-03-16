@@ -6,7 +6,7 @@
   "main": "dist/main/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
-    "dev:main": "npm run build:main && electron .",
+    "dev:main": "npm run build:main && npm run build:preload && electron .",
     "dev:renderer": "vite",
     "clean": "rimraf dist release",
     "build": "npm run clean && npm run build:main && npm run build:preload && npm run build:renderer",
