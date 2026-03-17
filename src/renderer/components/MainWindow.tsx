@@ -439,16 +439,6 @@ export function MainWindow() {
       <main className="main-content-vertical">
         {/* Center workspace */}
         <section className={`workspace-center ${!hasFiles ? "is-empty" : ""}`}>
-          {/* Drop zone - compact when files loaded */}
-          <div className={workspaceDropzoneClass}>
-            <DropZone
-              onFilesDropped={handleFilesDropped}
-              isEmpty={!hasFiles}
-              fileCount={state.inputFiles.length}
-              compact={hasFiles}
-            />
-          </div>
-
           {/* File list and preview */}
           {hasFiles && (
             <div className="workspace-content">
@@ -465,6 +455,16 @@ export function MainWindow() {
               />
             </div>
           )}
+
+          {/* Drop zone - compact when files loaded */}
+          <div className={workspaceDropzoneClass}>
+            <DropZone
+              onFilesDropped={handleFilesDropped}
+              isEmpty={!hasFiles}
+              fileCount={state.inputFiles.length}
+              compact={hasFiles}
+            />
+          </div>
         </section>
 
         {/* Export Actions — only show when button should be visible */}

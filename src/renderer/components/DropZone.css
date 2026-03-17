@@ -3,7 +3,7 @@
 .drop-zone {
   position: relative;
   flex: 1;
-  width: 88%;
+  width: 100%;
   border: 2px dashed #dde3ec;
   border-radius: 24px;
   background: #ffffff;
@@ -26,6 +26,7 @@
 /* Empty state */
 .drop-zone.empty {
   min-height: 300px;
+  width: 88%;
 }
 
 .drop-zone-empty {
