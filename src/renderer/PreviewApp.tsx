@@ -74,11 +74,6 @@ export function PreviewApp() {
 
   return (
     <div className="preview-app">
-      <div className="preview-header">
-        <span className="preview-header-title">实时效果对比</span>
-        <span className="preview-header-filename">{data.filename}</span>
-      </div>
-
       <div className="preview-body">
         <div
           ref={containerRef}
