@@ -47,9 +47,12 @@ function createWindow() {
 // Resize window for preview modal - REMOVED, replaced by separate preview window
 
 let previewWindow: BrowserWindow | null = null;
+let pendingPreviewData: { originalPath: string; outputPath?: string; filename: string } | null = null;
 
 // Open a separate preview window (does not affect main window size)
 ipcMain.handle("open-preview-window", async (_event, data: { originalPath: string; outputPath?: string; filename: string }) => {
+  pendingPreviewData = data;
+
   // Close existing preview window if open
   if (previewWindow && !previewWindow.isDestroyed()) {
     previewWindow.close();
@@ -75,14 +78,15 @@ ipcMain.handle("open-preview-window", async (_event, data: { originalPath: strin
     await previewWindow.loadFile(path.join(__dirname, "../renderer/preview.html"));
   }
 
-  // Send image data after window is ready
-  previewWindow.webContents.once("did-finish-load", () => {
-    previewWindow?.webContents.send("preview-data", data);
-  });
-
   previewWindow.on("closed", () => {
     previewWindow = null;
+    pendingPreviewData = null;
   });
+});
+
+// Preview window requests its own data after React mounts
+ipcMain.handle("get-preview-data", async () => {
+  return pendingPreviewData;
 });
 
 app.whenReady().then(createWindow);

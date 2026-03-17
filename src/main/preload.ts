@@ -314,12 +314,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return ipcRenderer.invoke("open-preview-window", data);
   },
 
-  // Listen for preview data (used by preview window)
-  onPreviewData: (callback: (data: { originalPath: string; outputPath?: string; filename: string }) => void) => {
-    const listener = (_event: any, data: any) => callback(data);
-    ipcRenderer.on("preview-data", listener);
-    return () => ipcRenderer.removeListener("preview-data", listener);
-  },
+  // Fetch preview data (called by preview window on mount)
+  getPreviewData: () => ipcRenderer.invoke("get-preview-data"),
 });
 
 // Startup debug log removed to reduce unnecessary initialization overhead.

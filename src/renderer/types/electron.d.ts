@@ -18,6 +18,10 @@ export interface ElectronAPI {
     outputDir: string,
     onImageProcessed: (index: number, result: ProcessedImage) => void
   ) => Promise<ProcessingResult>;
+
+  // Preview window APIs
+  openPreviewWindow: (data: { originalPath: string; outputPath?: string; filename: string }) => Promise<void>;
+  getPreviewData: () => Promise<{ originalPath: string; outputPath?: string; filename: string } | null>;
 }
 
 export interface ImageFile {

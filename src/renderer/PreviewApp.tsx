@@ -15,12 +15,11 @@ export function PreviewApp() {
   const [isLoadingOriginal, setIsLoadingOriginal] = useState(false);
   const [isLoadingProcessed, setIsLoadingProcessed] = useState(false);
 
-  // Receive preview data from main process
+  // Fetch preview data from main process on mount
   useEffect(() => {
-    const unsubscribe = window.electronAPI.onPreviewData?.((incoming) => {
-      setData(incoming);
+    window.electronAPI.getPreviewData?.().then((incoming) => {
+      if (incoming) setData(incoming);
     });
-    return () => unsubscribe?.();
   }, []);
 
   // Load original image
