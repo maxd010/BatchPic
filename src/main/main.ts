@@ -44,6 +44,47 @@ function createWindow() {
   });
 }
 
+// Resize window for preview modal - REMOVED, replaced by separate preview window
+
+let previewWindow: BrowserWindow | null = null;
+
+// Open a separate preview window (does not affect main window size)
+ipcMain.handle("open-preview-window", async (_event, data: { originalPath: string; outputPath?: string; filename: string }) => {
+  // Close existing preview window if open
+  if (previewWindow && !previewWindow.isDestroyed()) {
+    previewWindow.close();
+  }
+
+  previewWindow = new BrowserWindow({
+    width: 960,
+    height: 700,
+    minWidth: 640,
+    minHeight: 480,
+    title: `实时效果对比 - ${data.filename}`,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, "../preload/preload.js"),
+    },
+  });
+
+  const isDev = !app.isPackaged;
+  if (isDev) {
+    await previewWindow.loadURL("http://localhost:3000/preview.html");
+  } else {
+    await previewWindow.loadFile(path.join(__dirname, "../renderer/preview.html"));
+  }
+
+  // Send image data after window is ready
+  previewWindow.webContents.once("did-finish-load", () => {
+    previewWindow?.webContents.send("preview-data", data);
+  });
+
+  previewWindow.on("closed", () => {
+    previewWindow = null;
+  });
+});
+
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {

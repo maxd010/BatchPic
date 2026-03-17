@@ -303,6 +303,23 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
     return resultPromise;
   },
+  // Window resize for preview modal
+  resizeForPreview: () => ipcRenderer.invoke("resize-for-preview"),
+  restoreWindowSize: () => ipcRenderer.invoke("restore-window-size"),
+
+  // Open separate preview window
+  openPreviewWindow: (data: { originalPath: string; outputPath?: string; filename: string }) => {
+    validateString(data.originalPath, "originalPath");
+    validateString(data.filename, "filename");
+    return ipcRenderer.invoke("open-preview-window", data);
+  },
+
+  // Listen for preview data (used by preview window)
+  onPreviewData: (callback: (data: { originalPath: string; outputPath?: string; filename: string }) => void) => {
+    const listener = (_event: any, data: any) => callback(data);
+    ipcRenderer.on("preview-data", listener);
+    return () => ipcRenderer.removeListener("preview-data", listener);
+  },
 });
 
 // Startup debug log removed to reduce unnecessary initialization overhead.
