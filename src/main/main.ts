@@ -20,7 +20,7 @@ function createWindow() {
   Menu.setApplicationMenu(null);
   mainWindow = new BrowserWindow({
     width: 460,
-    height: 600,
+    height: 680,
     minWidth: 460,
     minHeight: 600,
     webPreferences: {

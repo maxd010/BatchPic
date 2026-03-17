@@ -3,10 +3,11 @@
 .drop-zone {
   position: relative;
   flex: 1;
-  width: 100%;
-  border: 2px dashed #cbd5e1;
+  width: 88%;
+  border: 2px dashed #dde3ec;
   border-radius: 24px;
   background: #ffffff;
+  margin: auto;
   display: flex;
   align-items: center;
   justify-content: center;
