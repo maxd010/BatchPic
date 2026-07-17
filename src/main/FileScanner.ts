@@ -28,12 +28,13 @@ export class FileScannerImpl implements FileScanner {
         const imageFile = await this.processFile(
           inputPath,
           path.dirname(inputPath),
+          path.dirname(inputPath),
         );
         if (imageFile) {
           results.push(imageFile);
         }
       } else if (stat.isDirectory()) {
-        const files = await this.scanDirectory(inputPath, inputPath);
+        const files = await this.scanDirectory(inputPath, inputPath, inputPath);
         results.push(...files);
       }
     }
@@ -44,6 +45,7 @@ export class FileScannerImpl implements FileScanner {
   private async scanDirectory(
     dirPath: string,
     rootPath: string,
+    sourceRoot: string,
   ): Promise<ImageFile[]> {
     const results: ImageFile[] = [];
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -53,10 +55,10 @@ export class FileScannerImpl implements FileScanner {
 
       if (entry.isDirectory()) {
         // Recursively scan subdirectories
-        const subFiles = await this.scanDirectory(fullPath, rootPath);
+        const subFiles = await this.scanDirectory(fullPath, rootPath, sourceRoot);
         results.push(...subFiles);
       } else if (entry.isFile()) {
-        const imageFile = await this.processFile(fullPath, rootPath);
+        const imageFile = await this.processFile(fullPath, rootPath, sourceRoot);
         if (imageFile) {
           results.push(imageFile);
         }
@@ -69,6 +71,7 @@ export class FileScannerImpl implements FileScanner {
   private async processFile(
     filePath: string,
     rootPath: string,
+    sourceRoot: string,
   ): Promise<ImageFile | null> {
     const ext = path.extname(filePath).toLowerCase();
 
@@ -115,6 +118,7 @@ export class FileScannerImpl implements FileScanner {
           width: metadata.width,
           height: metadata.height,
         },
+        sourceRoot,
       };
     } catch (error) {
       // Skip files that can't be processed (corrupted, etc.)

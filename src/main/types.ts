@@ -6,6 +6,7 @@ export interface ImageFile {
   format: "jpg" | "png" | "webp";
   size: number; // File size in bytes
   dimensions: { width: number; height: number };
+  sourceRoot?: string; // The top-level folder this file was scanned from (when dropped as a folder)
 }
 
 export interface FileScanner {

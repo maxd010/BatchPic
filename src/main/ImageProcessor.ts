@@ -168,7 +168,9 @@ export class SharpImageProcessor implements ImageProcessor {
           // Determine output format
           const outputFormat = params.format || input.format;
 
-          // Build output path preserving directory structure
+          // Build output path preserving directory structure. When the file
+          // comes from a dropped folder, its results go to that folder's own
+          // "-processed" directory so multiple folders stay separate.
           const outputPath = this.getOutputPath(
             input,
             outputRoot,
@@ -658,15 +660,32 @@ export class SharpImageProcessor implements ImageProcessor {
   }
 
   /**
-   * Get output path preserving directory structure
+   * Get output path preserving directory structure.
+   * Files dropped as a folder are stored inside that folder's own
+   * "{folderName}-processed" directory; this keeps results from multiple
+   * simultaneously-dropped folders separated instead of all landing in the
+   * last folder. Files without a sourceRoot fall back to outputRoot.
    */
   private getOutputPath(
     input: ImageFile,
     outputRoot: string,
     format: "jpg" | "png" | "webp",
   ): string {
+    const outputDir = input.sourceRoot
+      ? this.getOutputDirectoryForSource(input.sourceRoot)
+      : outputRoot;
     const parsedPath = path.parse(input.relativePath);
     const outputFileName = `${parsedPath.name}.${format}`;
-    return path.join(outputRoot, parsedPath.dir, outputFileName);
+    return path.join(outputDir, parsedPath.dir, outputFileName);
+  }
+
+  /**
+   * Resolve the dedicated output directory for a given source folder:
+   * {folderName}-processed, created as a sibling of the source folder.
+   */
+  private getOutputDirectoryForSource(sourceRoot: string): string {
+    const baseName = path.basename(sourceRoot);
+    const baseDir = path.dirname(sourceRoot);
+    return path.join(baseDir, `${baseName}-processed`);
   }
 }

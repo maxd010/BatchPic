@@ -60,57 +60,85 @@ export class OutputManagerImpl implements OutputManager {
   }
 
   /**
-   * Create or reuse a fixed output directory
-   * Format: {inputBaseName}-processed
-   * Example: photos-processed
+   * Create or reuse the output directories for the given input paths.
+   * When the inputs are one or more folders, each folder gets its own
+   * "{folderName}-processed" sibling directory so results stay separated.
+   * Returns the common parent directory so the UI can reveal all outputs.
    */
   async createOutputDirectory(inputPaths: string[]): Promise<string> {
     if (inputPaths.length === 0) {
       throw new Error("No input paths provided");
     }
 
-    // Determine base name from first input path
-    const firstPath = inputPaths[0];
-    const stats = await fs.stat(firstPath);
+    const sourceRoots = new Set<string>();
 
-    let baseName: string;
-    let baseDir: string;
-
-    if (stats.isDirectory()) {
-      baseName = path.basename(firstPath);
-      baseDir = path.dirname(firstPath);
-    } else {
-      // For files, use the parent directory name
-      baseDir = path.dirname(firstPath);
-      baseName = path.basename(baseDir);
+    for (const inputPath of inputPaths) {
+      const stats = await fs.stat(inputPath);
+      if (stats.isDirectory()) {
+        sourceRoots.add(inputPath);
+      } else {
+        sourceRoots.add(path.dirname(inputPath));
+      }
     }
 
-    // Create fixed output directory name and reuse it on subsequent runs
-    const outputDirName = `${baseName}-processed`;
-    const outputPath = path.join(baseDir, outputDirName);
+    // Create a dedicated output directory for each distinct source folder.
+    for (const sourceRoot of sourceRoots) {
+      const outputPath = this.getOutputDirectoryForSource(sourceRoot);
 
-    // Security check: Validate output directory is within user home
-    this.validateOutputDirectorySafety(outputPath);
+      // Security check: Validate output directory is within user home
+      this.validateOutputDirectorySafety(outputPath);
 
-    // Create the directory
-    await fs.mkdir(outputPath, { recursive: true });
+      // Create the directory
+      await fs.mkdir(outputPath, { recursive: true });
 
-    // Verify write permissions
-    try {
-      await fs.access(outputPath, fs.constants.W_OK);
-    } catch (error) {
-      throw new Error(
-        `Security: No write permission for output directory: ${outputPath}`,
-      );
+      // Verify write permissions
+      try {
+        await fs.access(outputPath, fs.constants.W_OK);
+      } catch (error) {
+        throw new Error(
+          `Security: No write permission for output directory: ${outputPath}`,
+        );
+      }
     }
 
-    return outputPath;
+    // Return the common parent directory so the UI can reveal all outputs.
+    return this.getCommonParent([...sourceRoots]);
+  }
+
+  /**
+   * Get the deepest common parent directory of the given paths.
+   */
+  private getCommonParent(paths: string[]): string {
+    if (paths.length === 0) {
+      throw new Error("No paths provided");
+    }
+    if (paths.length === 1) {
+      return path.dirname(paths[0]);
+    }
+
+    const normalized = paths.map((p) => path.resolve(p));
+    const splitPaths = normalized.map((p) => p.split(path.sep));
+    const first = splitPaths[0];
+    const common: string[] = [];
+
+    for (let i = 0; i < first.length; i++) {
+      const segment = first[i];
+      if (splitPaths.every((parts) => parts[i] === segment)) {
+        common.push(segment);
+      } else {
+        break;
+      }
+    }
+
+    const commonPath = common.join(path.sep) || path.sep;
+    return commonPath;
   }
 
   /**
    * Calculate output file path preserving directory structure
    * @param inputFile The input image file
-   * @param outputRoot The root output directory
+   * @param outputRoot The root output directory (used as fallback when the
+   *        file has no sourceRoot, e.g. individual files from the file dialog)
    * @param format The output format (jpg, png, webp)
    * @returns The full output path
    */
@@ -119,6 +147,12 @@ export class OutputManagerImpl implements OutputManager {
     outputRoot: string,
     format: string,
   ): string {
+    // When the file belongs to a dropped folder, store results inside that
+    // folder's own "-processed" directory so multiple folders stay separate.
+    const outputDir = inputFile.sourceRoot
+      ? this.getOutputDirectoryForSource(inputFile.sourceRoot)
+      : outputRoot;
+
     // Get the relative path without extension
     const parsedPath = path.parse(inputFile.relativePath);
     const relativeDir = parsedPath.dir;
@@ -126,9 +160,21 @@ export class OutputManagerImpl implements OutputManager {
 
     // Construct output path with new format extension
     const outputFileName = `${baseName}.${format}`;
-    const outputPath = path.join(outputRoot, relativeDir, outputFileName);
+    const outputPath = path.join(outputDir, relativeDir, outputFileName);
 
     return outputPath;
+  }
+
+  /**
+   * Resolve the output directory for a given source folder.
+   * Format: {sourceFolderName}-processed (sibling of the source folder)
+   * @param sourceRoot The source folder path
+   * @returns The dedicated output directory for that folder
+   */
+  getOutputDirectoryForSource(sourceRoot: string): string {
+    const baseName = path.basename(sourceRoot);
+    const baseDir = path.dirname(sourceRoot);
+    return path.join(baseDir, `${baseName}-processed`);
   }
 
   /**

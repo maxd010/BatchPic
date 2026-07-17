@@ -30,6 +30,7 @@ export interface ImageFile {
   format: 'jpg' | 'png' | 'webp';
   size: number;
   dimensions: { width: number; height: number };
+  sourceRoot?: string;
 }
 
 export interface ProcessingParams {
