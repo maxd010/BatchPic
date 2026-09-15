@@ -18,6 +18,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import sharp from 'sharp';
+import { removeDirWithRetry } from '../../test-utils/fsCleanup';
 
 describe('SharpImageProcessor - Metadata Control', () => {
   let processor: SharpImageProcessor;
@@ -54,7 +55,7 @@ describe('SharpImageProcessor - Metadata Control', () => {
 
   afterAll(async () => {
     // Clean up temporary directory
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await removeDirWithRetry(tempDir);
   });
 
   describe('Smart Compression Mode', () => {

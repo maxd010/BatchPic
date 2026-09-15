@@ -614,7 +614,6 @@ describe('storage utils', () => {
       });
     });
   });
-});
 
   describe('Processing Settings (Full Parameters)', () => {
     describe('isValidProcessingSettings', () => {

@@ -7,6 +7,12 @@ coverage/
 .idea/
 *.swp
 *.swo
-/test-temp-pbt
-/release/mac/BatchPic.app
+
+# 测试运行产生的临时目录（pbt / webp / png-quality / script / review 等）
+/test-temp*
+/src/test-temp/
+
+# 工作区本地数据（项目记忆等）
+.workbuddy/
+
 /release
