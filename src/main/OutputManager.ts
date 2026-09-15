@@ -135,7 +135,18 @@ export class OutputManagerImpl implements OutputManager {
   }
 
   /**
-   * Calculate output file path preserving directory structure
+   * Calculate output file path based on whether format conversion occurs.
+   *
+   * Routing rules (decided with product):
+   * - Different format (e.g. jpg -> png): write to the SAME directory as the
+   *   original file, keeping the same base name and only changing the
+   *   extension. Cannot collide with the original because extensions differ;
+   *   any pre-existing same-name target is overwritten.
+   * - Same format (e.g. jpg -> jpg): write to the "-processed" folder to
+   *   avoid overwriting the original. When the file was dropped as a folder,
+   *   results go to that folder's own "{folderName}-processed" directory;
+   *   otherwise fall back to outputRoot.
+   *
    * @param inputFile The input image file
    * @param outputRoot The root output directory (used as fallback when the
    *        file has no sourceRoot, e.g. individual files from the file dialog)
@@ -147,8 +158,14 @@ export class OutputManagerImpl implements OutputManager {
     outputRoot: string,
     format: string,
   ): string {
-    // When the file belongs to a dropped folder, store results inside that
-    // folder's own "-processed" directory so multiple folders stay separate.
+    // Different format: write next to the original, only extension differs.
+    if (inputFile.format !== format) {
+      const originalParsed = path.parse(inputFile.path);
+      return path.join(originalParsed.dir, `${originalParsed.name}.${format}`);
+    }
+
+    // Same format: write to the -processed folder to avoid clobbering the
+    // original.
     const outputDir = inputFile.sourceRoot
       ? this.getOutputDirectoryForSource(inputFile.sourceRoot)
       : outputRoot;

@@ -203,7 +203,9 @@ describe('OutputManager', () => {
       const outputRoot = '/output';
       const outputPath = outputManager.getOutputPath(inputFile, outputRoot, 'webp');
 
-      expect(outputPath).toBe(path.join('/output', 'photo.webp'));
+      // Different format: write to the SAME directory as the original
+      // (not outputRoot), only the extension changes.
+      expect(outputPath).toBe(path.join('/source', 'photo.webp'));
     });
 
     it('should handle nested directory structures', () => {
@@ -249,6 +251,71 @@ describe('OutputManager', () => {
       const outputPath = outputManager.getOutputPath(inputFile, outputRoot, 'png');
 
       expect(path.basename(outputPath)).toBe('my-photo-2024.png');
+    });
+
+    // ---- New routing rules: different format -> original directory ----
+
+    it('should write next to original when format differs (jpg -> png)', () => {
+      const inputFile: ImageFile = {
+        path: '/photos/sub/img.jpg',
+        relativePath: 'sub/img.jpg',
+        format: 'jpg',
+        size: 1000,
+        dimensions: { width: 100, height: 100 }
+      };
+
+      const outputPath = outputManager.getOutputPath(inputFile, '/output', 'png');
+
+      // Even with sourceRoot set, different-format output goes next to the
+      // original file - never into the -processed folder.
+      expect(outputPath).toBe(path.join('/photos/sub', 'img.png'));
+    });
+
+    it('should write next to original when format differs (png -> webp) with nested dir', () => {
+      const inputFile: ImageFile = {
+        path: '/source/a/b/c/photo.png',
+        relativePath: 'a/b/c/photo.png',
+        format: 'png',
+        size: 1000,
+        dimensions: { width: 100, height: 100 },
+        sourceRoot: '/source'
+      };
+
+      const outputPath = outputManager.getOutputPath(inputFile, '/output', 'webp');
+
+      expect(outputPath).toBe(path.join('/source/a/b/c', 'photo.webp'));
+    });
+
+    it('should write to -processed folder when format is the same', () => {
+      const inputFile: ImageFile = {
+        path: '/photos/sub/img.jpg',
+        relativePath: 'sub/img.jpg',
+        format: 'jpg',
+        size: 1000,
+        dimensions: { width: 100, height: 100 },
+        sourceRoot: '/photos'
+      };
+
+      const outputPath = outputManager.getOutputPath(inputFile, '/output', 'jpg');
+
+      // Same format: must go to {folderName}-processed to avoid overwriting
+      // the original.
+      expect(outputPath).toBe(path.join('/photos-processed', 'sub', 'img.jpg'));
+    });
+
+    it('should fall back to outputRoot for same format without sourceRoot', () => {
+      const inputFile: ImageFile = {
+        path: '/photos/img.jpg',
+        relativePath: 'img.jpg',
+        format: 'jpg',
+        size: 1000,
+        dimensions: { width: 100, height: 100 }
+        // no sourceRoot: e.g. single file from the file dialog
+      };
+
+      const outputPath = outputManager.getOutputPath(inputFile, '/output', 'jpg');
+
+      expect(outputPath).toBe(path.join('/output', 'img.jpg'));
     });
   });
 

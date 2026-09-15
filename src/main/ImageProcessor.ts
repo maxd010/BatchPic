@@ -660,17 +660,32 @@ export class SharpImageProcessor implements ImageProcessor {
   }
 
   /**
-   * Get output path preserving directory structure.
-   * Files dropped as a folder are stored inside that folder's own
-   * "{folderName}-processed" directory; this keeps results from multiple
-   * simultaneously-dropped folders separated instead of all landing in the
-   * last folder. Files without a sourceRoot fall back to outputRoot.
+   * Get output path based on whether format conversion occurs.
+   *
+   * Routing rules (decided with product):
+   * - Different format (e.g. jpg -> png): write to the SAME directory as
+   *   the original file, keeping the same base name and only changing the
+   *   extension. The new file cannot collide with the original because the
+   *   extensions differ. If a same-name target already exists (e.g. an
+   *   earlier conversion), it is overwritten.
+   * - Same format (e.g. jpg -> jpg): write to the "-processed" folder to
+   *   avoid overwriting the original. When the input was dropped as a
+   *   folder, results go to that folder's own "{folderName}-processed"
+   *   directory; otherwise (single file) fall back to outputRoot.
    */
   private getOutputPath(
     input: ImageFile,
     outputRoot: string,
     format: "jpg" | "png" | "webp",
   ): string {
+    // Different format: write next to the original, only extension differs.
+    if (input.format !== format) {
+      const originalParsed = path.parse(input.path);
+      return path.join(originalParsed.dir, `${originalParsed.name}.${format}`);
+    }
+
+    // Same format: write to the -processed folder to avoid clobbering the
+    // original.
     const outputDir = input.sourceRoot
       ? this.getOutputDirectoryForSource(input.sourceRoot)
       : outputRoot;
