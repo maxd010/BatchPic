@@ -18,8 +18,8 @@ describe('TemplateManager', () => {
   let templatesFilePath: string;
 
   beforeEach(async () => {
-    // Create a temporary directory for testing
-    tempDir = path.join(__dirname, '../../test-temp', `templates-${Date.now()}`);
+    // Create a temporary directory for testing (统一收在项目根的 test-temp/ 下)
+    tempDir = path.join(__dirname, '../../../test-temp', 'templates', `templates-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     // Mock app.getPath to return our temp directory

@@ -72,7 +72,8 @@ describe('构建系统单元测试', () => {
   })
 
   describe('构建前清理功能', () => {
-    const testDistDir = path.join(projectRoot, 'test-temp', 'dist')
+    const buildTempRoot = path.join(projectRoot, 'test-temp', 'build')
+    const testDistDir = path.join(buildTempRoot, 'dist')
     const testOldFile = path.join(testDistDir, 'main', 'old.js')
 
     beforeEach(async () => {
@@ -82,9 +83,9 @@ describe('构建系统单元测试', () => {
     })
 
     afterEach(async () => {
-      // 清理测试目录
+      // 只清理本套件自己的子目录，避免误删 test-temp/ 下的其他产物
       try {
-        await fs.rm(path.join(projectRoot, 'test-temp'), { recursive: true, force: true })
+        await fs.rm(buildTempRoot, { recursive: true, force: true })
       } catch (error) {
         // 忽略清理错误
       }
@@ -166,9 +167,10 @@ describe('构建系统单元测试', () => {
   })
 
   describe('构建错误处理', () => {
-    const testSrcDir = path.join(projectRoot, 'test-temp', 'src', 'main')
+    const errorTempRoot = path.join(projectRoot, 'test-temp', 'build-error')
+    const testSrcDir = path.join(errorTempRoot, 'src', 'main')
     const testErrorFile = path.join(testSrcDir, 'error-test.ts')
-    const testTsConfig = path.join(projectRoot, 'test-temp', 'tsconfig.test.json')
+    const testTsConfig = path.join(errorTempRoot, 'tsconfig.test.json')
 
     beforeEach(async () => {
       // 创建测试目录
@@ -176,9 +178,9 @@ describe('构建系统单元测试', () => {
     })
 
     afterEach(async () => {
-      // 清理测试文件
+      // 只清理本套件自己的子目录，避免误删 test-temp/ 下的其他产物
       try {
-        await fs.rm(path.join(projectRoot, 'test-temp'), { recursive: true, force: true })
+        await fs.rm(errorTempRoot, { recursive: true, force: true })
       } catch (error) {
         // 忽略清理错误
       }
@@ -197,8 +199,8 @@ export default x;
         compilerOptions: {
           target: 'ES2020',
           module: 'ESNext',
-          outDir: path.join(projectRoot, 'test-temp', 'dist'),
-          rootDir: path.join(projectRoot, 'test-temp', 'src'),
+          outDir: path.join(errorTempRoot, 'dist'),
+          rootDir: path.join(errorTempRoot, 'src'),
           strict: true,
           esModuleInterop: true,
           skipLibCheck: true
@@ -238,8 +240,8 @@ export default x;
         compilerOptions: {
           target: 'ES2020',
           module: 'ESNext',
-          outDir: path.join(projectRoot, 'test-temp', 'dist'),
-          rootDir: path.join(projectRoot, 'test-temp', 'src'),
+          outDir: path.join(errorTempRoot, 'dist'),
+          rootDir: path.join(errorTempRoot, 'src'),
           strict: true,
           esModuleInterop: true,
           skipLibCheck: true
@@ -272,8 +274,8 @@ export default x;
         compilerOptions: {
           target: 'ES2020',
           module: 'ESNext',
-          outDir: path.join(projectRoot, 'test-temp', 'dist'),
-          rootDir: path.join(projectRoot, 'test-temp', 'src'),
+          outDir: path.join(errorTempRoot, 'dist'),
+          rootDir: path.join(errorTempRoot, 'src'),
           strict: true,
           esModuleInterop: true,
           skipLibCheck: true

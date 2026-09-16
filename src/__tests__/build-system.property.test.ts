@@ -21,8 +21,8 @@ const execAsync = promisify(exec)
 // 获取项目根目录
 const projectRoot = path.resolve(__dirname, '../..')
 
-// 测试临时目录
-const testTempRoot = path.join(projectRoot, 'test-temp-pbt')
+// 测试临时目录（统一收在 test-temp/ 下）
+const testTempRoot = path.join(projectRoot, 'test-temp', 'pbt')
 
 /**
  * 清理测试临时目录

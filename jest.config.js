@@ -18,7 +18,7 @@ export default {
       statements: 70
     }
   },
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/test-support/setupTests.ts'],
   moduleNameMapper: {
     // 源码里使用 ESM 风格的带后缀导入（如 "./processors/constants.js"），
     // 而磁盘上是 .ts 文件，需要把 .js 后缀映射回无后缀交给 ts-jest 解析。

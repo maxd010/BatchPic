@@ -18,7 +18,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import sharp from 'sharp';
-import { removeDirWithRetry } from '../../test-utils/fsCleanup';
+import { removeDirWithRetry } from '../../test-support/fsCleanup';
 
 describe('SharpImageProcessor - Metadata Control', () => {
   let processor: SharpImageProcessor;

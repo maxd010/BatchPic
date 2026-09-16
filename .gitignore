@@ -8,9 +8,10 @@ coverage/
 *.swp
 *.swo
 
-# 测试运行产生的临时目录（pbt / webp / png-quality / script / review 等）
-/test-temp*
-/src/test-temp/
+# 测试运行产生的临时目录（统一收在 test-temp/ 下，见 test-temp/README.md）
+# 注意：排除子目录内容而非父目录本身，否则无法用 ! 重新纳入 README
+/test-temp/*
+!/test-temp/README.md
 
 # 工作区本地数据（项目记忆等）
 .workbuddy/

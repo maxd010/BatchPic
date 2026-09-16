@@ -130,7 +130,7 @@ describe('脚本系统单元测试', () => {
   })
 
   describe('脚本错误处理', () => {
-    const testTempRoot = path.join(projectRoot, 'test-temp-script')
+    const testTempRoot = path.join(projectRoot, 'test-temp', 'script')
 
     beforeEach(async () => {
       // 清理测试临时目录
