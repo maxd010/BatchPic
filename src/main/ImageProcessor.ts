@@ -66,11 +66,20 @@ export class SharpImageProcessor implements ImageProcessor {
       const outputDir = path.dirname(outputPath);
       await fs.mkdir(outputDir, { recursive: true });
 
-      // Start with sharp instance with performance options
+      // Start with sharp instance with performance options.
+      //
+      // `.rotate()` with no angle auto-orients the pixels from the EXIF
+      // Orientation tag and normalises the tag (to 1 when metadata is kept).
+      // It MUST run before resize: the resize modes below derive their target
+      // axis from width/height, and after auto-orientation those pixels match
+      // `input.dimensions`, so longEdge/shortEdge/aspectRatio pick the right
+      // axis. Without this the orientation tag is the only carrier of the
+      // rotation, and default metadata removal strips it, leaving portrait
+      // phone photos lying on their side with no way to recover.
       let pipeline = sharp(input.path, {
         failOnError: false,
         limitInputPixels: 268402689, // ~16k x 16k max
-      });
+      }).rotate();
 
       // Apply resize if specified
       if (params.resize) {

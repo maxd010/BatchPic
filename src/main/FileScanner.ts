@@ -3,6 +3,7 @@ import * as path from "path";
 import sharp from "sharp";
 import fileTypePkg from "file-type";
 import { FileScanner, ImageFile } from "./types.js";
+import { visualDimensions } from "./processors/exif.js";
 
 const { fromFile: fileTypeFromFile } = fileTypePkg;
 
@@ -109,15 +110,21 @@ export class FileScannerImpl implements FileScanner {
       // Calculate relative path
       const relativePath = path.relative(rootPath, filePath);
 
+      // `metadata` gives raw pixel dimensions, which are sideways for EXIF
+      // Orientation 5-8. Store the visual size instead: resize modes
+      // (longEdge / shortEdge / aspectRatio) read `dimensions` to decide which
+      // axis to constrain, and would otherwise constrain the wrong edge of
+      // every portrait phone photo.
       return {
         path: filePath,
         relativePath,
         format,
         size: stat.size,
-        dimensions: {
-          width: metadata.width,
-          height: metadata.height,
-        },
+        dimensions: visualDimensions(
+          metadata.width,
+          metadata.height,
+          metadata.orientation,
+        ),
         sourceRoot,
       };
     } catch (error) {

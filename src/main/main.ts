@@ -9,6 +9,7 @@ import { SharpImageProcessor } from "./ImageProcessor.js";
 import { TemplateManager } from "./TemplateManager.js";
 import { OutputManagerImpl } from "./OutputManager.js";
 import { ImageFile, ProcessingParams } from "./types.js";
+import { visualDimensions } from "./processors/exif.js";
 
 // ES 模块中获取 __dirname 的方式
 const __filename = fileURLToPath(import.meta.url);
@@ -228,7 +229,14 @@ ipcMain.handle(
         relativePath: path.basename(filePath),
         format: (metadata.format as "jpg" | "png" | "webp") || "jpg",
         size: (await fs.stat(filePath)).size,
-        dimensions: { width: metadata.width, height: metadata.height },
+        // Visual size, not raw pixel size: the estimate runs through the same
+        // processor as the real export, so a portrait phone photo must resolve
+        // its longEdge/shortEdge axis identically here.
+        dimensions: visualDimensions(
+          metadata.width,
+          metadata.height,
+          metadata.orientation,
+        ),
       };
 
       const result = await imageProcessor.process(

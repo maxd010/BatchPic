@@ -10,3 +10,5 @@ export {
   STORAGE_KEY,
   SETTINGS_VERSION,
 } from './constants';
+
+export { orientationSwapsAxes, visualDimensions } from './exif';
