@@ -60,6 +60,11 @@ export function ParameterPanel({
   const [outputFormat, setOutputFormat] = useState<
     "jpg" | "png" | "webp" | "original"
   >(params.format || "original");
+  // Off by default: a format conversion writes next to the original, where a
+  // same-name target may be a file the user created themselves (P0-2).
+  const [overwriteExisting, setOverwriteExisting] = useState<boolean>(
+    params.overwriteExisting ?? false,
+  );
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -85,6 +90,9 @@ export function ParameterPanel({
       }
 
       setOutputFormat(stored.outputFormat);
+      if (stored.overwriteExisting !== undefined) {
+        setOverwriteExisting(stored.overwriteExisting);
+      }
     }
   }, []);
 
@@ -112,6 +120,7 @@ export function ParameterPanel({
             removeMetadata: compressionMode === "smart" ? true : removeMetadata,
           },
     format: outputFormat === "original" ? undefined : outputFormat,
+    overwriteExisting,
   };
 
   const debouncedParams = useDebounce(currentParams, 300);
@@ -129,6 +138,7 @@ export function ParameterPanel({
   const debouncedTargetSize = useDebounce(targetSize, 500);
   const debouncedRemoveMetadata = useDebounce(removeMetadata, 500);
   const debouncedOutputFormat = useDebounce(outputFormat, 500);
+  const debouncedOverwriteExisting = useDebounce(overwriteExisting, 500);
 
   useEffect(() => {
     const settingsToSave: StoredProcessingSettings = {
@@ -150,6 +160,7 @@ export function ParameterPanel({
           : undefined,
       removeMetadata: debouncedRemoveMetadata,
       outputFormat: debouncedOutputFormat,
+      overwriteExisting: debouncedOverwriteExisting,
       version: "1.0",
     };
 
@@ -163,6 +174,7 @@ export function ParameterPanel({
     debouncedTargetSize,
     debouncedRemoveMetadata,
     debouncedOutputFormat,
+    debouncedOverwriteExisting,
   ]);
 
   const originalSize = inputFiles.length > 0 ? inputFiles[0].size : 0;
@@ -231,6 +243,23 @@ export function ParameterPanel({
                   {format === "webp" && "转为 WebP"}
                 </button>
               ))}
+
+              {outputFormat !== "original" && (
+                <div className="dropdown-extra">
+                  <label
+                    className="checkbox-label"
+                    title="换格式时结果写在原图所在目录。若该处已有同名文件（例如你自己的 logo.png），默认跳过并保留原文件；勾选后才覆盖它。"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={overwriteExisting}
+                      onChange={(e) => setOverwriteExisting(e.target.checked)}
+                      className="param-checkbox"
+                    />
+                    <span>允许覆盖同名文件</span>
+                  </label>
+                </div>
+              )}
             </div>
           )}
         </div>

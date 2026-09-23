@@ -189,6 +189,15 @@ function validateProcessingParams(params: any): void {
       );
     }
   }
+
+  // Optional overwrite flag validation
+  if (
+    params.overwriteExisting !== undefined &&
+    params.overwriteExisting !== null &&
+    typeof params.overwriteExisting !== "boolean"
+  ) {
+    throw new TypeError("params.overwriteExisting must be a boolean");
+  }
 }
 
 /**

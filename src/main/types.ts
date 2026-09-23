@@ -61,6 +61,7 @@ export interface StoredProcessingSettings {
 
   // Format settings
   outputFormat: "jpg" | "png" | "webp" | "original";
+  overwriteExisting?: boolean;
 
   version: string; // For future data migration
 }
@@ -69,6 +70,17 @@ export interface ProcessingParams {
   resize?: ResizeParams;
   compression?: CompressionParams;
   format?: "jpg" | "png" | "webp";
+  /**
+   * Whether an existing file at the resolved output path may be replaced.
+   *
+   * Defaults to false. A format conversion writes next to the original file, so
+   * a same-name target there can be a picture the user created themselves
+   * (converting photo.jpg to png lands on an existing photo.png). Skipping it
+   * and reporting the skip is the only non-destructive option when this is off.
+   * Our own "{folder}-processed" output folder is always overwritable, so
+   * re-running an export stays idempotent instead of piling up copies.
+   */
+  overwriteExisting?: boolean;
 }
 
 export interface ProcessedImage {

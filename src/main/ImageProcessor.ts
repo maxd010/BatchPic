@@ -168,6 +168,13 @@ export class SharpImageProcessor implements ImageProcessor {
     // Track individual image processing times
     const processingTimes: number[] = [];
 
+    // Output paths already claimed by this run, mapped to the input that
+    // claimed them. Two different inputs can resolve to the same target
+    // (dropping logo.jpg and logo.png while converting to webp both want
+    // logo.webp), and without this the second write would silently destroy the
+    // first one's result.
+    const claimedOutputs = new Map<string, string>();
+
     // Process images concurrently with limited concurrency
     const tasks = inputs.map((input, index) =>
       limit(async () => {
@@ -185,6 +192,34 @@ export class SharpImageProcessor implements ImageProcessor {
             outputRoot,
             outputFormat,
           );
+
+          // Refuse to silently replace a file we do not own (P0-2).
+          const blockedBy = await this.findExistingOutputBlocker(
+            input,
+            outputPath,
+            outputFormat,
+            params,
+            claimedOutputs,
+          );
+
+          if (blockedBy) {
+            const skipped: ProcessedImage = {
+              outputPath,
+              originalSize: input.size,
+              processedSize: 0,
+              success: false,
+              error: blockedBy,
+            };
+
+            processingTimes.push(Date.now() - imageStartTime);
+            failed.push(skipped);
+
+            if (onProgress) {
+              onProgress(index, inputs.length, skipped);
+            }
+
+            return skipped;
+          }
 
           // Process the image (Requirements 5.2)
           const result = await this.process(input, params, outputPath);
@@ -671,12 +706,13 @@ export class SharpImageProcessor implements ImageProcessor {
   /**
    * Get output path based on whether format conversion occurs.
    *
-   * Routing rules (decided with product):
+   * Routing rules:
    * - Different format (e.g. jpg -> png): write to the SAME directory as
    *   the original file, keeping the same base name and only changing the
    *   extension. The new file cannot collide with the original because the
-   *   extensions differ. If a same-name target already exists (e.g. an
-   *   earlier conversion), it is overwritten.
+   *   extensions differ, but a pre-existing same-name target there may be a
+   *   file the user created, so `findExistingOutputBlocker` decides whether
+   *   the write may proceed (P0-2).
    * - Same format (e.g. jpg -> jpg): write to the "-processed" folder to
    *   avoid overwriting the original. When the input was dropped as a
    *   folder, results go to that folder's own "{folderName}-processed"
@@ -711,5 +747,72 @@ export class SharpImageProcessor implements ImageProcessor {
     const baseName = path.basename(sourceRoot);
     const baseDir = path.dirname(sourceRoot);
     return path.join(baseDir, `${baseName}-processed`);
+  }
+
+  /**
+   * Decide whether writing to `outputPath` would silently replace a file this
+   * run does not own (P0-2).
+   *
+   * Only the format-conversion branch needs the pre-existing-file guard: it
+   * writes next to the original, where a same-name target can be a picture the
+   * user created themselves (converting photo.jpg to png lands on an existing
+   * photo.png). The "{folder}-processed" folder is ours, so overwriting our own
+   * earlier output there stays allowed and keeps re-exporting idempotent.
+   *
+   * @param claimedOutputs Maps a normalised output path to the input that
+   *        already claimed it, so two inputs racing for one target are caught.
+   * @returns the reason the write must be skipped, or null to proceed.
+   */
+  private async findExistingOutputBlocker(
+    input: ImageFile,
+    outputPath: string,
+    format: "jpg" | "png" | "webp",
+    params: ProcessingParams,
+    claimedOutputs: Map<string, string>,
+  ): Promise<string | null> {
+    const isFormatConversion = input.format !== format;
+
+    if (
+      isFormatConversion &&
+      !params.overwriteExisting &&
+      (await this.fileExists(outputPath))
+    ) {
+      return (
+        "目标文件已存在，已跳过并保留原文件" +
+        "（需要替换时请勾选「允许覆盖同名文件」）"
+      );
+    }
+
+    // Claim the target synchronously - there must be no await between reading
+    // and writing this map, otherwise two tasks could both see it unclaimed.
+    // An input that claims the same path twice (the user dropped one file
+    // twice) is fine: it would write byte-identical output.
+    const key = outputPath.toLowerCase(); // Windows and macOS are case-insensitive
+    const owner = claimedOutputs.get(key);
+
+    if (owner !== undefined && owner !== input.path) {
+      return (
+        `已有另一张图片导出到同一路径（源文件 ${path.basename(owner)}），` +
+        "已跳过以避免互相覆盖"
+      );
+    }
+
+    claimedOutputs.set(key, input.path);
+
+    return null;
+  }
+
+  /**
+   * Check whether a path already exists, treating any lookup failure (missing
+   * parent directory, permission error) as "not there" so the caller falls back
+   * to letting the write attempt report the real problem.
+   */
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

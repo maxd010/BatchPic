@@ -137,11 +137,18 @@ export class OutputManagerImpl implements OutputManager {
   /**
    * Calculate output file path based on whether format conversion occurs.
    *
-   * Routing rules (decided with product):
+   * NOT CALLED IN PRODUCTION. Paths actually written during a batch are
+   * resolved by `SharpImageProcessor.getOutputPath`, which is also where the
+   * "do not silently replace an existing file" guard lives (P0-2). This copy is
+   * kept only because OutputManager.test.ts still exercises it, so any change
+   * to the routing rule has to be applied in both places.
+   *
+   * Routing rules:
    * - Different format (e.g. jpg -> png): write to the SAME directory as the
    *   original file, keeping the same base name and only changing the
-   *   extension. Cannot collide with the original because extensions differ;
-   *   any pre-existing same-name target is overwritten.
+   *   extension. The extension differs, but a pre-existing same-name target
+   *   (say the user's own photo.png) can be sitting there, so the caller must
+   *   check before writing rather than overwrite blindly.
    * - Same format (e.g. jpg -> jpg): write to the "-processed" folder to
    *   avoid overwriting the original. When the file was dropped as a folder,
    *   results go to that folder's own "{folderName}-processed" directory;

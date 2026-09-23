@@ -37,6 +37,8 @@ export interface ProcessingParams {
   resize?: ResizeParams;
   compression?: CompressionParams;
   format?: 'jpg' | 'png' | 'webp';
+  /** Replace an existing file at the output path. Defaults to false. */
+  overwriteExisting?: boolean;
 }
 
 export interface ResizeParams {

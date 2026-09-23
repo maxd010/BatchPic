@@ -238,6 +238,13 @@ export function isValidProcessingSettings(data: any): data is StoredProcessingSe
     return false;
   }
 
+  // 验证 overwriteExisting（可选）
+  // 旧版本数据没有这个字段，undefined 必须视为合法，否则升级后会整份回退默认值。
+  if (data.overwriteExisting !== undefined &&
+      typeof data.overwriteExisting !== 'boolean') {
+    return false;
+  }
+
   // 验证 version
   if (typeof data.version !== 'string') {
     return false;
