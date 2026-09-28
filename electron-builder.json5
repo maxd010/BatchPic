@@ -86,12 +86,15 @@
     ],
     // 应用图标路径
     icon: "build/icons/icon.ico",
-    // 产物命名模式
+    // 产物命名模式 (仅作兜底；nsis / portable 各自有更具体的命名，见下)
     artifactName: "${productName}-${version}-${os}-${arch}.${ext}"
   },
   
   // NSIS 安装器配置
   nsis: {
+    // 安装器产物命名 (必须与 portable 区分：两者曾用同一模式，
+    // 后构建的 portable 会把先构建的安装包直接覆盖掉)
+    artifactName: "${productName}-${version}-${os}-${arch}-setup.${ext}",
     // 一键安装 (false 表示显示安装向导)
     oneClick: false,
     // 为所有用户安装 (需要管理员权限)
@@ -102,5 +105,11 @@
     createDesktopShortcut: true,
     // 创建开始菜单快捷方式
     createStartMenuShortcut: true
+  },
+  
+  // 便携版配置
+  portable: {
+    // 便携版产物命名 (与上面的安装器区分开，否则两者会互相覆盖)
+    artifactName: "${productName}-${version}-${os}-${arch}-portable.${ext}"
   }
 }
