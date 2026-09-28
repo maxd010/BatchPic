@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# BatchPic 图标生成脚本
-# 从 SVG 源文件生成 macOS (.icns) 和 Windows (.ico) 图标
+# BatchPic 图标生成脚本 (macOS / ImageMagick 路径 —— 已不推荐)
+#
+# ⚠️ 首选同目录的 generate-icons.mjs：它只用项目已有的 sharp 依赖、跨平台，
+#    且能在 Windows 上生成 .icns。本脚本需要 ImageMagick，且 .icns 只能在 macOS 上生成。
+#
+# 从 PNG 源文件生成 macOS (.icns) 和 Windows (.ico) 图标
 
 set -e
 
@@ -41,7 +45,7 @@ generate_png() {
     local output=$2
     
     echo "  生成 ${size}x${size} PNG..."
-    convert icon-source.svg -resize ${size}x${size} -background none "$output"
+    convert icon-source.png -resize ${size}x${size} -background none "$output"
 }
 
 # 生成 macOS .icns 文件
@@ -86,7 +90,7 @@ generate_ico() {
     echo "🪟 生成 Windows 图标 (icon.ico)..."
     
     # 使用 ImageMagick 生成包含多个尺寸的 .ico 文件
-    convert icon-source.svg \
+    convert icon-source.png \
         -resize 256x256 \
         -define icon:auto-resize=256,128,64,48,32,16 \
         icon.ico
@@ -117,8 +121,8 @@ verify_icons() {
 # 主流程
 main() {
     # 检查源文件
-    if [ ! -f "icon-source.svg" ]; then
-        echo "❌ 错误: 找不到 icon-source.svg"
+    if [ ! -f "icon-source.png" ]; then
+        echo "❌ 错误: 找不到 icon-source.png"
         echo "   请确保在 build/icons/ 目录下运行此脚本"
         exit 1
     fi

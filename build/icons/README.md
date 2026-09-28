@@ -4,9 +4,12 @@
 
 ## 文件说明
 
-- `icon-source.svg` - 图标源文件 (SVG 格式)
-- `icon.icns` - macOS 应用图标 (需要生成)
-- `icon.ico` - Windows 应用图标 (需要生成)
+- `icon-source.png` - **图标主源文件**（1024x1024、带 alpha 的 PNG）。换图标只需替换它再重新生成。
+- `generate-icons.mjs` - **推荐的生成脚本**（跨平台，只用项目已有的 `sharp` 依赖）
+- `icon.icns` - macOS 应用图标（**生成产物，勿手改**）
+- `icon.ico` - Windows 应用图标（**生成产物，勿手改**）
+- `generate-icons.sh` - 旧的生成脚本（需 ImageMagick，且 .icns 只能在 macOS 上生成；已不推荐）
+- `icon-source.svg` - 早期占位符图标的 SVG 源（**已废弃**，生成脚本不再读它）
 
 ## 图标规格要求
 
@@ -31,7 +34,21 @@
 
 ## 生成图标文件
 
-### 方法 1: 使用在线工具 (推荐)
+### 方法 0: 用仓库自带脚本 (推荐)
+
+```bash
+node build/icons/generate-icons.mjs
+```
+
+只用项目已有的 `sharp` 依赖 —— **不需要 ImageMagick，跨平台，Windows 上也能生成 .icns**。
+
+产物存法与历史文件保持一致，改动前请先明白为什么：
+
+- `icon.ico`：256 用 PNG 存，128/64/48/32/16 用 DIB（BITMAPINFOHEADER + BGRA + AND 掩码）存。
+  256 也用 DIB 会让文件暴涨；小尺寸用 PNG 则在老工具里兼容性差。
+- `icon.icns`：16/32/64/128/256/512/1024 全部用 PNG 块（`icp4`/`icp5`/`ic07`~`ic10` 及 @2x 别名）。
+
+### 方法 1: 使用在线工具
 
 **生成 .icns (macOS)**
 1. 访问 https://cloudconvert.com/png-to-icns
@@ -101,15 +118,11 @@ electron-icon-builder --input=./icon.png --output=./
 rm icon.png
 ```
 
-## 占位符图标
+## 关于旧的占位符 SVG
 
-当前目录包含一个基本的占位符 SVG 图标 (`icon-source.svg`)。在正式发布前,请替换为您的正式应用图标。
-
-占位符图标设计:
-- 紫色背景 (#4F46E5)
-- 白色图片框架
-- 山峰和太阳图案
-- 底部三个点表示"批量"处理
+`icon-source.svg` 是最初的占位符图标（紫色背景 #4F46E5、白色图片框架、山峰与太阳、
+底部三个点表示「批量」）。**已由 `icon-source.png` 取代**，保留仅作历史记录 ——
+`generate-icons.mjs` 与 `generate-icons.sh` 现在都读 PNG，不会再用到它。
 
 ## 设计建议
 
