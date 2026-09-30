@@ -22,6 +22,38 @@ export interface ElectronAPI {
   // Preview window APIs
   openPreviewWindow: (data: { originalPath: string; outputPath?: string; filename: string }) => Promise<void>;
   getPreviewData: () => Promise<{ originalPath: string; outputPath?: string; filename: string } | null>;
+
+  // Folder automation (watch folder)
+  openDirectoryDialog: () => Promise<string | null>;
+  startFolderWatch: (config: FolderWatchConfig) => Promise<FolderWatchStatus>;
+  stopFolderWatch: () => Promise<FolderWatchStatus>;
+  getFolderWatchStatus: () => Promise<FolderWatchStatus>;
+  onFolderWatchEvent: (callback: (event: FolderWatchEvent) => void) => () => void;
+  onFolderWatchError: (callback: (payload: { message: string }) => void) => () => void;
+}
+
+/** Configuration handed to the main process when starting a watch. */
+export interface FolderWatchConfig {
+  watchPath: string;
+  outputPath: string;
+  params: ProcessingParams;
+}
+
+export interface FolderWatchStatus {
+  isWatching: boolean;
+  watchPath: string | null;
+  outputPath: string | null;
+}
+
+/** One processed-file notification emitted while watching. */
+export interface FolderWatchEvent {
+  sourceFile: string;
+  outputFile?: string;
+  outputSize?: number;
+  originalSize?: number;
+  success: boolean;
+  error?: string;
+  timestamp: string;
 }
 
 export interface ImageFile {

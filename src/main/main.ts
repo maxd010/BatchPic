@@ -8,6 +8,13 @@ import { FileScannerImpl } from "./FileScanner.js";
 import { SharpImageProcessor } from "./ImageProcessor.js";
 import { TemplateManager } from "./TemplateManager.js";
 import { OutputManagerImpl } from "./OutputManager.js";
+import {
+  FolderWatcher,
+  FOLDER_WATCH_EVENT,
+  FOLDER_WATCH_ERROR_EVENT,
+  type FolderWatchConfig,
+  type FolderWatchEvent,
+} from "./FolderWatcher.js";
 import { ImageFile, ProcessingParams } from "./types.js";
 import { visualDimensions } from "./processors/exif.js";
 
@@ -109,6 +116,24 @@ const fileScanner = new FileScannerImpl();
 const imageProcessor = new SharpImageProcessor();
 const templateManager = new TemplateManager();
 const outputManager = new OutputManagerImpl();
+
+// Folder automation: watch a directory and process images as they arrive.
+const folderWatcher = new FolderWatcher(imageProcessor);
+
+folderWatcher.on(FOLDER_WATCH_EVENT, (payload: FolderWatchEvent) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("folder-watch-event", payload);
+  }
+});
+
+folderWatcher.on(FOLDER_WATCH_ERROR_EVENT, (error: unknown) => {
+  console.error("[main.ts] Folder watcher error:", error);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("folder-watch-error", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
 
 // IPC Handlers
 
@@ -329,3 +354,50 @@ ipcMain.handle(
     }
   },
 );
+
+// Folder automation APIs
+
+// Pick a directory (shared by the watched folder and the output folder pickers)
+ipcMain.handle("open-directory-dialog", async () => {
+  try {
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ["openDirectory", "createDirectory"],
+    });
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths[0];
+    }
+    return null;
+  } catch (error) {
+    console.error("Error opening directory dialog:", error);
+    throw error;
+  }
+});
+
+// Start watching a folder for newly added images
+ipcMain.handle(
+  "start-folder-watch",
+  async (_event, config: FolderWatchConfig) => {
+    try {
+      return await folderWatcher.start(config);
+    } catch (error) {
+      console.error("Failed to start folder watcher:", error);
+      throw error;
+    }
+  },
+);
+
+// Stop watching
+ipcMain.handle("stop-folder-watch", async () => {
+  try {
+    folderWatcher.stop();
+    return folderWatcher.getStatus();
+  } catch (error) {
+    console.error("Failed to stop folder watcher:", error);
+    throw error;
+  }
+});
+
+// Current watcher status (lets the UI re-sync after a window reload)
+ipcMain.handle("get-folder-watch-status", async () => {
+  return folderWatcher.getStatus();
+});

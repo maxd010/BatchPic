@@ -209,6 +209,16 @@ function validateCallback(callback: any, fieldName: string): void {
   }
 }
 
+/**
+ * Validates a folder watch configuration
+ */
+function validateFolderWatchConfig(config: any): void {
+  validateObject(config, "config");
+  validateString(config.watchPath, "config.watchPath");
+  validateString(config.outputPath, "config.outputPath");
+  validateProcessingParams(config.params);
+}
+
 // ============================================================================
 // Exposed API with Parameter Validation
 // ============================================================================
@@ -325,6 +335,32 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Fetch preview data (called by preview window on mount)
   getPreviewData: () => ipcRenderer.invoke("get-preview-data"),
+
+  // Folder automation (watch folder)
+  openDirectoryDialog: () => ipcRenderer.invoke("open-directory-dialog"),
+
+  startFolderWatch: (config: any) => {
+    validateFolderWatchConfig(config);
+    return ipcRenderer.invoke("start-folder-watch", config);
+  },
+
+  stopFolderWatch: () => ipcRenderer.invoke("stop-folder-watch"),
+
+  getFolderWatchStatus: () => ipcRenderer.invoke("get-folder-watch-status"),
+
+  onFolderWatchEvent: (callback: (event: any) => void) => {
+    validateCallback(callback, "callback");
+    const listener = (_event: any, payload: any) => callback(payload);
+    ipcRenderer.on("folder-watch-event", listener);
+    return () => ipcRenderer.removeListener("folder-watch-event", listener);
+  },
+
+  onFolderWatchError: (callback: (payload: { message: string }) => void) => {
+    validateCallback(callback, "callback");
+    const listener = (_event: any, payload: any) => callback(payload);
+    ipcRenderer.on("folder-watch-error", listener);
+    return () => ipcRenderer.removeListener("folder-watch-error", listener);
+  },
 });
 
 // Startup debug log removed to reduce unnecessary initialization overhead.

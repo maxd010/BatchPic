@@ -7,8 +7,32 @@ import { FullScreenPreview } from "./FullScreenPreview";
 import { NotificationContainer } from "./NotificationContainer";
 import { ErrorReportDialog } from "./ErrorReportDialog";
 import { ProgressPanel } from "./ProgressPanel";
+import { FolderWatchPanel } from "./FolderWatchPanel";
+import { FolderOpenIcon } from "./Icons";
 
 import "./MainWindow.css";
+
+/**
+ * Resolve the folder that actually received this batch's output.
+ *
+ * The main process's `createOutputDirectory` only reports the common parent of
+ * the source roots, but the real destination is decided per file: a format
+ * change is written beside the original, while a same-format run goes into
+ * "{folderName}-processed". Taking it from the first successful result is exact
+ * for the common case and far closer than the common parent (P0-3).
+ */
+function resolveOutputDirectory(result: {
+  successful?: Array<{ outputPath?: string }>;
+}): string | null {
+  const first = result.successful?.find((item) => item.outputPath);
+  if (!first?.outputPath) return null;
+
+  const separator = Math.max(
+    first.outputPath.lastIndexOf("/"),
+    first.outputPath.lastIndexOf("\\"),
+  );
+  return separator > 0 ? first.outputPath.slice(0, separator) : null;
+}
 
 /**
  * MainWindow - Single-page application root component
@@ -51,6 +75,11 @@ export function MainWindow() {
   } | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showFolderWatch, setShowFolderWatch] = useState(false);
+  // JSON snapshot of the params used by the most recent run, so the export
+  // button can tell "already exported with these settings" apart from
+  // "settings changed, needs a re-export" (P0-4).
+  const [exportedParams, setExportedParams] = useState<string | null>(null);
 
   // Listen for progress updates from main process (Requirement 9.5)
   useEffect(() => {
@@ -105,6 +134,13 @@ export function MainWindow() {
 
         // Update final result (Requirement 5.5)
         setResult(results);
+        setExportedParams(JSON.stringify(state.processingParams));
+
+        // Point "open output folder" at where the files actually landed (P0-3)
+        const actualOutputDir = resolveOutputDirectory(results);
+        if (actualOutputDir) {
+          setOutputDirectory(actualOutputDir);
+        }
 
         // Show completion notification (Requirements 7.1, 7.2)
         const successCount = results.successful.length;
@@ -266,6 +302,13 @@ export function MainWindow() {
       // Update state with result (Requirement 10.3)
       setResult(results);
       setProgress(100);
+      setExportedParams(JSON.stringify(state.processingParams));
+
+      // Point "open output folder" at where the files actually landed (P0-3)
+      const actualOutputDir = resolveOutputDirectory(results);
+      if (actualOutputDir) {
+        setOutputDirectory(actualOutputDir);
+      }
 
       // Show error report dialog if there are failures (Requirement 10.4)
       if (results.failed.length > 0) {
@@ -359,6 +402,24 @@ export function MainWindow() {
     return state.inputFiles.length > 0;
   }, [state.inputFiles.length]);
 
+  // The parameters changed since the last run, so what is on disk no longer
+  // matches the current settings and a re-export is meaningful.
+  const needsReExport = useMemo(() => {
+    if (!state.result || exportedParams === null) return false;
+    return exportedParams !== JSON.stringify(state.processingParams);
+  }, [state.result, exportedParams, state.processingParams]);
+
+  // Export button policy (P0-4):
+  // - automatic mode: hidden by default, shown only when a re-export is needed.
+  //   Previously it appeared only before the first run and then disappeared for
+  //   the rest of the session, so changing parameters left no way to re-export.
+  // - manual mode: always shown, since nothing else can start a run.
+  const showExportButton = useMemo(() => {
+    if (!hasFiles || state.isProcessing) return false;
+    if (!state.autoProcessOnDrop) return true;
+    return needsReExport;
+  }, [hasFiles, state.isProcessing, state.autoProcessOnDrop, needsReExport]);
+
   // Calculate workspace class name
   const workspaceDropzoneClass = useMemo(() => {
     return `workspace-dropzone ${hasFiles ? "compact-container" : ""}`;
@@ -414,6 +475,14 @@ export function MainWindow() {
         />
       )}
 
+      {/* Folder automation (watch folder) modal */}
+      {showFolderWatch && (
+        <FolderWatchPanel
+          params={state.processingParams}
+          onClose={() => setShowFolderWatch(false)}
+        />
+      )}
+
       {/* Top Header with App Title */}
       <header className="app-header">
         <div className="app-title">
@@ -433,6 +502,16 @@ export function MainWindow() {
             <span className="toggle-text">自动处理</span>
           </label>
         </div> */}
+
+        {/* Folder automation entry point */}
+        <button
+          className="app-header-action"
+          onClick={() => setShowFolderWatch(true)}
+          title="文件夹监听"
+          aria-label="文件夹监听"
+        >
+          <FolderOpenIcon className="icon" />
+        </button>
       </header>
 
       {/* Main content area */}
@@ -467,8 +546,9 @@ export function MainWindow() {
           </div>
         </section>
 
-        {/* Export Actions — only show when button should be visible */}
-        {hasFiles && !(state.autoProcessOnDrop && state.result) && (
+        {/* Export Actions — hidden by default; appears once results exist and
+            the parameters have changed since, i.e. a re-export is needed (P0-4). */}
+        {showExportButton && (
           <div className="bottom-actions">
             {/* Export button and results */}
             <div className="export-section">
@@ -477,7 +557,11 @@ export function MainWindow() {
                 onClick={handleExport}
                 disabled={isExportDisabled}
               >
-                {state.isProcessing ? "处理中..." : "开始导出图片"}
+                {state.isProcessing
+                  ? "处理中..."
+                  : needsReExport
+                    ? "重新导出图片"
+                    : "开始导出图片"}
               </button>
             </div>
           </div>

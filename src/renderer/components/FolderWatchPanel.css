@@ -1,0 +1,435 @@
+/* FolderWatchPanel — watch folder configuration modal */
+
+.folder-watch-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3200;
+  animation: folderWatchFadeIn 160ms ease-out;
+}
+
+@keyframes folderWatchFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.folder-watch-modal {
+  width: 92vw;
+  max-width: 520px;
+  height: 88vh;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: folderWatchScale 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes folderWatchScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Icons are sized by the consumer, not the shared default. */
+.folder-watch-modal .icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ---------- header ---------- */
+
+.folder-watch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.folder-watch-heading h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.folder-watch-heading p {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.folder-watch-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.folder-watch-close:hover {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+/* ---------- body ---------- */
+
+.folder-watch-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.folder-watch-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.folder-watch-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ---------- path pickers ---------- */
+
+.folder-watch-path {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.folder-watch-path:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-background);
+}
+
+.folder-watch-path:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.folder-watch-path-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.folder-watch-path-icon.is-watch {
+  color: var(--color-primary);
+}
+
+.folder-watch-path-icon.is-output {
+  color: var(--color-success);
+}
+
+.folder-watch-path-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.folder-watch-path-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.folder-watch-path-value {
+  font-size: 12px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- parameter summary ---------- */
+
+.folder-watch-params {
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--color-background);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.folder-watch-params li {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.folder-watch-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* ---------- controls ---------- */
+
+.folder-watch-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.folder-watch-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  min-width: 0;
+}
+
+.folder-watch-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.folder-watch-dot.is-live {
+  background: var(--color-success);
+  animation: folderWatchPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes folderWatchPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.35);
+  }
+}
+
+.folder-watch-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+.folder-watch-toggle:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.folder-watch-toggle:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.folder-watch-toggle:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.folder-watch-toggle.is-stop {
+  background: var(--color-error);
+}
+
+.folder-watch-toggle.is-stop:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+/* ---------- error ---------- */
+
+.folder-watch-error {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ---------- activity stream ---------- */
+
+.folder-watch-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 12px;
+}
+
+.folder-watch-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.folder-watch-log-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.folder-watch-log-clear {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+}
+
+.folder-watch-log-clear:hover {
+  color: var(--color-error);
+  background: #fef2f2;
+}
+
+.folder-watch-log-clear .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.folder-watch-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 90px;
+}
+
+.folder-watch-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 22px 12px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.folder-watch-empty .icon {
+  width: 20px;
+  height: 20px;
+  opacity: 0.55;
+}
+
+.folder-watch-log-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.folder-watch-log-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.folder-watch-log-icon.is-success {
+  color: var(--color-success);
+}
+
+.folder-watch-log-icon.is-failure {
+  color: var(--color-error);
+}
+
+.folder-watch-log-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.folder-watch-log-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-watch-log-meta {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

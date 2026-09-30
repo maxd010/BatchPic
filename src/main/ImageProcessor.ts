@@ -11,6 +11,7 @@ import {
   ImageProgressCallback,
 } from "./types.js";
 import { SMART_COMPRESSION_MAP } from "./processors/constants.js";
+import { claimOutputPath } from "./outputGuard.js";
 
 let pLimit: any;
 
@@ -759,6 +760,9 @@ export class SharpImageProcessor implements ImageProcessor {
    * photo.png). The "{folder}-processed" folder is ours, so overwriting our own
    * earlier output there stays allowed and keeps re-exporting idempotent.
    *
+   * The "two inputs racing for one target" half is delegated to
+   * `claimOutputPath` in `outputGuard.ts`, shared with FolderWatcher.
+   *
    * @param claimedOutputs Maps a normalised output path to the input that
    *        already claimed it, so two inputs racing for one target are caught.
    * @returns the reason the write must be skipped, or null to proceed.
@@ -783,23 +787,9 @@ export class SharpImageProcessor implements ImageProcessor {
       );
     }
 
-    // Claim the target synchronously - there must be no await between reading
-    // and writing this map, otherwise two tasks could both see it unclaimed.
-    // An input that claims the same path twice (the user dropped one file
-    // twice) is fine: it would write byte-identical output.
-    const key = outputPath.toLowerCase(); // Windows and macOS are case-insensitive
-    const owner = claimedOutputs.get(key);
-
-    if (owner !== undefined && owner !== input.path) {
-      return (
-        `已有另一张图片导出到同一路径（源文件 ${path.basename(owner)}），` +
-        "已跳过以避免互相覆盖"
-      );
-    }
-
-    claimedOutputs.set(key, input.path);
-
-    return null;
+    // Racing inputs are handled by the shared guard (`outputGuard.ts`), which
+    // FolderWatcher uses too so the manual and watch paths cannot diverge.
+    return claimOutputPath(outputPath, input.path, claimedOutputs);
   }
 
   /**

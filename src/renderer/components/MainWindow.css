@@ -101,6 +101,33 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Watch-folder trigger, anchored to the right edge of the dark header */
+.app-header-action {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.app-header-action:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.app-header-action .icon {
+  width: 16px;
+  height: 16px;
+}
+
 .bottom-parameter-panel {
   flex-shrink: 0;
   background: var(--color-surface);
