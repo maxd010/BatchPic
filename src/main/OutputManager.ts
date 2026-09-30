@@ -60,10 +60,20 @@ export class OutputManagerImpl implements OutputManager {
   }
 
   /**
-   * Create or reuse the output directories for the given input paths.
-   * When the inputs are one or more folders, each folder gets its own
-   * "{folderName}-processed" sibling directory so results stay separated.
-   * Returns the common parent directory so the UI can reveal all outputs.
+   * Resolve a directory that contains this batch's outputs, without creating
+   * anything on disk.
+   *
+   * Each distinct source folder maps to a sibling "{folderName}-processed"
+   * directory, but that directory is only materialised later by the writer —
+   * and only if a same-format run actually needs it. Format conversions write
+   * next to the original file and need no extra folder at all.
+   *
+   * Since those two rules can land files in different places, this returns the
+   * common parent of the source roots: a stable location guaranteed to contain
+   * every possible output. **It is not necessarily the folder the files end up
+   * in.** It serves as a placeholder before a run; once results exist the
+   * renderer prefers the real destination derived from each result's
+   * `outputPath` (see `resolveOutputDirectory` in MainWindow.tsx).
    */
   async createOutputDirectory(inputPaths: string[]): Promise<string> {
     if (inputPaths.length === 0) {
@@ -81,20 +91,29 @@ export class OutputManagerImpl implements OutputManager {
       }
     }
 
-    // Create a dedicated output directory for each distinct source folder.
+    // Validate the candidate output directories, but deliberately do NOT
+    // create them here.
+    //
+    // Which directory actually receives files is decided per file by
+    // `SharpImageProcessor.getOutputPath`: a format change writes next to the
+    // original file, and only a same-format run writes into
+    // "{folderName}-processed". Creating that folder up-front therefore left an
+    // empty, unused "-processed" folder beside the source folder whenever the
+    // batch was a plain format conversion. `processImage` already calls
+    // `fs.mkdir(path.dirname(outputPath), { recursive: true })` immediately
+    // before writing, so the folder now appears only when it is really used.
     for (const sourceRoot of sourceRoots) {
       const outputPath = this.getOutputDirectoryForSource(sourceRoot);
 
       // Security check: Validate output directory is within user home
       this.validateOutputDirectorySafety(outputPath);
 
-      // Create the directory
-      await fs.mkdir(outputPath, { recursive: true });
-
-      // Verify write permissions
+      // Verify the parent directory is writable. The parent always exists (it
+      // holds the source folder), whereas `outputPath` is created lazily.
+      const parentDir = path.dirname(outputPath);
       try {
-        await fs.access(outputPath, fs.constants.W_OK);
-      } catch (error) {
+        await fs.access(parentDir, fs.constants.W_OK);
+      } catch {
         throw new Error(
           `Security: No write permission for output directory: ${outputPath}`,
         );

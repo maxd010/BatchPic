@@ -24,64 +24,51 @@ describe('OutputManager', () => {
   });
 
   describe('createOutputDirectory', () => {
-    it('should create output directory with timestamp for single file', async () => {
-      // Create a test file
+    it('should return the common parent of the source roots', async () => {
       const testFile = path.join(tempDir, 'test.jpg');
       await fs.writeFile(testFile, 'test');
 
       const outputPath = await outputManager.createOutputDirectory([testFile]);
 
-      // Verify directory was created
-      const stats = await fs.stat(outputPath);
-      expect(stats.isDirectory()).toBe(true);
-
-      // Verify naming format: {baseName}-processed-{timestamp}
-      const dirName = path.basename(outputPath);
-      expect(dirName).toMatch(/^.+-processed-\d{8}-\d{6}$/);
+      // A single file's source root is its containing folder, so the common
+      // parent resolves one level above it.
+      expect(path.resolve(outputPath)).toBe(path.resolve(path.dirname(tempDir)));
     });
 
-    it('should create output directory with timestamp for folder', async () => {
-      // Create a test folder
+    it('should return the parent directory for a folder', async () => {
       const testFolder = path.join(tempDir, 'photos');
       await fs.mkdir(testFolder);
 
       const outputPath = await outputManager.createOutputDirectory([testFolder]);
 
-      // Verify directory was created
-      const stats = await fs.stat(outputPath);
-      expect(stats.isDirectory()).toBe(true);
-
-      // Verify naming includes folder name
-      const dirName = path.basename(outputPath);
-      expect(dirName).toMatch(/^photos-processed-\d{8}-\d{6}$/);
+      expect(path.resolve(outputPath)).toBe(path.resolve(tempDir));
     });
 
-    it('should create output directory in same parent as input', async () => {
+    it('should NOT pre-create a "{folder}-processed" directory', async () => {
+      // Regression guard: a plain format-conversion batch writes next to the
+      // original file, so pre-creating "{folder}-processed" used to leave an
+      // empty, unused folder beside the source folder. It must be created
+      // lazily by the writer, and only when a same-format run writes into it.
       const testFolder = path.join(tempDir, 'photos');
       await fs.mkdir(testFolder);
 
-      const outputPath = await outputManager.createOutputDirectory([testFolder]);
+      await outputManager.createOutputDirectory([testFolder]);
 
-      // Verify output is in same parent directory
-      expect(path.dirname(outputPath)).toBe(tempDir);
+      await expect(fs.readdir(tempDir)).resolves.toEqual(['photos']);
     });
 
     it('should throw error for empty input paths', async () => {
       await expect(outputManager.createOutputDirectory([])).rejects.toThrow('No input paths provided');
     });
 
-    it('should create unique directories for multiple calls', async () => {
-      const testFile = path.join(tempDir, 'test.jpg');
-      await fs.writeFile(testFile, 'test');
+    it('should be idempotent across repeated calls', async () => {
+      const testFolder = path.join(tempDir, 'photos');
+      await fs.mkdir(testFolder);
 
-      const outputPath1 = await outputManager.createOutputDirectory([testFile]);
-      
-      // Wait a moment to ensure different timestamp
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const outputPath2 = await outputManager.createOutputDirectory([testFile]);
+      const outputPath1 = await outputManager.createOutputDirectory([testFolder]);
+      const outputPath2 = await outputManager.createOutputDirectory([testFolder]);
 
-      expect(outputPath1).not.toBe(outputPath2);
+      expect(outputPath1).toBe(outputPath2);
     });
 
     // Security tests for Requirement 6.2 and 11.3
