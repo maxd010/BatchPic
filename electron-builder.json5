@@ -29,6 +29,10 @@
     "node_modules/@img/**/*"
   ],
   
+  // 只保留英文与简体中文的 Electron 语言包，其余 53 个在打包时剔除（约 -34 MB）。
+  // 该字段对 Windows 的 locales/*.pak 与 macOS 的 *.lproj 均生效，由 electron-builder 原生处理。
+  electronLanguages: ["en-US", "zh-CN"],
+
   // 排除不需要打包的文件
   extraMetadata: {
     main: "dist/main/main.js"
