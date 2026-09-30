@@ -13,7 +13,7 @@
  *   - 同一次运行内两个不同输入争抢同一目标路径 → 后者跳过并点名占用者。
  *     这一条与开关无关：用户开的是「覆盖既有文件」，不是「允许自己的两件产物互相覆盖」。
  *
- * 取证：`test-temp/review/p0-2-*.txt`、`docs/代码评审报告-2026-09-23.md` §2 / §7
+ * 取证：`test-temp/review/p0-2-*.txt`
  */
 
 import * as fs from 'fs/promises';
@@ -26,7 +26,7 @@ import { removeDirWithRetry } from '../../test-support/fsCleanup';
 
 // `processBatch` 用 `await import("p-limit")` 做并发限流，而本环境里 p-limit@7 是
 // 纯 ESM，jest 的运行时吃不下它（`SyntaxError: Cannot use import statement outside a
-// module`，即评审报告 §2 的 N6），于是 processBatch 一进来就抛。
+// module`），于是 processBatch 一进来就抛。
 // 这里把限流器换成直通实现：本套件验证的是输出路径冲突判定，不是并发调度；直通不
 // 影响断言有效性 —— 每个任务在第一次 await 之前同步认领目标路径，顺序仍等于输入顺序。
 // 该 require 发生在 processBatch 运行期（不是模块加载期），所以不依赖 jest.mock 提升。

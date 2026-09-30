@@ -29,7 +29,9 @@
 - `jest-report-latest.json` — Jest `--json` 输出的完整报告
 - `isolated-*.json / isolated-summary*.txt` — 单个测试套件隔离重跑的取证记录（用于判定失败是否为环境抖动）
 
-评审报告正文见 `docs/代码评审报告-2026-09-15.md`。
+评审报告（2026-09-15 / 2026-09-23 两份）已移出仓库，需要原文时从 git 历史取回：
+`git log --diff-filter=D --oneline -- docs/` 找到删除提交，再 `git show <提交>^:<路径>`。
+本目录下的取证材料不受影响。
 
 ## 清理
 
