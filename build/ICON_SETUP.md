@@ -15,7 +15,6 @@ build/
     ├── generate-icons.sh   # 生成脚本 (旧, 需 ImageMagick + macOS)
     ├── icon.icns           # macOS 应用图标 (生成产物)
     ├── icon.ico            # Windows 应用图标 (生成产物)
-    ├── icon-source.svg     # 早期占位符图标的 SVG 源 (已废弃)
     └── README.md           # 详细使用文档
 ```
 
@@ -23,13 +22,13 @@ build/
 
 **macOS 图标 (icon.icns)**
 - 格式: Apple Icon Image (.icns)
-- 大小: 约 1087KB
+- 大小: 约 2400KB
 - 包含尺寸: 16x16, 32x32, 64x64, 128x128, 256x256, 512x512, 1024x1024
 - 状态: ✅ 已生成并验证
 
 **Windows 图标 (icon.ico)**
 - 格式: Windows Icon (.ico)
-- 大小: 约 144KB
+- 大小: 约 203KB
 - 包含尺寸: 16x16, 32x32, 48x48, 64x64, 128x128, 256x256（256 用 PNG 存，其余用 DIB）
 - 状态: ✅ 已生成并验证
 
@@ -47,12 +46,6 @@ win: {
   // ...
 }
 ```
-
-## 关于旧的占位符图标
-
-目录里还留着一份最初的占位符图标 `icon-source.svg`（紫色背景 #4F46E5、白色图片框架、
-山峰与太阳、底部三个点表示「批量」）。**已由 `icon-source.png` 取代**，保留仅作历史记录，
-生成脚本已改为读 PNG。
 
 ## 后续步骤
 
@@ -125,6 +118,6 @@ npm run package:win
 ---
 
 **创建时间**: 2024-03-07  
-**最后更新**: 2026-09-28（图标源由 `icon-source.svg` 换成 `icon-source.png`，重出 ico/icns）  
+**最后更新**: 2026-09-30（重出图标；移除已废弃的 `icon-source.svg` 与相关说明）  
 **任务编号**: 2.4  
 **状态**: ✅ 完成

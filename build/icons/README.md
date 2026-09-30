@@ -9,7 +9,6 @@
 - `icon.icns` - macOS 应用图标（**生成产物，勿手改**）
 - `icon.ico` - Windows 应用图标（**生成产物，勿手改**）
 - `generate-icons.sh` - 旧的生成脚本（需 ImageMagick，且 .icns 只能在 macOS 上生成；已不推荐）
-- `icon-source.svg` - 早期占位符图标的 SVG 源（**已废弃**，生成脚本不再读它）
 
 ## 图标规格要求
 
@@ -70,8 +69,8 @@ node build/icons/generate-icons.mjs
 # 1. 安装 ImageMagick (如果未安装)
 brew install imagemagick
 
-# 2. 从 SVG 生成 PNG
-convert icon-source.svg -resize 1024x1024 icon-1024.png
+# 2. 用主源 PNG 准备 1024x1024（icon-source.png 本身即是这个尺寸）
+convert icon-source.png -resize 1024x1024 icon-1024.png
 
 # 3. 创建 iconset 目录
 mkdir icon.iconset
@@ -99,7 +98,7 @@ rm -rf icon.iconset icon-1024.png
 
 ```bash
 # 使用 ImageMagick
-convert icon-source.svg -resize 256x256 -define icon:auto-resize=256,128,64,48,32,16 icon.ico
+convert icon-source.png -resize 256x256 -define icon:auto-resize=256,128,64,48,32,16 icon.ico
 ```
 
 ### 方法 3: 使用 electron-icon-builder (推荐用于 Electron 项目)
@@ -109,7 +108,7 @@ convert icon-source.svg -resize 256x256 -define icon:auto-resize=256,128,64,48,3
 npm install -g electron-icon-builder
 
 # 2. 准备 1024x1024 的 PNG 图片
-convert icon-source.svg -resize 1024x1024 icon.png
+convert icon-source.png -resize 1024x1024 icon.png
 
 # 3. 生成所有平台图标
 electron-icon-builder --input=./icon.png --output=./
@@ -117,12 +116,6 @@ electron-icon-builder --input=./icon.png --output=./
 # 4. 清理临时文件
 rm icon.png
 ```
-
-## 关于旧的占位符 SVG
-
-`icon-source.svg` 是最初的占位符图标（紫色背景 #4F46E5、白色图片框架、山峰与太阳、
-底部三个点表示「批量」）。**已由 `icon-source.png` 取代**，保留仅作历史记录 ——
-`generate-icons.mjs` 与 `generate-icons.sh` 现在都读 PNG，不会再用到它。
 
 ## 设计建议
 
@@ -170,3 +163,10 @@ rm -rf test.iconset
 - [Apple Human Interface Guidelines - App Icons](https://developer.apple.com/design/human-interface-guidelines/app-icons)
 - [Windows App Icon Guidelines](https://learn.microsoft.com/en-us/windows/apps/design/style/iconography/app-icon-design)
 - [Electron Icon Requirements](https://www.electron.build/icons)
+
+## 变更记录
+
+- 2026-09-30：重出图标；删除已废弃的 `icon-source.svg`（最初的占位符图标，自 2026-09-28
+  起生成脚本已改读 `icon-source.png`）。
+- 2026-09-28：图标源由 `icon-source.svg` 换成 `icon-source.png`，生成脚本改为
+  `generate-icons.mjs`（跨平台，只用 sharp）。
