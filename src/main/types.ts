@@ -1,9 +1,15 @@
 // Core types for BatchPic
 
+import type {
+  InputFormat,
+  OutputFormat,
+  OutputFormatChoice,
+} from "./formats.js";
+
 export interface ImageFile {
   path: string; // Full file path
   relativePath: string; // Relative path from input root
-  format: "jpg" | "png" | "webp";
+  format: InputFormat; // Detected source format (readable, not necessarily writable)
   size: number; // File size in bytes
   dimensions: { width: number; height: number };
   sourceRoot?: string; // The top-level folder this file was scanned from (when dropped as a folder)
@@ -32,7 +38,7 @@ export type QualityPreset = number;
 
 // Smart compression configuration
 export interface SmartCompressionConfig {
-  format: "jpg" | "png" | "webp" | "unknown";
+  format: OutputFormat | "unknown";
   quality: number;
   removeMetadata: boolean;
 }
@@ -60,7 +66,7 @@ export interface StoredProcessingSettings {
   removeMetadata: boolean;
 
   // Format settings
-  outputFormat: "jpg" | "png" | "webp" | "original";
+  outputFormat: OutputFormatChoice;
   overwriteExisting?: boolean;
 
   version: string; // For future data migration
@@ -69,7 +75,8 @@ export interface StoredProcessingSettings {
 export interface ProcessingParams {
   resize?: ResizeParams;
   compression?: CompressionParams;
-  format?: "jpg" | "png" | "webp";
+  /** Target format. Absent means "keep the source format" — see `resolveOutputFormat`. */
+  format?: OutputFormat;
   /**
    * Whether an existing file at the resolved output path may be replaced.
    *

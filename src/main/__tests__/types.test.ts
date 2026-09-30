@@ -10,6 +10,7 @@ import type {
   SmartCompressionConfig,
   StoredCompressionSettings,
 } from '../types.js';
+import { OUTPUT_FORMATS } from '../formats.js';
 
 describe('Type Definitions', () => {
   describe('CompressionParams', () => {
@@ -283,9 +284,7 @@ describe('Type Definitions', () => {
     it('should accept valid format values in SmartCompressionConfig', () => {
       // 测试 SmartCompressionConfig 只接受有效的格式
       const validFormats: Array<SmartCompressionConfig['format']> = [
-        'jpg',
-        'png',
-        'webp',
+        ...OUTPUT_FORMATS,
         'unknown',
       ];
       
@@ -295,7 +294,7 @@ describe('Type Definitions', () => {
           quality: 80,
           removeMetadata: true,
         };
-        expect(['jpg', 'png', 'webp', 'unknown']).toContain(config.format);
+        expect([...OUTPUT_FORMATS, 'unknown']).toContain(config.format);
       });
     });
 

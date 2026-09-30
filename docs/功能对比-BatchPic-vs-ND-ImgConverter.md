@@ -15,9 +15,9 @@
 
 | 能力 | BatchPic | ND-ImgConverter |
 | :--- | :--- | :--- |
-| 格式支持 | ⚠️ JPG / PNG / WebP（仅 3 种） | ✅ JPEG/PNG/WebP/AVIF/BMP/ICO/TIFF/TGA/GIF/EXR 等十余种 |
+| 格式支持 | ⚠️ 读 6 种 / 写 5 种（JPG/PNG/WebP/TIFF/GIF/AVIF，其中 GIF 只读） | ✅ JPEG/PNG/WebP/AVIF/BMP/ICO/TIFF/TGA/GIF/EXR 等十余种 |
 | 相机 RAW | ❌ | ✅ CR2/CR3/DNG/ARW/NEF/ORF/RAF |
-| HEIC / HEIF | ❌ | ✅ 本地解码 |
+| HEIC / HEIF | ⚠️ AVIF（HEIF 容器）可读写；HEIC 不可 | ✅ 本地解码 |
 | 压缩到目标大小 | ✅ 核心卖点（二分搜索） | ⚠️ 只有质量滑块 + 体积预估 |
 | 智能压缩 | ✅ 按格式自动选参 | ❌ |
 | 色彩管理 ICC | ❌ | ✅ lcms2，sRGB/Display P3/Adobe RGB |
@@ -32,9 +32,13 @@
 
 ### 矩阵说明
 
-- **格式支持**：BatchPic 的三格式边界由 `FileScanner` 与 preload 的参数校验共同决定
-  （`src/main/preload.ts` 中 `validFormats` 限定为 `jpg/png/webp`），是产品取舍而非能力上限——
-  sharp 本身能读更多格式。
+- **格式支持**：2026-09-30 起从 3 种扩到「读 6 写 5」，边界现在唯一由
+  `src/main/formats.ts` 的 `INPUT_FORMATS` / `OUTPUT_FORMATS` 决定——`FileScanner` 的扩展名与
+  魔数白名单、`preload.ts` 的参数校验、UI 的格式下拉和 DropZone 标签全部从它派生。
+  这次扩展**没有引入任何依赖**，用到的编解码器 sharp 预编译包里本来就有；此前只是被
+  `ImageFile.format` 的硬编码联合类型挡在门外。仍不及 ND 的面：无 RAW、无 HEIC
+  （预编译 libheif 只登记 `.avif`）、无 BMP/ICO/TGA/EXR。
+  GIF 刻意只读不写——它的编码器没有质量参数，放开成输出格式会让压缩档位静默失效。
 - **压缩到目标大小**：这是 BatchPic 唯一的功能护城河。`ImageProcessor.compressToTargetSize`
   用二分搜索反复调编码器逼近目标体积；ND 只提供质量滑块加输出体积预估，需要用户自己试。
 - **输出目录**：BatchPic 不设全局固定输出目录（早期 README 里「固定输出到 `~/BatchPic_Output`」

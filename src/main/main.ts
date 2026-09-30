@@ -16,6 +16,13 @@ import {
   type FolderWatchEvent,
 } from "./FolderWatcher.js";
 import { ImageFile, ProcessingParams } from "./types.js";
+import {
+  ALL_INPUT_EXTENSIONS,
+  MIME_BY_EXTENSION,
+  extensionFor,
+  normalizeFormat,
+  resolveOutputFormat,
+} from "./formats.js";
 import { visualDimensions } from "./processors/exif.js";
 
 // ES 模块中获取 __dirname 的方式
@@ -142,7 +149,7 @@ ipcMain.handle("open-file-dialog", async () => {
   try {
     const result = await dialog.showOpenDialog(mainWindow!, {
       properties: ["openFile", "multiSelections"],
-      filters: [{ name: "Images", extensions: ["jpg", "jpeg", "png", "webp"] }],
+      filters: [{ name: "Images", extensions: [...ALL_INPUT_EXTENSIONS] }],
     });
 
     if (!result.canceled && result.filePaths.length > 0) {
@@ -244,15 +251,25 @@ ipcMain.handle(
         throw new Error("Could not read image dimensions");
       }
 
+      // Same normalization the scanner applies (sharp spells JPEG `jpeg` and
+      // reports AVIF as `heif`). The scanner already gated this path, so an
+      // unrecognised format here means the file changed on disk between the
+      // scan and the estimate — fail loudly instead of guessing a format and
+      // reporting a confidently wrong size.
+      const format = normalizeFormat(metadata.format);
+      if (!format) {
+        throw new Error(`无法识别的图片格式：${metadata.format ?? "unknown"}`);
+      }
+
       // Create a temporary image file to estimate size
       const tempOutputPath = path.join(
         os.tmpdir(),
-        `estimate-${Date.now()}.jpg`,
+        `estimate-${Date.now()}.${extensionFor(resolveOutputFormat(params.format, format))}`,
       );
       const imageFile: ImageFile = {
         path: filePath,
         relativePath: path.basename(filePath),
-        format: (metadata.format as "jpg" | "png" | "webp") || "jpg",
+        format,
         size: (await fs.stat(filePath)).size,
         // Visual size, not raw pixel size: the estimate runs through the same
         // processor as the real export, so a portrait phone photo must resolve
@@ -294,17 +311,34 @@ ipcMain.handle("open-output-directory", async (_event, dirPath: string) => {
 });
 
 // Load image as data URL for preview
+//
+// Chromium decodes JPEG, PNG, WebP, AVIF and GIF natively but has no TIFF
+// decoder, so a TIFF — whether the source or a TIFF result — is re-encoded to
+// PNG here, otherwise the preview would be an empty box.
 ipcMain.handle("load-image-preview", async (_event, filePath: string) => {
   try {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeType = MIME_BY_EXTENSION[ext];
+
+    if (mimeType === "image/tiff") {
+      // Cap the long edge: a 100 MP scan would otherwise be inlined into the
+      // DOM as a multi-megabyte data URL.
+      const png = await sharp(filePath)
+        .resize({
+          width: 1600,
+          height: 1600,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .png()
+        .toBuffer();
+      return `data:image/png;base64,${png.toString("base64")}`;
+    }
+
     const imageBuffer = await fs.readFile(filePath);
     const base64 = imageBuffer.toString("base64");
-    const ext = path.extname(filePath).toLowerCase();
-    let mimeType = "image/jpeg";
 
-    if (ext === ".png") mimeType = "image/png";
-    else if (ext === ".webp") mimeType = "image/webp";
-
-    return `data:${mimeType};base64,${base64}`;
+    return `data:${mimeType ?? "image/jpeg"};base64,${base64}`;
   } catch (error) {
     console.error("Error loading image preview:", error);
     throw error;

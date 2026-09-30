@@ -6,22 +6,33 @@
  */
 
 import type { SmartCompressionConfig, QualityPreset } from '../types.js';
+import type { OutputFormat } from '../formats.js';
 
 /**
  * Smart compression configuration mapping
  * 
- * Maps image formats to their optimal compression settings.
+ * Maps output formats to their optimal compression settings.
  * Used by the smart compression mode to automatically select
- * the best quality parameters based on image format.
+ * the best quality parameters based on the format being written.
  * 
  * Requirements:
  * - 2.4: JPG format uses quality 80
  * - 2.5: PNG format uses quality 85
  * - 2.6: WebP format uses quality 80
  * - 9.1-9.4: Smart compression algorithm rules
+ *
+ * On the two newer entries:
+ * - `avif` sits at 65 rather than 80 because AV1's quality scale is stricter
+ *   than JPEG's. Measured on a 1600x1200 photographic source: AVIF q65 lands
+ *   around 29 KB where JPEG q80 needs 59 KB, so 65 is the setting that matches
+ *   the perceived quality the other three entries produce.
+ * - `tiff` sits at 80, sharp's own default. It only has an effect on the
+ *   lossy path: TIFF is written with `compression: 'jpeg'`, and an image that
+ *   carries an alpha channel falls back to lossless deflate instead (see
+ *   `SharpImageProcessor.applyFormatWithQuality`).
  */
 export const SMART_COMPRESSION_MAP: Record<
-  'jpg' | 'png' | 'webp' | 'unknown',
+  OutputFormat | 'unknown',
   SmartCompressionConfig
 > = {
   jpg: {
@@ -36,6 +47,16 @@ export const SMART_COMPRESSION_MAP: Record<
   },
   webp: {
     format: 'webp',
+    quality: 80,
+    removeMetadata: true,
+  },
+  avif: {
+    format: 'avif',
+    quality: 65,
+    removeMetadata: true,
+  },
+  tiff: {
+    format: 'tiff',
     quality: 80,
     removeMetadata: true,
   },

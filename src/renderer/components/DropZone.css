@@ -88,7 +88,9 @@
 /* Format tags */
 .drop-zone-meta {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 
 .drop-zone-tag {
@@ -96,7 +98,7 @@
   font-weight: 700;
   color: #64748b;
   background: #f1f5f9;
-  padding: 6px 14px;
+  padding: 6px 10px;
   border-radius: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;

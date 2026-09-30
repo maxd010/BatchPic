@@ -6,6 +6,7 @@
  */
 
 import type { StoredCompressionSettings, StoredProcessingSettings } from '../main/types.js';
+import { isOutputFormatChoice } from '../main/formats';
 
 /**
  * localStorage 存储键
@@ -232,9 +233,9 @@ export function isValidProcessingSettings(data: any): data is StoredProcessingSe
     return false;
   }
 
-  // 验证 outputFormat
-  const validFormats = ['jpg', 'png', 'webp', 'original'];
-  if (!validFormats.includes(data.outputFormat)) {
+  // 验证 outputFormat（可选格式一律以 formats.ts 的 OUTPUT_FORMATS 为准，
+  // 新增格式时不必再改这里）
+  if (!isOutputFormatChoice(data.outputFormat)) {
     return false;
   }
 

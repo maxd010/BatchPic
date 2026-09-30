@@ -5,6 +5,7 @@ import {
   PhotoIcon,
   ArrowDownTrayIcon,
 } from "./Icons";
+import { INPUT_FORMATS } from "../../main/formats";
 import "./DropZone.css";
 
 /**
@@ -144,9 +145,13 @@ export function DropZone({
           <h2 className="drop-zone-title">拖入图片，马上处理</h2>
           <p className="drop-zone-hint">或点击此处选择文件</p>
           <div className="drop-zone-meta">
-            <span className="drop-zone-tag">JPG</span>
-            <span className="drop-zone-tag">PNG</span>
-            <span className="drop-zone-tag">WEBP</span>
+            {/* Uppercased in the DOM rather than by CSS, so the text a test (or
+                a screen reader) sees is the text that is on screen. */}
+            {INPUT_FORMATS.map((format) => (
+              <span key={format} className="drop-zone-tag">
+                {format.toUpperCase()}
+              </span>
+            ))}
           </div>
           
         </div>

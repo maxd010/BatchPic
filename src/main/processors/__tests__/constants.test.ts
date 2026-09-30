@@ -10,6 +10,9 @@ import {
   STORAGE_KEY,
   SETTINGS_VERSION,
 } from '../constants';
+import { OUTPUT_FORMATS } from '../../formats';
+
+const ALL_MAP_KEYS = [...OUTPUT_FORMATS, 'unknown'] as const;
 
 describe('SMART_COMPRESSION_MAP', () => {
   test('should have configuration for JPG format', () => {
@@ -33,6 +36,22 @@ describe('SMART_COMPRESSION_MAP', () => {
     expect(SMART_COMPRESSION_MAP.webp.removeMetadata).toBe(true);
   });
 
+  test('should have configuration for AVIF format', () => {
+    expect(SMART_COMPRESSION_MAP.avif).toBeDefined();
+    expect(SMART_COMPRESSION_MAP.avif.format).toBe('avif');
+    // AV1's quality scale is stricter than JPEG's, so the smart preset sits
+    // lower here than the 80 used for JPG/WebP.
+    expect(SMART_COMPRESSION_MAP.avif.quality).toBe(65);
+    expect(SMART_COMPRESSION_MAP.avif.removeMetadata).toBe(true);
+  });
+
+  test('should have configuration for TIFF format', () => {
+    expect(SMART_COMPRESSION_MAP.tiff).toBeDefined();
+    expect(SMART_COMPRESSION_MAP.tiff.format).toBe('tiff');
+    expect(SMART_COMPRESSION_MAP.tiff.quality).toBe(80);
+    expect(SMART_COMPRESSION_MAP.tiff.removeMetadata).toBe(true);
+  });
+
   test('should have configuration for unknown format', () => {
     expect(SMART_COMPRESSION_MAP.unknown).toBeDefined();
     expect(SMART_COMPRESSION_MAP.unknown.format).toBe('unknown');
@@ -40,16 +59,21 @@ describe('SMART_COMPRESSION_MAP', () => {
     expect(SMART_COMPRESSION_MAP.unknown.removeMetadata).toBe(true);
   });
 
+  test('should cover every encodable format (no target format falls back to unknown)', () => {
+    for (const format of OUTPUT_FORMATS) {
+      expect(SMART_COMPRESSION_MAP[format]).toBeDefined();
+      expect(SMART_COMPRESSION_MAP[format].format).toBe(format);
+    }
+  });
+
   test('all configurations should have removeMetadata set to true', () => {
-    const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
-    formats.forEach((format) => {
+    ALL_MAP_KEYS.forEach((format) => {
       expect(SMART_COMPRESSION_MAP[format].removeMetadata).toBe(true);
     });
   });
 
   test('quality values should be within valid range (1-100)', () => {
-    const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
-    formats.forEach((format) => {
+    ALL_MAP_KEYS.forEach((format) => {
       const quality = SMART_COMPRESSION_MAP[format].quality;
       expect(quality).toBeGreaterThanOrEqual(1);
       expect(quality).toBeLessThanOrEqual(100);

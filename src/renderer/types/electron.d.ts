@@ -1,3 +1,5 @@
+import type { InputFormat, OutputFormat } from '../../main/formats';
+
 export interface ElectronAPI {
   openFileDialog: () => Promise<string[]>;
   scanFiles: (paths: string[]) => Promise<ImageFile[]>;
@@ -59,7 +61,7 @@ export interface FolderWatchEvent {
 export interface ImageFile {
   path: string;
   relativePath: string;
-  format: 'jpg' | 'png' | 'webp';
+  format: InputFormat;
   size: number;
   dimensions: { width: number; height: number };
   sourceRoot?: string;
@@ -68,7 +70,8 @@ export interface ImageFile {
 export interface ProcessingParams {
   resize?: ResizeParams;
   compression?: CompressionParams;
-  format?: 'jpg' | 'png' | 'webp';
+  /** Target format; absent means "keep the source format". */
+  format?: OutputFormat;
   /** Replace an existing file at the output path. Defaults to false. */
   overwriteExisting?: boolean;
 }

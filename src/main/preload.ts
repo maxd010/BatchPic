@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import { INPUT_FORMATS, OUTPUT_FORMATS } from "./formats.js";
 
 // ============================================================================
 // Parameter Validation Functions (Requirement 11.4)
@@ -82,11 +83,11 @@ function validateImageFile(file: any, index: number): void {
   validateString(file.relativePath, `${prefix}.relativePath`);
   validateNumber(file.size, `${prefix}.size`, 0);
 
-  // Format validation
-  const validFormats = ["jpg", "png", "webp"];
-  if (!validFormats.includes(file.format)) {
+  // Format validation. The two lists differ on purpose: `gif` can be read but
+  // not written, so it is valid on an ImageFile but never a target format.
+  if (!(INPUT_FORMATS as readonly unknown[]).includes(file.format)) {
     throw new Error(
-      `${prefix}.format must be one of: ${validFormats.join(", ")}`,
+      `${prefix}.format must be one of: ${INPUT_FORMATS.join(", ")}`,
     );
   }
 
@@ -182,10 +183,9 @@ function validateProcessingParams(params: any): void {
 
   // Optional format validation
   if (params.format !== undefined && params.format !== null) {
-    const validFormats = ["jpg", "png", "webp"];
-    if (!validFormats.includes(params.format)) {
+    if (!(OUTPUT_FORMATS as readonly unknown[]).includes(params.format)) {
       throw new Error(
-        `params.format must be one of: ${validFormats.join(", ")}`,
+        `params.format must be one of: ${OUTPUT_FORMATS.join(", ")}`,
       );
     }
   }

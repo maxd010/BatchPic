@@ -13,7 +13,16 @@
 
 import * as fc from 'fast-check';
 import { SMART_COMPRESSION_MAP } from '../constants';
+import { OUTPUT_FORMATS } from '../../formats';
 import type { SmartCompressionConfig } from '../../types';
+
+/**
+ * 映射表的完整键集：每个可编码输出格式 + unknown 兜底键。
+ * 不要写死 —— 格式清单的唯一事实来源是 `src/main/formats.ts`。
+ */
+const EXPECTED_MAP_KEYS = [...OUTPUT_FORMATS, 'unknown'] as const;
+const ENCODABLE_FORMAT_ARBITRARY = fc.constantFrom(...OUTPUT_FORMATS);
+const ALL_MAP_KEY_ARBITRARY = fc.constantFrom(...EXPECTED_MAP_KEYS);
 
 describe('Smart Compression - Property-Based Tests', () => {
   /**
@@ -32,7 +41,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp'),
+          ENCODABLE_FORMAT_ARBITRARY,
           (format) => {
             // 获取智能压缩配置
             const config = SMART_COMPRESSION_MAP[format];
@@ -87,7 +96,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式（包括 unknown）
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const config = SMART_COMPRESSION_MAP[format];
             
@@ -103,7 +112,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const config = SMART_COMPRESSION_MAP[format];
             
@@ -123,7 +132,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             // 多次访问应该返回相同的配置
             const config1 = SMART_COMPRESSION_MAP[format];
@@ -159,7 +168,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const config = SMART_COMPRESSION_MAP[format];
             
@@ -216,7 +225,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const config = SMART_COMPRESSION_MAP[format];
             
@@ -244,13 +253,13 @@ describe('Smart Compression - Property-Based Tests', () => {
     test('should have exactly the expected formats', () => {
       fc.assert(
         fc.property(
-          // 生成器：期望的格式列表
-          fc.constant(['jpg', 'png', 'webp', 'unknown']),
+          // 生成器：期望的格式列表（从唯一事实来源派生）
+          fc.constant(EXPECTED_MAP_KEYS),
           (expectedFormats) => {
             const actualFormats = Object.keys(SMART_COMPRESSION_MAP);
             
-            // 验证格式列表完全匹配
-            expect(actualFormats.sort()).toEqual(expectedFormats.sort());
+            // 验证格式列表完全匹配（两边都先拷贝再排序，避免就地改动只读常量）
+            expect([...actualFormats].sort()).toEqual([...expectedFormats].sort());
             expect(actualFormats).toHaveLength(expectedFormats.length);
           }
         ),
@@ -262,7 +271,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const config = SMART_COMPRESSION_MAP[format];
             const originalQuality = config.quality;
@@ -284,7 +293,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const config: SmartCompressionConfig = SMART_COMPRESSION_MAP[format];
             
@@ -304,7 +313,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const config = SMART_COMPRESSION_MAP[format];
             
@@ -327,7 +336,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式
-          fc.constantFrom('jpg', 'png', 'webp', 'unknown'),
+          ALL_MAP_KEY_ARBITRARY,
           (format) => {
             const startTime = performance.now();
             
@@ -354,7 +363,7 @@ describe('Smart Compression - Property-Based Tests', () => {
           (configMap) => {
             // 验证配置对象数量
             const configCount = Object.keys(configMap).length;
-            expect(configCount).toBe(4); // jpg, png, webp, unknown
+            expect(configCount).toBe(EXPECTED_MAP_KEYS.length); // 每个可编码格式 + unknown
             
             // 验证每个配置对象的字段数量
             Object.values(configMap).forEach((config) => {
@@ -376,7 +385,7 @@ describe('Smart Compression - Property-Based Tests', () => {
       fc.assert(
         fc.property(
           // 生成器：所有支持的格式（除了 unknown）
-          fc.constantFrom('jpg', 'png', 'webp'),
+          ENCODABLE_FORMAT_ARBITRARY,
           (format) => {
             const config = SMART_COMPRESSION_MAP[format];
             

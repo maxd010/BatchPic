@@ -4,6 +4,7 @@ import * as os from "os";
 import { exec } from "child_process";
 import { promisify } from "util";
 import type { OutputManager, ImageFile } from "./types.js";
+import { extensionFor, type OutputFormat } from "./formats.js";
 
 const execAsync = promisify(exec);
 
@@ -176,18 +177,21 @@ export class OutputManagerImpl implements OutputManager {
    * @param inputFile The input image file
    * @param outputRoot The root output directory (used as fallback when the
    *        file has no sourceRoot, e.g. individual files from the file dialog)
-   * @param format The output format (jpg, png, webp)
+   * @param format The output format (see `OUTPUT_FORMATS` in `formats.ts`)
    * @returns The full output path
    */
   getOutputPath(
     inputFile: ImageFile,
     outputRoot: string,
-    format: string,
+    format: OutputFormat,
   ): string {
     // Different format: write next to the original, only extension differs.
     if (inputFile.format !== format) {
       const originalParsed = path.parse(inputFile.path);
-      return path.join(originalParsed.dir, `${originalParsed.name}.${format}`);
+      return path.join(
+        originalParsed.dir,
+        `${originalParsed.name}.${extensionFor(format)}`,
+      );
     }
 
     // Same format: write to the -processed folder to avoid clobbering the
@@ -202,7 +206,7 @@ export class OutputManagerImpl implements OutputManager {
     const baseName = parsedPath.name;
 
     // Construct output path with new format extension
-    const outputFileName = `${baseName}.${format}`;
+    const outputFileName = `${baseName}.${extensionFor(format)}`;
     const outputPath = path.join(outputDir, relativeDir, outputFileName);
 
     return outputPath;

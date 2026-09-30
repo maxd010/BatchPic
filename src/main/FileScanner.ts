@@ -3,12 +3,14 @@ import * as path from "path";
 import sharp from "sharp";
 import fileTypePkg from "file-type";
 import { FileScanner, ImageFile } from "./types.js";
+import {
+  SUPPORTED_EXTENSIONS,
+  SUPPORTED_MIME_TYPES,
+  normalizeFormat,
+} from "./formats.js";
 import { visualDimensions } from "./processors/exif.js";
 
 const { fromFile: fileTypeFromFile } = fileTypePkg;
-
-const SUPPORTED_FORMATS = [".jpg", ".jpeg", ".png", ".webp"];
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export class FileScannerImpl implements FileScanner {
   async scan(paths: string[]): Promise<ImageFile[]> {
@@ -77,7 +79,7 @@ export class FileScannerImpl implements FileScanner {
     const ext = path.extname(filePath).toLowerCase();
 
     // Skip unsupported formats silently
-    if (!SUPPORTED_FORMATS.includes(ext)) {
+    if (!SUPPORTED_EXTENSIONS.has(ext)) {
       return null;
     }
 
@@ -97,13 +99,11 @@ export class FileScannerImpl implements FileScanner {
         return null;
       }
 
-      // Normalize format name
-      let format: "jpg" | "png" | "webp";
-      if (metadata.format === "jpeg") {
-        format = "jpg";
-      } else if (metadata.format === "png" || metadata.format === "webp") {
-        format = metadata.format;
-      } else {
+      // Normalize format name. sharp spells JPEG `jpeg` and reports AVIF as
+      // `heif` (its container id); everything we do not promise to process
+      // normalizes to null and is skipped.
+      const format = normalizeFormat(metadata.format);
+      if (!format) {
         return null;
       }
 
@@ -150,7 +150,7 @@ export class FileScannerImpl implements FileScanner {
       }
 
       // Check if MIME type is in the allowed list
-      if (!ALLOWED_MIME_TYPES.includes(result.mime)) {
+      if (!SUPPORTED_MIME_TYPES.includes(result.mime)) {
         console.warn(`Unsupported MIME type ${result.mime}: ${filePath}`);
         return false;
       }

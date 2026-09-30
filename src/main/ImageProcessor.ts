@@ -12,6 +12,11 @@ import {
 } from "./types.js";
 import { SMART_COMPRESSION_MAP } from "./processors/constants.js";
 import { claimOutputPath } from "./outputGuard.js";
+import {
+  extensionFor,
+  resolveOutputFormat,
+  type OutputFormat,
+} from "./formats.js";
 
 let pLimit: any;
 
@@ -87,8 +92,21 @@ export class SharpImageProcessor implements ImageProcessor {
         pipeline = this.applyResize(pipeline, input.dimensions, params.resize);
       }
 
-      // Determine output format
-      const outputFormat = params.format || input.format;
+      // Determine output format. An absent `params.format` means "keep the
+      // source format", which `resolveOutputFormat` only honours for formats we
+      // can actually encode (a GIF kept "as is" becomes PNG).
+      const outputFormat = resolveOutputFormat(params.format, input.format);
+
+      // TIFF caveat: its `quality` knob only exists for `compression: 'jpeg'`,
+      // and JPEG-in-TIFF cannot carry an alpha channel — libvips silently
+      // premultiplies such an image onto black instead (measured: a 50%-alpha
+      // red pixel comes back as 128,0,0). So an image that has alpha, or a run
+      // that asked for no compression at all, is written losslessly with
+      // deflate, where `quality` has no meaning.
+      const losslessTiff =
+        outputFormat === "tiff" &&
+        (params.compression?.mode === "none" ||
+          (await this.sourceHasAlpha(input.path)));
 
       // Handle target size compression separately (requires iteration)
       if (params.compression?.mode === "targetSize") {
@@ -100,6 +118,7 @@ export class SharpImageProcessor implements ImageProcessor {
           outputFormat,
           targetSizeKB,
           removeMetadata,
+          losslessTiff,
         );
       } else {
         // Apply compression and format conversion
@@ -107,6 +126,7 @@ export class SharpImageProcessor implements ImageProcessor {
           pipeline,
           outputFormat,
           params.compression,
+          losslessTiff,
         );
 
         // Write directly to disk to avoid an extra buffer allocation/copy
@@ -131,6 +151,26 @@ export class SharpImageProcessor implements ImageProcessor {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       };
+    }
+  }
+
+  /**
+   * Does the source image carry an alpha channel?
+   *
+   * Read from the file header rather than from the pipeline: sharp exposes
+   * metadata only asynchronously, and this only has to be answered when the
+   * target format is TIFF, so the extra header read is off the common path.
+   *
+   * A header that cannot be read is reported as "no alpha", which selects the
+   * lossy encoder; the encode itself will surface the real problem with a
+   * better message than this probe could.
+   */
+  private async sourceHasAlpha(inputPath: string): Promise<boolean> {
+    try {
+      const metadata = await sharp(inputPath).metadata();
+      return metadata.hasAlpha === true;
+    } catch {
+      return false;
     }
   }
 
@@ -182,8 +222,9 @@ export class SharpImageProcessor implements ImageProcessor {
         const imageStartTime = Date.now();
 
         try {
-          // Determine output format
-          const outputFormat = params.format || input.format;
+          // Determine output format (same rule as `process`: an absent
+          // `params.format` keeps the source format where we can encode it)
+          const outputFormat = resolveOutputFormat(params.format, input.format);
 
           // Build output path preserving directory structure. When the file
           // comes from a dropped folder, its results go to that folder's own
@@ -398,8 +439,9 @@ export class SharpImageProcessor implements ImageProcessor {
    */
   private applyCompressionAndFormat(
     pipeline: sharp.Sharp,
-    format: "jpg" | "png" | "webp",
+    format: OutputFormat,
     compression?: ProcessingParams["compression"],
+    losslessTiff: boolean = false,
   ): sharp.Sharp {
     // Handle smart compression mode (Requirement 2.4-2.6, 7.2)
     if (compression?.mode === "smart") {
@@ -413,6 +455,7 @@ export class SharpImageProcessor implements ImageProcessor {
         format,
         config.quality,
         true,
+        losslessTiff,
       );
     }
 
@@ -421,7 +464,13 @@ export class SharpImageProcessor implements ImageProcessor {
       console.log(`[No Compression] Using quality 100 for format: ${format}`);
       // Respect user's metadata setting (Requirement 5.3, 5.4)
       const removeMetadata = compression.removeMetadata ?? true;
-      return this.applyFormatWithQuality(pipeline, format, 100, removeMetadata);
+      return this.applyFormatWithQuality(
+        pipeline,
+        format,
+        100,
+        removeMetadata,
+        losslessTiff,
+      );
     }
 
     // Handle quality mode
@@ -433,6 +482,7 @@ export class SharpImageProcessor implements ImageProcessor {
         format,
         compression.value,
         removeMetadata,
+        losslessTiff,
       );
     }
 
@@ -444,6 +494,7 @@ export class SharpImageProcessor implements ImageProcessor {
       format,
       defaultQuality,
       removeMetadata,
+      losslessTiff,
     );
   }
   /**
@@ -474,7 +525,7 @@ export class SharpImageProcessor implements ImageProcessor {
    * @param format - The detected image format
    * @returns Smart compression configuration with quality and metadata settings
    */
-  private getSmartCompressionConfig(format: "jpg" | "png" | "webp"): {
+  private getSmartCompressionConfig(format: OutputFormat): {
     quality: number;
     removeMetadata: boolean;
   } {
@@ -509,10 +560,30 @@ export class SharpImageProcessor implements ImageProcessor {
   private async compressToTargetSize(
     pipeline: sharp.Sharp,
     outputPath: string,
-    format: "jpg" | "png" | "webp",
+    format: OutputFormat,
     targetSizeKB: number,
     removeMetadata: boolean = true,
+    losslessTiff: boolean = false,
   ): Promise<void> {
+    // A lossless TIFF has no quality to search over: every iteration of the
+    // binary search below would produce byte-identical output, so the loop
+    // would spend ten full encodes to reach the same answer. Encode once.
+    if (losslessTiff) {
+      console.warn(
+        `[Compression] TIFF 无损输出不支持目标大小：图像含透明通道，改用 JPEG 压缩会丢失它。` +
+          `已按无损 deflate 写出，目标 ${targetSizeKB}KB 未生效。`,
+      );
+      const losslessPipeline = this.applyFormatWithQuality(
+        pipeline,
+        format,
+        80,
+        removeMetadata,
+        true,
+      );
+      await losslessPipeline.toFile(outputPath);
+      return;
+    }
+
     const targetSizeBytes = targetSizeKB * 1024;
     const tolerance = 0.15; // ±15% tolerance
     const minAcceptableSize = targetSizeBytes * (1 - tolerance);
@@ -650,12 +721,21 @@ export class SharpImageProcessor implements ImageProcessor {
 
   /**
    * Apply format conversion with quality setting and performance optimizations
+   *
+   * Every format here is served by the bundled libvips build, so adding one
+   * costs no new dependency.
+   *
+   * @param losslessTiff Write TIFF with deflate instead of JPEG compression.
+   *        Required whenever the pipeline may still carry an alpha channel,
+   *        because JPEG-in-TIFF cannot store one. `quality` is meaningless on
+   *        that path.
    */
   private applyFormatWithQuality(
     pipeline: sharp.Sharp,
-    format: "jpg" | "png" | "webp",
+    format: OutputFormat,
     quality: number,
     removeMetadata: boolean = true,
+    losslessTiff: boolean = false,
   ): sharp.Sharp {
     // Metadata control (Requirements 2.7, 5.3, 5.4)
     // When removeMetadata is false, preserve original metadata
@@ -681,6 +761,22 @@ export class SharpImageProcessor implements ImageProcessor {
           quality,
           effort: 4, // Balance between speed and compression (0-6, default 4)
         });
+      case "avif":
+        return pipeline.avif({
+          quality,
+          // effort 4 is sharp's default. Measured on a 1600x1200 photograph it
+          // buys ~4% file size over effort 3 for roughly 3x the encode time —
+          // AVIF is by far the slowest encoder here, so this is the one knob to
+          // turn if a large batch ever feels slow.
+          effort: 4,
+          chromaSubsampling: "4:2:0",
+        });
+      case "tiff":
+        // `quality` only exists for the JPEG compressor. Lossless deflate is
+        // used for images with alpha, which JPEG-compressed TIFF cannot store.
+        return losslessTiff
+          ? pipeline.tiff({ compression: "deflate" })
+          : pipeline.tiff({ compression: "jpeg", quality });
       default:
         return pipeline;
     }
@@ -722,12 +818,15 @@ export class SharpImageProcessor implements ImageProcessor {
   private getOutputPath(
     input: ImageFile,
     outputRoot: string,
-    format: "jpg" | "png" | "webp",
+    format: OutputFormat,
   ): string {
     // Different format: write next to the original, only extension differs.
     if (input.format !== format) {
       const originalParsed = path.parse(input.path);
-      return path.join(originalParsed.dir, `${originalParsed.name}.${format}`);
+      return path.join(
+        originalParsed.dir,
+        `${originalParsed.name}.${extensionFor(format)}`,
+      );
     }
 
     // Same format: write to the -processed folder to avoid clobbering the
@@ -736,7 +835,7 @@ export class SharpImageProcessor implements ImageProcessor {
       ? this.getOutputDirectoryForSource(input.sourceRoot)
       : outputRoot;
     const parsedPath = path.parse(input.relativePath);
-    const outputFileName = `${parsedPath.name}.${format}`;
+    const outputFileName = `${parsedPath.name}.${extensionFor(format)}`;
     return path.join(outputDir, parsedPath.dir, outputFileName);
   }
 
@@ -770,7 +869,7 @@ export class SharpImageProcessor implements ImageProcessor {
   private async findExistingOutputBlocker(
     input: ImageFile,
     outputPath: string,
-    format: "jpg" | "png" | "webp",
+    format: OutputFormat,
     params: ProcessingParams,
     claimedOutputs: Map<string, string>,
   ): Promise<string | null> {

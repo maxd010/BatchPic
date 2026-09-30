@@ -53,7 +53,7 @@ describe.skip('MainWindow', () => {
     
     // Check drop zone
     expect(screen.getByText('拖入图片，马上处理')).toBeInTheDocument();
-    expect(screen.getByText('支持 JPG、PNG、WEBP 格式')).toBeInTheDocument();
+    expect(screen.getByText('或点击此处选择文件')).toBeInTheDocument();
   });
 
   test('renders export button', () => {

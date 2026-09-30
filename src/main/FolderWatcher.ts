@@ -4,6 +4,12 @@ import * as path from "path";
 import { EventEmitter } from "events";
 import sharp from "sharp";
 import type { ImageFile, ImageProcessor, ProcessingParams } from "./types.js";
+import {
+  SUPPORTED_EXTENSIONS,
+  extensionFor,
+  normalizeFormat,
+  resolveOutputFormat,
+} from "./formats.js";
 import { visualDimensions } from "./processors/exif.js";
 import { claimOutputPath } from "./outputGuard.js";
 
@@ -16,16 +22,13 @@ import { claimOutputPath } from "./outputGuard.js";
  * - watching is non-recursive;
  * - anything landing inside the output folder is ignored, otherwise our own
  *   output would re-trigger the watcher in a loop;
- * - only the three formats BatchPic supports are picked up.
+ * - only the formats BatchPic can read are picked up (`formats.ts`).
  *
  * The ND original debounces a flat 1500 ms and then processes unconditionally.
  * That still races a slow copy that outlives the window, so this version adds a
  * size-stability re-check: the file must report the same size twice before it
  * is handed to the processor.
  */
-
-/** Formats BatchPic can read. */
-const SUPPORTED_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
 /** Partial-download / temp artefacts that must never be picked up. */
 const IGNORED_SUFFIXES = [".tmp", ".crdownload", ".part", ".partial", ".download"];
@@ -75,14 +78,6 @@ export interface FolderWatchStatus {
 function isInside(candidate: string, root: string): boolean {
   const relative = path.relative(root, candidate);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
-}
-
-/** Map sharp's format string onto the three formats we support. */
-function normalizeFormat(raw: string | undefined): ImageFile["format"] | null {
-  if (raw === "jpeg" || raw === "jpg") return "jpg";
-  if (raw === "png") return "png";
-  if (raw === "webp") return "webp";
-  return null;
 }
 
 function timestampNow(): string {
@@ -279,10 +274,15 @@ export class FolderWatcher extends EventEmitter {
         dimensions: visualDimensions(metadata.width, metadata.height, metadata.orientation),
       };
 
-      // Keep the base name; the extension follows the configured target format.
-      const targetFormat = params.format ?? format;
+      // Keep the base name; the extension follows the configured target format
+      // (`resolveOutputFormat` redirects a source format we cannot encode, so a
+      // GIF kept "as is" lands on PNG rather than failing the write).
+      const targetFormat = resolveOutputFormat(params.format, format);
       const parsed = path.parse(filePath);
-      const targetPath = path.join(outputPath, `${parsed.name}.${targetFormat}`);
+      const targetPath = path.join(
+        outputPath,
+        `${parsed.name}.${extensionFor(targetFormat)}`,
+      );
 
       // Same guard as the manual batch. The output folder is ours, so an
       // existing file there is overwritable (re-feeding one source stays

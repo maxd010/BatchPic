@@ -6,6 +6,7 @@ import {
   ImageFile,
   StoredProcessingSettings,
 } from "../../main/types";
+import { OUTPUT_FORMATS, type OutputFormatChoice } from "../../main/formats";
 import { useDebounce } from "../hooks/useDebounce";
 import {
   loadProcessingSettings,
@@ -22,6 +23,25 @@ interface ParameterPanelProps {
 }
 
 type TabType = "resize" | "compression" | "format" | null;
+
+/**
+ * The format picker's menu. Both the order and the wording live in one place so
+ * adding a format to `OUTPUT_FORMATS` cannot leave the menu behind; `original`
+ * leads because "keep what I gave you" is the safe default.
+ */
+const FORMAT_LABELS: Record<OutputFormatChoice, string> = {
+  original: "保持原格式",
+  jpg: "转为 JPG",
+  png: "转为 PNG",
+  webp: "转为 WebP",
+  tiff: "转为 TIFF",
+  avif: "转为 AVIF",
+};
+
+const FORMAT_CHOICES: readonly OutputFormatChoice[] = [
+  "original",
+  ...OUTPUT_FORMATS,
+];
 
 /**
  * ParameterPanel - Control panel for processing parameters with Tab switching
@@ -57,9 +77,9 @@ export function ParameterPanel({
   const [removeMetadata, setRemoveMetadata] = useState<boolean>(
     params.compression?.removeMetadata ?? true,
   );
-  const [outputFormat, setOutputFormat] = useState<
-    "jpg" | "png" | "webp" | "original"
-  >(params.format || "original");
+  const [outputFormat, setOutputFormat] = useState<OutputFormatChoice>(
+    params.format || "original",
+  );
   // Off by default: a format conversion writes next to the original, where a
   // same-name target may be a file the user created themselves (P0-2).
   const [overwriteExisting, setOverwriteExisting] = useState<boolean>(
@@ -231,16 +251,13 @@ export function ParameterPanel({
           </button>
           {activeTab === "format" && (
             <div className="tab-dropdown">
-              {(["original", "jpg", "png", "webp"] as const).map((format) => (
+              {FORMAT_CHOICES.map((format) => (
                 <button
                   key={format}
                   className={`dropdown-item ${outputFormat === format ? "active" : ""}`}
                   onClick={() => { setOutputFormat(format); setActiveTab(null); }}
                 >
-                  {format === "original" && "保持原格式"}
-                  {format === "jpg" && "转为 JPG"}
-                  {format === "png" && "转为 PNG"}
-                  {format === "webp" && "转为 WebP"}
+                  {FORMAT_LABELS[format]}
                 </button>
               ))}
 

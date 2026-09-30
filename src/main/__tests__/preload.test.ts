@@ -24,6 +24,7 @@ jest.mock('electron', () => ({
 
 // Import after mocking
 import '../preload';
+import { INPUT_FORMATS, OUTPUT_FORMATS } from '../formats';
 
 describe('IPC Parameter Validation', () => {
   let electronAPI: any;
@@ -91,7 +92,20 @@ describe('IPC Parameter Validation', () => {
 
     it('should reject file with invalid format', () => {
       const invalidFile = { ...validFile, format: 'bmp' };
-      expect(() => electronAPI.processImages([invalidFile], validParams)).toThrow('format must be one of: jpg, png, webp');
+      expect(() => electronAPI.processImages([invalidFile], validParams)).toThrow(
+        `format must be one of: ${INPUT_FORMATS.join(', ')}`,
+      );
+    });
+
+    it('should accept a readable-only format (gif) on an input file', async () => {
+      const gifFile = {
+        ...validFile,
+        path: '/path/to/animation.gif',
+        relativePath: 'animation.gif',
+        format: 'gif'
+      };
+      await electronAPI.processImages([gifFile], validParams);
+      expect(mockInvoke).toHaveBeenCalled();
     });
 
     it('should reject file with negative size', () => {
@@ -167,7 +181,23 @@ describe('IPC Parameter Validation', () => {
 
     it('should reject invalid format', () => {
       const params = { format: 'bmp' };
-      expect(() => electronAPI.processImages([validFile], params)).toThrow('format must be one of: jpg, png, webp');
+      expect(() => electronAPI.processImages([validFile], params)).toThrow(
+        `format must be one of: ${OUTPUT_FORMATS.join(', ')}`,
+      );
+    });
+
+    it('should reject gif as a target format (readable but not encodable)', () => {
+      const params = { format: 'gif' };
+      expect(() => electronAPI.processImages([validFile], params)).toThrow(
+        `format must be one of: ${OUTPUT_FORMATS.join(', ')}`,
+      );
+    });
+
+    it('should accept every target format in OUTPUT_FORMATS', async () => {
+      for (const format of OUTPUT_FORMATS) {
+        await electronAPI.processImages([validFile], { format });
+      }
+      expect(mockInvoke).toHaveBeenCalledTimes(OUTPUT_FORMATS.length);
     });
 
     it('should accept valid format', async () => {

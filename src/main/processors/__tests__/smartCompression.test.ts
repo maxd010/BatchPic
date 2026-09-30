@@ -13,7 +13,14 @@
  */
 
 import { SMART_COMPRESSION_MAP } from '../constants';
+import { OUTPUT_FORMATS } from '../../formats';
 import type { SmartCompressionConfig } from '../../types';
+
+/**
+ * 映射表必须覆盖每一个可编码的输出格式，外加 unknown 兜底键。
+ * 不要写死列表 —— 格式清单的唯一事实来源是 `src/main/formats.ts`。
+ */
+const EXPECTED_MAP_KEYS = [...OUTPUT_FORMATS, 'unknown'] as const;
 
 describe('Smart Compression Algorithm', () => {
   describe('getSmartCompressionConfig - Format Quality Mapping', () => {
@@ -89,7 +96,7 @@ describe('Smart Compression Algorithm', () => {
      * Validates: Requirements 2.7, 9.1-9.4
      */
     test('should set removeMetadata to true for all formats', () => {
-      const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
+      const formats = EXPECTED_MAP_KEYS;
       
       formats.forEach((format) => {
         const config = SMART_COMPRESSION_MAP[format];
@@ -101,7 +108,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: All quality values are within valid range
      */
     test('should have quality values within valid range (1-100)', () => {
-      const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
+      const formats = EXPECTED_MAP_KEYS;
       
       formats.forEach((format) => {
         const config = SMART_COMPRESSION_MAP[format];
@@ -114,7 +121,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: Configuration structure is complete
      */
     test('should have complete configuration for each format', () => {
-      const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
+      const formats = EXPECTED_MAP_KEYS;
       
       formats.forEach((format) => {
         const config = SMART_COMPRESSION_MAP[format];
@@ -171,9 +178,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: Configuration map has all required formats
      */
     test('should have configuration for all required formats', () => {
-      const requiredFormats = ['jpg', 'png', 'webp', 'unknown'];
-      
-      requiredFormats.forEach((format) => {
+      EXPECTED_MAP_KEYS.forEach((format) => {
         expect(SMART_COMPRESSION_MAP).toHaveProperty(format);
       });
     });
@@ -182,10 +187,9 @@ describe('Smart Compression Algorithm', () => {
      * Test: No extra formats in configuration
      */
     test('should only contain expected formats', () => {
-      const expectedFormats = ['jpg', 'png', 'webp', 'unknown'];
       const actualFormats = Object.keys(SMART_COMPRESSION_MAP);
       
-      expect(actualFormats.sort()).toEqual(expectedFormats.sort());
+      expect(actualFormats.sort()).toEqual([...EXPECTED_MAP_KEYS].sort());
     });
 
     /**
@@ -217,7 +221,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: Configuration matches SmartCompressionConfig type
      */
     test('should match SmartCompressionConfig type structure', () => {
-      const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
+      const formats = EXPECTED_MAP_KEYS;
       
       formats.forEach((format) => {
         const config: SmartCompressionConfig = SMART_COMPRESSION_MAP[format];
@@ -235,7 +239,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: Format field matches key
      */
     test('should have format field matching the map key', () => {
-      const formats = ['jpg', 'png', 'webp'] as const;
+      const formats = OUTPUT_FORMATS;
       
       formats.forEach((format) => {
         const config = SMART_COMPRESSION_MAP[format];
@@ -253,7 +257,7 @@ describe('Smart Compression Algorithm', () => {
      * 这里测试配置是否提供了足够的信息用于日志记录
      */
     test('should provide sufficient data for logging', () => {
-      const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
+      const formats = EXPECTED_MAP_KEYS;
       
       formats.forEach((format) => {
         const config = SMART_COMPRESSION_MAP[format];
@@ -276,7 +280,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: Log message format is consistent
      */
     test('should generate consistent log messages for all formats', () => {
-      const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
+      const formats = EXPECTED_MAP_KEYS;
       const logMessages: string[] = [];
       
       formats.forEach((format) => {
@@ -297,7 +301,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: Smart compression config can be used with CompressionParams
      */
     test('should be compatible with CompressionParams interface', () => {
-      const formats = ['jpg', 'png', 'webp'] as const;
+      const formats = OUTPUT_FORMATS;
       
       formats.forEach((format) => {
         const config = SMART_COMPRESSION_MAP[format];
@@ -317,7 +321,7 @@ describe('Smart Compression Algorithm', () => {
      * Test: Quality values are valid for Sharp library
      */
     test('should provide quality values compatible with Sharp', () => {
-      const formats = ['jpg', 'png', 'webp', 'unknown'] as const;
+      const formats = EXPECTED_MAP_KEYS;
       
       formats.forEach((format) => {
         const config = SMART_COMPRESSION_MAP[format];
@@ -358,7 +362,7 @@ describe('Smart Compression Algorithm', () => {
       // 验证配置对象的大小合理
       const configCount = Object.keys(SMART_COMPRESSION_MAP).length;
       
-      expect(configCount).toBe(4); // jpg, png, webp, unknown
+      expect(configCount).toBe(EXPECTED_MAP_KEYS.length); // 每个可编码格式 + unknown
       
       // 每个配置对象只有 3 个字段
       Object.values(SMART_COMPRESSION_MAP).forEach((config) => {

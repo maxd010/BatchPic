@@ -74,7 +74,17 @@
 
 # 增强功能
 
-## 添加更多常用格式图片的支持
+## ~~添加更多常用格式图片的支持~~ ✅ 2026-09-30
+
+已在 `src/main/formats.ts` 建立格式注册表，边界只此一处：
+
+- **可读入**：JPG、PNG、WebP、TIFF、GIF、AVIF
+- **可输出**：JPG、PNG、WebP、TIFF、AVIF
+- **未增加任何依赖**——这些编解码器 sharp 的预编译包里本来就有（mozjpeg / libpng / libwebp /
+  aom+libheif / libtiff / cgif），此前只是被硬编码的 `"jpg" | "png" | "webp"` 联合类型挡住了。
+- 两条刻意的取舍：**GIF 只读不写**（cgif 没有 quality 参数，放开会让压缩档位静默失效，
+  选「保持原格式」时落到 PNG）；**SVG 不纳入**（没有魔数，现有的内容校验挡不住伪装文件，且是矢量）。
+- 仍未覆盖：HEIC（预编译 libheif 只登记 `.avif`）、相机 RAW、BMP/ICO/TGA/EXR。
 
 ## 设置项
   

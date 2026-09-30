@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DropZone } from '../DropZone';
+import { INPUT_FORMATS } from '../../../main/formats';
 
 describe('DropZone', () => {
   test('renders empty state when isEmpty is true', () => {
@@ -15,8 +16,12 @@ describe('DropZone', () => {
 
     // Check for empty state text (Requirement 7.3)
     expect(screen.getByText('拖入图片，马上处理')).toBeInTheDocument();
-    expect(screen.getByText('支持 JPG、PNG、WEBP 格式')).toBeInTheDocument();
-    expect(screen.getByText('可拖入单个文件或整个文件夹')).toBeInTheDocument();
+    expect(screen.getByText('或点击此处选择文件')).toBeInTheDocument();
+    // One tag per readable format. Driven off the registry so adding a format
+    // cannot leave this list behind.
+    for (const format of INPUT_FORMATS) {
+      expect(screen.getByText(format.toUpperCase())).toBeInTheDocument();
+    }
   });
 
   test('renders loaded state when isEmpty is false', () => {
@@ -32,7 +37,7 @@ describe('DropZone', () => {
 
     // Check for loaded state text
     expect(screen.getByText('已选择 5 张图片')).toBeInTheDocument();
-    expect(screen.getByText('拖入更多文件以添加到批次')).toBeInTheDocument();
+    expect(screen.getByText('点击或拖入更多文件以添加到批次')).toBeInTheDocument();
   });
 
   test('shows dragging state on drag enter', () => {
